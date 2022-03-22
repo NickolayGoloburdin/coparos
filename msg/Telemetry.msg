@@ -1,0 +1,13 @@
+float64 lat
+float64 lon
+float32 gps_height
+float32 hAcc
+float32 IMU_PITCH
+float32 IMU_ROLL
+float32 IMU_YAW
+float32 rateX
+float32 rateY
+float32 rateZ
+float32 ALTITUDE
+float32 presAltOffsetAtGround                             
+float32 altitudeMS

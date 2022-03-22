@@ -1,0 +1,16 @@
+<launch>
+<arg name="takeoff_height" default="10"/>
+
+<arg name="ls_device" default="/dev/ttyS0"/>
+    <arg name="ls_boud" default="115200"/>
+    <arg name="hs_device" default="/dev/ttyTHS1"/>
+    <arg name="hs_boud" default="921600"/>
+  <node name="telemetry_handler" pkg="coparos" type="coparos_telemetry_node" />
+   <node name="command_handler" pkg="coparos" type="coparos_command_node" />
+   <node name="services_handler" pkg="coparos" type="coparos_services_node" />
+   <node name="mission_handler" pkg="coparos" type="mission_handler.py" />
+        <param name="ls_port" value="$(arg ls_device)"/>
+        <param name="ls_boud" value="$(arg ls_boud)"/>
+        <param name="hs_port" value="$(arg hs_device)"/>
+        <param name="hs_boud" value="$(arg hs_boud)"/>
+</launch>
