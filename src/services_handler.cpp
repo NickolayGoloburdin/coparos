@@ -20,7 +20,7 @@ public:
   ros::ServiceServer service_start_mission;
   ros::ServiceServer service_clear_mission;
   ServiceHandler(ros::NodeHandle *nh) : n(nh) {
-    cmd_pub_ = n->advertise<coparos::Command>("/Command", 1000);
+    cmd_pub_ = n->advertise<coparos::Command>("/command", 1000);
     service_arm = n->advertiseService("Arm", &ServiceHandler::arm, this);
     service_disarm =
         n->advertiseService("Disarm", &ServiceHandler::disarm, this);
@@ -36,7 +36,7 @@ public:
     service_clear_mission = n->advertiseService(
         "Clear_mission", &ServiceHandler::clear_mission, this);
     ack_processor =
-        n->subscribe("/Ack", 1000, &ServiceHandler::callback_ack, this);
+        n->subscribe("/ack", 1000, &ServiceHandler::callback_ack, this);
   }
   void callback_ack(const coparos::Ack msg) { ack_msg = msg; }
   bool arm(coparos::Service_command::Request &req,
@@ -45,7 +45,7 @@ public:
     ROS_INFO("ARMING");
     msg.command = CMD_NAV_MOTORS_ON;
     cmd_pub_.publish(msg);
-    auto ack = ros::topic::waitForMessage<coparos::Ack>("/Ack", *n,
+    auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
                                                         ros::Duration(0.1));
     if (ack) {
       if (ack->command == CMD_NAV_MOTORS_ON) {
@@ -75,7 +75,7 @@ public:
     ROS_INFO("DISARMING");
     msg.command = CMD_NAV_MOTORS_OFF;
     cmd_pub_.publish(msg);
-    auto ack = ros::topic::waitForMessage<coparos::Ack>("/Ack", *n,
+    auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
                                                         ros::Duration(0.1));
     if (ack) {
       if (ack->command == uint16_t(CMD_NAV_MOTORS_OFF)) {
@@ -104,7 +104,7 @@ public:
     ROS_INFO("TAKING OFF");
     msg.command = CMD_NAV_TAKE_OFF;
     cmd_pub_.publish(msg);
-    auto ack = ros::topic::waitForMessage<coparos::Ack>("/Ack", *n,
+    auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
                                                         ros::Duration(0.1));
     if (ack) {
       if (ack->command == uint16_t(CMD_NAV_TAKE_OFF)) {
@@ -133,7 +133,7 @@ public:
     ROS_INFO("LANDING");
     msg.command = CMD_NAV_TO_LAND;
     cmd_pub_.publish(msg);
-    auto ack = ros::topic::waitForMessage<coparos::Ack>("/Ack", *n,
+    auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
                                                         ros::Duration(0.1));
     if (ack) {
       if (ack->command == uint16_t(CMD_NAV_TO_LAND)) {
@@ -163,7 +163,7 @@ public:
     ROS_INFO("Returning to launch");
     msg.command = CMD_NAV_GOTO_HOME;
     cmd_pub_.publish(msg);
-    auto ack = ros::topic::waitForMessage<coparos::Ack>("/Ack", *n,
+    auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
                                                         ros::Duration(0.1));
     if (ack) {
       if (ack->command == uint16_t(CMD_NAV_GOTO_HOME)) {
@@ -192,7 +192,7 @@ public:
     ROS_INFO("Stopping");
     msg.command = CMD_NAV_STOP_MOTION;
     cmd_pub_.publish(msg);
-    auto ack = ros::topic::waitForMessage<coparos::Ack>("/Ack", *n,
+    auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
                                                         ros::Duration(0.1));
     if (ack) {
       if (ack->command == uint16_t(CMD_NAV_STOP_MOTION)) {
@@ -221,7 +221,7 @@ public:
     ROS_INFO("Continue");
     msg.command = CMD_NAV_CONTINUE_MOTION;
     cmd_pub_.publish(msg);
-    auto ack = ros::topic::waitForMessage<coparos::Ack>("/Ack", *n,
+    auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
                                                         ros::Duration(0.1));
     if (ack) {
       if (ack->command == uint16_t(CMD_NAV_CONTINUE_MOTION)) {
@@ -250,7 +250,7 @@ public:
     ROS_INFO("Starting 1 click mission");
     msg.command = CMD_EXEC_SWITCH_N;
     cmd_pub_.publish(msg);
-    auto ack = ros::topic::waitForMessage<coparos::Ack>("/Ack", *n,
+    auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
                                                         ros::Duration(0.1));
     if (ack) {
       if (ack->command == uint16_t(CMD_EXEC_SWITCH_N)) {
@@ -279,7 +279,7 @@ public:
     ROS_INFO("Cleaning mission");
     msg.command = CMD_NAV_CLEAR_WP;
     cmd_pub_.publish(msg);
-    auto ack = ros::topic::waitForMessage<coparos::Ack>("/Ack", *n,
+    auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
                                                         ros::Duration(0.1));
     if (ack) {
       if (ack->command == uint16_t(CMD_NAV_CLEAR_WP)) {

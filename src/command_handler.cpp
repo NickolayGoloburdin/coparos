@@ -27,14 +27,14 @@ COPA::COPA(AbstractLink *link, ros::NodeHandle *nh) : link_(link) {
   FC_ID = 0x0fff;
   GCS_ID = 0x4001;
   NewTarget = 0;
-  ack_pub_ = nh->advertise<coparos::Ack>("/Ack", 1000);
-  status_pub_ = nh->advertise<std_msgs::String>("/Status", 1000);
-  drone_info_pub_ = nh->advertise<coparos::DroneInfo>("/DroneInfo", 1000);
+  ack_pub_ = nh->advertise<coparos::Ack>("/ack", 1000);
+  status_pub_ = nh->advertise<std_msgs::String>("/status", 1000);
+  drone_info_pub_ = nh->advertise<coparos::DroneInfo>("/droneInfo", 1000);
   mission_point_request_pub_ =
       nh->advertise<std_msgs::Int16>("/mission_request", 1000);
-  command_sub_ = nh->subscribe("/Command", 1000, &COPA::callback_command, this);
+  command_sub_ = nh->subscribe("/command", 1000, &COPA::callback_command, this);
   mission_point_sub_ =
-      nh->subscribe("/MissionPoint", 1000, &COPA::callback_mission_point, this);
+      nh->subscribe("/missionPoint", 1000, &COPA::callback_mission_point, this);
   nh->getParam("/takeoff_height", takeoff_height);
 }
 COPA::~COPA() {}

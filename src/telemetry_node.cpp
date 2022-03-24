@@ -18,12 +18,8 @@ int main(int argc, char **argv) {
   ros::init(argc, argv, "telemetry_reader");
   ros::NodeHandle nh;
 
-  nh.getParam("/hs_port", hs_device);
-
-  nh.getParam("/hs_baud", hs_baud);
-
   // ros::Subscriber write_sub = nh.subscribe("write", 1000, write_callback);
-  SerialLink *link_hs = new SerialLink(hs_device, hs_baud);
+  SerialLink *link_hs = new SerialLink("/dev/ttyUSB0", 921600);
   TelemetryHandler_ACO *handler = new TelemetryHandler_ACO(link_hs, &nh);
   link_hs->up();
   handler->ACOTelemOnOff(1);
