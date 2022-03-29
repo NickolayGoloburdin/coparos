@@ -75,5 +75,8 @@ class MissionHandler:
         return True
 if __name__ == '__main__':
     rospy.init_node('Mission_handler')
+    realtime = rospy.get_param("/realtime")
+    if not realtime:
+        exit()
     MissionHandler()
     rospy.spin()
