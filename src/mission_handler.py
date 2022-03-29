@@ -75,7 +75,7 @@ class MissionHandler:
         return True
 if __name__ == '__main__':
     rospy.init_node('Mission_handler')
-    realtime = rospy.get_param("/realtime")
+    realtime = rospy.get_param("/realtime",False)
     if not realtime:
         exit()
     MissionHandler()

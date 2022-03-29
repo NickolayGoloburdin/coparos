@@ -15,8 +15,6 @@ void write_callback(const std_msgs::String::ConstPtr &msg) {
 }
 
 int main(int argc, char **argv) {
-  std::string ls_device, hs_device;
-  int ls_baud, hs_baud;
   bool realtime;
   ros::init(argc, argv, "command_node");
   ros::NodeHandle nh;
@@ -28,7 +26,7 @@ int main(int argc, char **argv) {
   // ros::Subscriber write_sub = nh.subscribe("write", 1000, write_callback);
   //  ros::Publisher read_pub = nh.advertise<coparos::Telemetry>("Telemetry",
   //  1000);
-  SerialLink *link_ls = new SerialLink("/dev/ttyTHS1", ls_baud);
+  SerialLink *link_ls = new SerialLink("/dev/ttyTHS1", 115200);
 
   COPA *copa = new COPA(link_ls, &nh);
   link_ls->up();
