@@ -13,11 +13,14 @@
 
 int main(int argc, char **argv) {
   std::string ls_device, hs_device;
-  int ls_baud, hs_baud;
+  bool realtime;
 
   ros::init(argc, argv, "telemetry_reader");
   ros::NodeHandle nh;
-
+  nh.getParam("/realtime", realtime);
+  if (!realtime) {
+    return 0;
+  }
   // ros::Subscriber write_sub = nh.subscribe("write", 1000, write_callback);
   SerialLink *link_hs = new SerialLink("/dev/ttyUSB0", 921600);
   TelemetryHandler_ACO *handler = new TelemetryHandler_ACO(link_hs, &nh);
