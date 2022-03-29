@@ -17,9 +17,14 @@ void write_callback(const std_msgs::String::ConstPtr &msg) {
 int main(int argc, char **argv) {
   std::string ls_device, hs_device;
   int ls_baud, hs_baud;
-
+  bool realtime;
   ros::init(argc, argv, "command_node");
   ros::NodeHandle nh;
+  
+  nh.getParam("/realtime", realtime);
+  if (!realtime) {
+    return 0;
+  }
   // ros::Subscriber write_sub = nh.subscribe("write", 1000, write_callback);
   //  ros::Publisher read_pub = nh.advertise<coparos::Telemetry>("Telemetry",
   //  1000);
