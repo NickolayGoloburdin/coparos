@@ -21,16 +21,17 @@ void write_callback(const std_msgs::String::ConstPtr &msg) {
 
 int main(int argc, char **argv) {
   bool realtime;
+  // Инициализация РОС ноды коммуникации
   ros::init(argc, argv, "command_node");
   ros::NodeHandle nh;
-  
+
   nh.getParam("/realtime", realtime);
   if (!realtime) {
     return 0;
   }
-  
+  //Инициализация модуля связи по последовательному порту
   SerialLink *link_ls = new SerialLink("/dev/ttyTHS1", 115200);
-
+  //Инициализация модуля коммуникации
   COPA *copa = new COPA(link_ls, &nh);
   //Запуск модуля свзяи
   link_ls->up();
