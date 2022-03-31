@@ -1,4 +1,9 @@
-
+/*
+ * command_node.cpp
+ *
+ *  Created on: 10 марта. 2022 г.
+ *      Author: Nickolay
+ */
 #include "command_handler.h"
 #include "serial_link.h"
 #include "telemetry_handler.h"
@@ -9,34 +14,28 @@
 #include <serial/serial.h>
 #include <std_msgs/Empty.h>
 #include <std_msgs/String.h>
-void write_callback(const std_msgs::String::ConstPtr &msg) {
-  //   ROS_INFO_STREAM("Writing to serial port" << msg->data);
-  //   ser.write(msg->data);
-}
 
 int main(int argc, char **argv) {
-  std::string ls_device, hs_device;
-  int ls_baud, hs_baud;
 
+  // Инициализация РОС ноды коммуникации
   ros::init(argc, argv, "command_node");
   ros::NodeHandle nh;
-  // ros::Subscriber write_sub = nh.subscribe("write", 1000, write_callback);
-  //  ros::Publisher read_pub = nh.advertise<coparos::Telemetry>("Telemetry",
-  //  1000);
-  SerialLink *link_ls = new SerialLink("/dev/ttyTHS1", ls_baud);
-
+  //Инициализация модуля связи по последовательному порту
+  SerialLink *link_ls = new SerialLink("/dev/ttyTHS1", 115200);
+  //Создание класса коммуникации
   COPA *copa = new COPA(link_ls, &nh);
+  //Запуск модуля свзяи
   link_ls->up();
+  //Выставление пресетов для получения параметров с коптера
   copa->Preset_Set_Param();
-  // ros::ServiceServer service =
-  //     nh.advertiseService("ArmDisarm", &COPA::ArmDisarmFunc, copa);
+  //Выставление частоты обработки команд с коптера
   ros::Rate loop_rate(100);
   while (ros::ok()) {
-
+    // Чтение и парсинг входных данных с коптера
     copa->parseFunc();
-
+    // Обновление состояния ноды
     ros::spinOnce();
-
+    // Засыпание ноды
     loop_rate.sleep();
   }
 }

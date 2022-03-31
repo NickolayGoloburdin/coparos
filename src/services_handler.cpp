@@ -3,23 +3,27 @@
 #include "ros/ros.h"
 #include <coparos/Ack.h>
 #include <coparos/Command.h>
+// Класс для работы сервисов передачи команд и миссий в коптер
 class ServiceHandler {
 public:
-  ros::Publisher cmd_pub_;
-  ros::NodeHandle *n;
-  coparos::Command msg;
-  coparos::Ack ack_msg;
-  ros::Subscriber ack_processor;
-  ros::ServiceServer service_arm;
-  ros::ServiceServer service_disarm;
-  ros::ServiceServer service_takeoff;
-  ros::ServiceServer service_land;
-  ros::ServiceServer service_rtl;
-  ros::ServiceServer service_stop;
-  ros::ServiceServer service_continue_flight;
-  ros::ServiceServer service_start_mission;
-  ros::ServiceServer service_clear_mission;
+  ros::Publisher
+      cmd_pub_; //Издатель для отправки команд в модуль коммуникации с коптером
+  ros::NodeHandle *n; //Указатель на ноду РОС
+  coparos::Command
+      msg; //Сообщение РОС для хранения отпраленной на коптер команды
+  coparos::Ack ack_msg; //Сообщения для храниния ответа на команду с коптера
+  ros::Subscriber ack_processor; // Подписчик на ответы с коптера
+  ros::ServiceServer service_arm; //Сервис для снятия коптера с предохранителя
+  ros::ServiceServer service_disarm; //Сервис для выключения двигателей
+  ros::ServiceServer service_takeoff; //Сервис взлета
+  ros::ServiceServer service_land;    //Сервис посадки
+  ros::ServiceServer service_rtl; //Сервис включения режима Возврат домой
+  ros::ServiceServer service_stop; //Сервис остановки
+  ros::ServiceServer service_continue_flight; //Сервис продолжения полета
+  ros::ServiceServer service_start_mission; //Сервис запуска миссии
+  ros::ServiceServer service_clear_mission; //Сервис очистки миссии
   ServiceHandler(ros::NodeHandle *nh) : n(nh) {
+    //Инициализация сервисо и подписчиков РОС
     cmd_pub_ = n->advertise<coparos::Command>("/command", 1000);
     service_arm = n->advertiseService("Arm", &ServiceHandler::arm, this);
     service_disarm =
@@ -38,10 +42,14 @@ public:
     ack_processor =
         n->subscribe("/ack", 1000, &ServiceHandler::callback_ack, this);
   }
-  void callback_ack(const coparos::Ack msg) { ack_msg = msg; }
+  void callback_ack(const coparos::Ack msg) {
+    ack_msg = msg;
+  } //Функция обработчик ответа с коптера
   bool arm(coparos::Service_command::Request &req,
            coparos::Service_command::Response &res) {
-
+    //Каждый сервис работает по принципу
+    // 1. Отправил команду на коптер 2. Получил ответ об обработке команды 3.
+    // Вывел ответ об успешности выполнения команды
     ROS_INFO("ARMING");
     msg.command = CMD_NAV_MOTORS_ON;
     cmd_pub_.publish(msg);

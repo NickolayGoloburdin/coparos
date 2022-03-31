@@ -1,8 +1,8 @@
 /*
- * copa_c
- *  Приём и отправка навигационных данных коптеру и от коптера
- *  Created on: 19 сент. 2019 г.
- *      Author: Grafenkov A. V.
+ * telemetry_handler.cpp
+ *
+ *  Created on: 10 марта. 2022 г.
+ *      Author: Nickolay
  */
 /************************************************************************************/
 
@@ -24,6 +24,7 @@ TelemetryHandler_ACO::TelemetryHandler_ACO(AbstractLink *link,
 }
 
 TelemetryHandler_ACO::~TelemetryHandler_ACO() {}
+// Подсчет контрольной суммы исходящего пакета
 void TelemetryHandler_ACO::ACO_CRC_calc() {
   uint8_t CRC_A = 0;
   uint8_t CRC_B = 0;
@@ -34,6 +35,7 @@ void TelemetryHandler_ACO::ACO_CRC_calc() {
   OutBuff[OutSize - 2] = CRC_A;
   OutBuff[OutSize - 1] = CRC_B;
 }
+//Метод для парсинга входящих данных
 void TelemetryHandler_ACO::parseFunc() {
 
   unsigned char *buf;
@@ -58,20 +60,20 @@ void TelemetryHandler_ACO::ACO_Parse_Byte(uint8_t byte_, uint16_t &InSize,
                                           uint8_t *InBuff) {
   switch (InSize) {
   case 0:
-    if (byte_ == ACOMAGIC1) { //читаю первый байт A
+    if (byte_ == ACOMAGIC1) { //чтение первого байта A
       InBuff[InSize++] = byte_;
       CRC_A = 0;
       CRC_B = 0;
     };
     break;
   case 1:
-    if (byte_ == ACOMAGIC2) { //читаю второй байт C
+    if (byte_ == ACOMAGIC2) { //чтение второго байта C
       InBuff[InSize++] = byte_;
     } else
       InSize = 0;
     break;
   case 2:
-    if (byte_ == ACOMAGIC3) { //читаю третий байт O
+    if (byte_ == ACOMAGIC3) { //чтение трктьего байта O
       InBuff[InSize++] = byte_;
       CRC_A = 0;
       CRC_B = 0;
@@ -80,13 +82,13 @@ void TelemetryHandler_ACO::ACO_Parse_Byte(uint8_t byte_, uint16_t &InSize,
     break;
   case 3:
     InBuff[InSize++] = byte_; //количество байт пакета - начало
-    CRC_A += byte_; //тут начинаю считать контрольную сумму
+    CRC_A += byte_;           //подсчет контрольной суммы
     CRC_B += CRC_A;
     PackLen_ = byte_;
     /*проверяю на корректность полученной длины*/
     if ((PackLen_ < 4) || (PackLen_ > (ACO_BUF_MAX_LENGTH - 4)))
       InSize =
-          0; //если размер будущего пакета не корректный то прекращаю читать
+          0; //если размер будущего пакета не корректный то чтение прекращается
     break;
   default:
     InBuff[InSize++] = byte_;
@@ -95,11 +97,11 @@ void TelemetryHandler_ACO::ACO_Parse_Byte(uint8_t byte_, uint16_t &InSize,
       CRC_B += CRC_A;
     } else {
       if (InSize >= (PackLen_ + 4)) {
-        // Packet received
+
         if ((InBuff[InSize - 2] == CRC_A) && (InBuff[InSize - 1] == CRC_B)) {
           PackRec((Header_t *)InBuff, &(InBuff[7]));
 
-          InSize = 0; //сбросить счётчик, он больше не нужен
+          InSize = 0; //сброс счетчика
         };
       }
     }
@@ -113,22 +115,26 @@ void TelemetryHandler_ACO::PackRec(Header_t *header, void *body) {
   switch (header->commandType) {
   case OF_CMD_ACK: //ответ подтверждение
     break;
-  case OF_CMD_FLOW: // OFM => FC это команда коптеру поэтому тут её
-    //игнорирую
+  case OF_CMD_FLOW: // OFM => FC это команда коптеру п
     break;
   case OF_CMD_TELEM:
     // FC => OFM пакет пришёл от коптера
+    // Создание сообщений телемтрии для отправки в топики РОС
     Telemetry_data_t Telemetry_data;
     memcpy(&Telemetry_data, body, sizeof(Telemetry_data_t));
-
+    //Создание сообщений спутниковой системы, инерциальной и барометра
     std_msgs::Float32 baro_msg;
     sensor_msgs::NavSatFix gps_msg;
     sensor_msgs::Imu imu_msg;
+    //Выставление данных шапки сообщения: Времени и фрейма
     gps_msg.header.frame_id = "Global_frame";
     gps_msg.header.stamp = ros::Time::now();
+    //Заполнение полей сообщения
     gps_msg.latitude = Telemetry_data.lat;
     gps_msg.longitude = Telemetry_data.lon;
     gps_msg.altitude = Telemetry_data.gps_height;
+    //Выставление статуса данных спутников, если связи ссо спутниками нет статус
+    //-1, если есть то 0
     if (Telemetry_data.lat == 0 || Telemetry_data.lon == 0)
       gps_msg.status.status = -1;
     else
@@ -142,12 +148,13 @@ void TelemetryHandler_ACO::PackRec(Header_t *header, void *body) {
     imu_msg.header.frame_id = "local_frame";
     imu_msg.header.stamp = ros::Time::now();
     tf2::Quaternion myQuaternion;
+    //Перевод данных инерциальной системы из углов эйлера в кватернион
     myQuaternion.setRPY(Telemetry_data.IMU_PITCH, Telemetry_data.IMU_ROLL,
                         Telemetry_data.IMU_YAW);
     myQuaternion.normalize();
     geometry_msgs::Quaternion quat_msg;
     quat_msg = tf2::toMsg(myQuaternion);
-    // or for the other conversion direction
+    //Заполнение полей сообщения телеметрии
     imu_msg.orientation = quat_msg;
     imu_msg.orientation_covariance[0] = -1;
     imu_msg.angular_velocity.x = Telemetry_data.rateX;
@@ -159,6 +166,7 @@ void TelemetryHandler_ACO::PackRec(Header_t *header, void *body) {
     // msg.rateZ = Telemetry_data.rateZ;
     // msg.ALTITUDE = Telemetry_data.ALTITUDE;
     baro_msg.data = Telemetry_data.ALTITUDE;
+    //Отправка сообщений в топики РОС
     baro_pub_.publish(baro_msg);
     gps_pub_.publish(gps_msg);
     imu_pub_.publish(imu_msg);
@@ -168,7 +176,7 @@ void TelemetryHandler_ACO::PackRec(Header_t *header, void *body) {
   }
 }
 
-/*******************собираю пакет для
+/*******************сборка пакет для
  * отправки*************************************/
 void TelemetryHandler_ACO::ACOPacketMake(uint8_t comand, void *body,
                                          uint8_t bodylen) {
@@ -181,8 +189,8 @@ void TelemetryHandler_ACO::ACOPacketMake(uint8_t comand, void *body,
       2; //размер полезной нагрузки плюс заголовок кроме 3 байт идентификатора
   Hdr->packetNumber = packetNumber++;
   Hdr->commandType = comand; //тип команды
-  if (bodylen) //если полезная нагрузка не пустая то присоединяю полезную
-               //нагрузку
+  if (bodylen) //если полезная нагрузка не пустая то присоединяется полезная
+               //нагрузка
     memcpy(&(OutBuff[sizeof(Header_t)]), body, bodylen);
   OutSize = sizeof(Header_t) + bodylen +
             2; //длинна всего пакета плюс 2 байта контрольной суммы
