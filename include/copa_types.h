@@ -1,8 +1,8 @@
 ﻿/*
  * copa_types.h
  *
- *  Created on: 5 сент. 2019 г.
- *      Author: User
+ *  Created on: 10 марта. 2022 г.
+ *      Author: Nickolay
  */
 
 #ifndef COPA_TYPES_H_
@@ -57,32 +57,6 @@
 //#define  OTI_NOGPS_VIRT_POLE   11          // лететь на цель в виртуальном
 //поле
 /*
-#define  OTI_NOGPS_GPS_OFF    100          //отправить команду выключить GPS
-#define  OTI_NOGPS_GPS_ON     101          //отправить команду включить GPS
-#define  OTI_NOGPS_IMPULS_OFF 102          //Режим импульс GPS
-#define  OTI_NOGPS_IMPULS_ON  103          //отправить команду включить GPS
-
-#define  OTI_NOGPS_GOTOHOME   104          //отправить команду включить GPS
-после ответа отправить в точку ДОМ #define  OTI_NOGPS_GOTOHOME2  105 //Отправляю
-в точку дом #define  OTI_NOGPS_IMPULS_2   106          //Режим импульс
-подставные координаты #define  OTI_NOGPS_GPSKILL    107          //включить
-глушилку #define  OTI_NOGPS_IMPULS_3   108          //Режим импульс 3 #define
-NOGPS_RUN_VIDEO_REC     110        //запись видео в полёте #define
-NOGPS_RUN_PHOTO_REC     111        //запись фото в полёте #define
-NOGPS_RUN_RESET         112        //прекратить и начать заново обсчёт кадров
-#define  NOGPS_EXIT_PROG         113        //Выключить программу
-#define  NOGPS_OPTIC_ON          114        //0= включить GPS  1=выключить GPS
-параметр byte #define  NOGPS_VIDEO_ON          115        //начать запись видео
-в любом режиме #define  NOGPS_VIDEO_OFF         116        //остановить запись
-видео в любом режиме #define  NOGPS_VIRTUAL_P         117        //Режим
-движения в виртуальном поле. Позже будут подставляться координаты Беклемишева
-#define  NOGPS_VIDEO_CONTROLLER  118        //Режим видео контроллер
-#define  NOGPS_VC_OTVET          119        // Ответ на Режим (видео контроллер)
-с пакетом NOGPS_VC_result_t #define  NOGPS_VP_OTVET          120        //Ответ
-на Режим движения в виртуальном поле. #define  NOGPS_VC_RR_EE          150
-//Ответ на Режим движения в виртуальном поле. #define  OTI_NOGPS_GAM_TET_PSI 155
-//выставить крен тангаж курс на какое то время
-*/
 
 #pragma pack(push, 1)
 typedef struct { //заголовок пакета

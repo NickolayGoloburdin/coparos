@@ -62,29 +62,36 @@ protected:          //номер байта входящего пакета
 
 private:
   /****************заголовок пакета *****************/
-  void ACO_CRC_calc();
-  void ACO_Parse_Byte(uint8_t byte, uint16_t &InSize, uint8_t *InBuff);
-  void PackRec(Header_t *header, void *body);
-  AbstractLink *link_;
+  void ACO_CRC_calc(); //Подсчет контрольной суммы
+  void ACO_Parse_Byte(uint8_t byte, uint16_t &InSize,
+                      uint8_t *InBuff); //Парсер пакета
+  void PackRec(Header_t *header,
+               void *body); //Метод обработки полученного пакета
+  AbstractLink *link_; //Интерфейс предачи данных
 
-  ros::Publisher imu_pub_;
-  ros::Publisher gps_pub_;
-  ros::Publisher baro_pub_;
+  ros::Publisher imu_pub_; //Издатель в РОС, который посылает в топик значения
+                           //инерциальной системы
+  ros::Publisher
+      gps_pub_; //Издатель в РОС, который посылает в топик gps координаты
+  ros::Publisher
+      baro_pub_; //Издатель в РОС, который посылает в топик значения барометра
 
 public:
   void parseFunc();
   TelemetryHandler_ACO(AbstractLink *link, ros::NodeHandle *nh);
   ~TelemetryHandler_ACO();
-  uint8_t OutBuff[ACO_BUF_MAX_LENGTH];
+  uint8_t
+      OutBuff[ACO_BUF_MAX_LENGTH]; //буфер для формирования исходящего пакета
   uint8_t OutSize; //количество байт исходящего пакета
-  uint16_t packetNumber = 0;
+  uint16_t packetNumber = 0; //Номера исходящего пакета
 
-  void sendPacket();
+  void sendPacket(); //Отправить пакет
   void ACOParseBUF(const uint8_t *buffer, size_t size);
   void SetLatLon_NoGPS(); //Отправить подмену координат
   void ACOTelemOnOff(
       uint8_t On_Off); // 0=выключить, 1=включить телеметрию ACO в коптере
-  void ACOPacketMake(uint8_t comand, void *body, uint8_t bodylen);
+  void ACOPacketMake(uint8_t comand, void *body,
+                     uint8_t bodylen); //Конструктор пакета для отправки
 };
 
 #endif // ABSTRACT_LINK_H

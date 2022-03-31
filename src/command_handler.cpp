@@ -1,8 +1,8 @@
 ﻿/*
- * copa.c
+ * command_handler.cpp
  *
- *  Created on: 5 сент. 2019 г.
- *      Author: Grafenkov A.
+ *  Created on: 10 марта. 2022 г.
+ *      Author: Nickolay
  */
 #include "command_handler.h"
 #include "abstract_link.h"
@@ -27,6 +27,8 @@ COPA::COPA(AbstractLink *link, ros::NodeHandle *nh) : link_(link) {
   FC_ID = 0x0fff;
   GCS_ID = 0x4001;
   NewTarget = 0;
+  /*****************Инициализация издателей для отправки данных в топики
+   * РОС*******/
   ack_pub_ = nh->advertise<coparos::Ack>("/ack", 1000);
   status_pub_ = nh->advertise<std_msgs::String>("/status", 1000);
   drone_info_pub_ = nh->advertise<coparos::DroneInfo>("/droneInfo", 1000);
@@ -38,6 +40,7 @@ COPA::COPA(AbstractLink *link, ros::NodeHandle *nh) : link_(link) {
   nh->getParam("/takeoff_height", takeoff_height);
 }
 COPA::~COPA() {}
+//Метод обработчик входящих данных из топика команд
 void COPA::callback_command(const coparos::Command &msg) {
   switch (msg.command) {
   case CMD_NAV_MOTORS_ON:
@@ -70,6 +73,7 @@ void COPA::callback_command(const coparos::Command &msg) {
     CopaExecSwitch_N(1);
   }
 }
+//Метод обработчик точек миссий из топика
 void COPA::callback_mission_point(const coparos::MissionPoint &msg) {
   sMissionPoint point;
   point.targetLat = msg.targetLat;
@@ -92,6 +96,7 @@ void COPA::callback_mission_point(const coparos::MissionPoint &msg) {
   point.type = msg.type;
   Mission_Up(&point);
 }
+//Метод парсинга данных с модуля связи
 void COPA::parseFunc() {
 
   unsigned char *buf;
@@ -143,7 +148,7 @@ void COPA::CopaParseByte(uint8_t b_) {
     break;
   case 3:
     InBuff[ParseInSize++] = b_; //количество байт пакета - начало
-    InCRC_A += b_; //тут начинаю считать контрольную сумму
+    InCRC_A += b_; //Подчсет контрольной суммы
     InCRC_B += InCRC_A;
     break;
   case 4:
@@ -155,7 +160,7 @@ void COPA::CopaParseByte(uint8_t b_) {
     // PackLen_ = e_uint16(((sCoptHdr*)InBuff)->packetLen);
     if ((PackLen_ < 14) || (PackLen_ > (CMD_CONTROL_MAX_PACKET_SIZE - 14)))
       ParseInSize =
-          0; //если размер будущего пакета не корректный то прекращаю читать
+          0; //если размер будущего пакета не корректный то закончить парсинг
     break;
   default:
     InBuff[ParseInSize++] = b_;
@@ -174,8 +179,6 @@ void COPA::CopaParseByte(uint8_t b_) {
           // stat_rx = 1;
           InSize = ParseInSize;
           PacketReceived((sCoptHdr *)InBuff, &(InBuff[19]));
-          // HAL_UART_Transmit_IT(&huart1,(uint8_t*)&"ParseUARTByte\r\n",15);//тэстовая
-          // строка
         };
         ParseInSize = 0;
       }
@@ -221,11 +224,11 @@ void COPA::PacketReceived(sCoptHdr *header, void *body) {
                    //значит коптер на связи
 
       break;
-    case CMD_NAV_CLEAR_WP: {
+    case CMD_NAV_CLEAR_WP: { //Команда очистить миссию в коптере выполнена
       Mission_Nup = 0;
       break;
     }
-    case CMD_NAV_WRITE_POINT: {
+    case CMD_NAV_WRITE_POINT: { // Команда записать точку в коптер выполнена
       std_msgs::Int16 msg;
       Mission_Nup++;
       msg.data = Mission_Nup;
@@ -242,22 +245,6 @@ void COPA::PacketReceived(sCoptHdr *header, void *body) {
   case CMD_FC_TELEM_PRESET_BITMASK: { //ответ с битовой маской настроеного
                                       //пресета
     presetStatSet++;
-
-    // Copa_Cmd_Ack(header);
-    // telemetryParam_t_ telemetryParam;
-    // memcpy(&telemetryParam, body, sizeof(telemetryParam_t_));
-    // if (telemetryParam.presetN == 0) {
-    //   bool key_ = true;
-    //   for (size_t i = 0; i < sizeof(telemetryParam_t_); i++) {
-    //     if (presetParam[0].bitmask[i] != telemetryParam.bitmask[i])
-    //       key_ = false;
-    //   }
-    //   if (key_) {
-    //     presetStatSet = 5;
-    //     Preset_Set_Param();
-    //   }
-    // }
-    // break;
   }
   case CMD_NAV_MOTORS_ON_ANSWER: {
     coparos::Ack msg; //Это команда, подтверждающая получения пакета с ошибочной
@@ -266,63 +253,63 @@ void COPA::PacketReceived(sCoptHdr *header, void *body) {
     bitmask = *(reinterpret_cast<uint32_t *>(body));
     msg.command = CMD_NAV_MOTORS_ON;
     switch (bitmask) {
-    case ERR_PCBM_NONE:
+    case ERR_PCBM_NONE: //Флаг стабильной работы системы
       msg.result = true;
       msg.status = "System ready to start";
       break;
-    case ERR_PCBM_RADIO_QUALITY:
+    case ERR_PCBM_RADIO_QUALITY: //Флаг ошибки радиосвязи
       msg.result = true;
       msg.status = "No fly transmitter";
       break;
-    case ERR_PCBM_THRO_STATE:
+    case ERR_PCBM_THRO_STATE: //Флаг ошибки стика пульта
       msg.result = true;
       msg.status = "Throttle failsafe";
       break;
-    case ERR_PCBM_NAVI_SWITCH:
+    case ERR_PCBM_NAVI_SWITCH: //Флаг ошибки системы навигации
       msg.result = true;
       msg.status = "Transmitter stick in wrong mode";
       break;
-    case ERR_PCBM_ALT_SWITCH:
+    case ERR_PCBM_ALT_SWITCH: //Флаг ошибки барометра
       msg.result = true;
       msg.status = "Transmitter stick in wrong hold pos";
       break;
-    case ERR_PCBM_BATTERY_LOW:
+    case ERR_PCBM_BATTERY_LOW: //Флаг малого заряда батареи
       msg.result = false;
       msg.status = "Low battery";
       break;
-    case ERR_PCBM_IMU_SENSORS:
+    case ERR_PCBM_IMU_SENSORS: //Флаг ошибки инерциальной системы
       msg.result = false;
       msg.status = "IMU error";
       break;
-    case ERR_PCBM_PITCH_ROLL:
+    case ERR_PCBM_PITCH_ROLL: //Флаг ошибки стиков пульта
       msg.result = true;
       msg.status = "Transmitter stick in wrong pitch/roll";
       break;
-    case ERR_PCBM_YAW:
+    case ERR_PCBM_YAW: //Флаг ошибки радиосвязи
       msg.result = true;
       msg.status = "Transmitter stick in wrong yaw";
       break;
-    case ERR_PCBM_MAG_X:
+    case ERR_PCBM_MAG_X: //Флаг ошибки магнетометра
       msg.result = true;
       msg.status = "Compass error x";
       break;
-    case ERR_PCBM_MAG_Y:
+    case ERR_PCBM_MAG_Y: //Флаг ошибки магнетометра
       msg.result = true;
       msg.status = "Compass error y";
       break;
-    case ERR_PCBM_MAG_Z:
+    case ERR_PCBM_MAG_Z: //Флаг ошибки магнетометра
       msg.result = true;
       msg.status = "Compass error z";
       break;
-    case ERR_PCBM_BARO:
+    case ERR_PCBM_BARO: //Флаг ошибки барометра
       msg.result = false;
       msg.status = "Baro error";
       break;
-    case ERR_PCBM_CD_CARD:
+    case ERR_PCBM_CD_CARD: //Флаг ошибки карты памяти
       msg.result = true;
       msg.status = "CD card error";
       break;
-    case ERR_PCBM_DATA_LINK_LOST:
+    case ERR_PCBM_DATA_LINK_LOST: //Флаг ошибки плохого канала связи
       msg.result = true;
       msg.status = "Ling gcs lost";
       break;
@@ -331,30 +318,29 @@ void COPA::PacketReceived(sCoptHdr *header, void *body) {
     ack_pub_.publish(msg);
     break;
   }
-  case CMD_DEVICE_INFO:
+  case CMD_DEVICE_INFO: //Информация о дроне
     presetStatSet++;
     // сканирование скорости порта
     Copa_Cmd_Ack(header);
     memcpy(&DeviceInfo, body, sizeof(sCoptHdr));
     break;
-  case CMD_TELEM_PARAMS_COUNT:
+  case CMD_TELEM_PARAMS_COUNT: //Количество параметров телеметрии
     presetStatSet++;
     Copa_Cmd_Ack(header);
     memcpy(&telemCount, body, sizeof(telemCount));
     break;
   case CMD_PING: //получен ответ от коптера на такую же команду CMD_PING,
                  //значит коптер на связи
-                 // сканирование скорости порта
+
     break;
   case CMD_NACK: {
-    coparos::Ack msg; //Это команда, подтверждающая получения пакета с ошибочной
+    coparos::Ack msg; //Ошибка обработки команды коптером
     sNAckBody NAckBody;
     memcpy(&NAckBody, body, sizeof(sNAckBody));
     msg.command = NAckBody.commandType;
     msg.result = false;
     msg.status = std::string(NAckBody.text);
-    ack_pub_.publish(msg); //командой. Либо отображает невозможность выполнения
-                           //команды с кодами ошибок.
+    ack_pub_.publish(msg); // Отправка команды в топик РОС
 
     break;
   }
@@ -371,10 +357,11 @@ void COPA::PacketReceived(sCoptHdr *header, void *body) {
     break;
   }
   case TELEMETRY_DATA: {
-    coparos::DroneInfo droneinfo_msg; //телеметрия
+    coparos::DroneInfo droneinfo_msg; //Пакет телеметрии телеметрия
     LowSpeedTelemetry TelemData;
     if (e_uint16(header->packetLen) - 16 == sizeof(TelemData)) {
       memcpy(&TelemData, body, sizeof(LowSpeedTelemetry));
+      //Формирование сообщения телеметрии для отправки в топик РОС
       droneinfo_msg.preset_number = TelemData.preset_number;
       droneinfo_msg.VBAT = TelemData.VBAT;
       droneinfo_msg.STATE = TelemData.STATE;
@@ -396,7 +383,7 @@ void COPA::PacketReceived(sCoptHdr *header, void *body) {
 
     break;
   }
-  case CMD_NAV_WP_COUNT: //
+  case CMD_NAV_WP_COUNT: //Получен номер точчки полетного задания
     Copa_Cmd_Ack(header);
     if (Mission_stat == MISS_GET_POINT_COUNT_P) {
       memcpy(&Mission_count, body, sizeof(Mission_count));
@@ -409,11 +396,11 @@ void COPA::PacketReceived(sCoptHdr *header, void *body) {
       Mission_Dn();
     }
     break;
-  case CMD_NAV_POINT_INFO:
-    // Copa_Cmd_Ack(header);
-    // Point_info_t Point_info;
-    // memcpy(&Point_info, body, sizeof(Point_info_t));
-    // Mission_Ndn++; //Прочитана очередная точка
+  case CMD_NAV_POINT_INFO: // Получена информация о точки полетного задания
+                           // Copa_Cmd_Ack(header);
+                           // Point_info_t Point_info;
+                           // memcpy(&Point_info, body, sizeof(Point_info_t));
+                           // Mission_Ndn++; //Прочитана очередная точка
 
     // if (Mission_compare_p(&Point_info) == 1) {
     //   Mission_Ndn++; //Прочитана очередная точка

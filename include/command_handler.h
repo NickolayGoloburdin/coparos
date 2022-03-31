@@ -1,10 +1,9 @@
 /*
- * copa.h
+ * command_handler.h
  *
- *  Created on: 5 сент. 2019 г.
- *      Author: User
+ *  Created on: 10 марта. 2022 г.
+ *      Author: Nickolay
  */
-
 #ifndef COPA_H_
 #define COPA_H_
 #include "abstract_link.h"
@@ -61,7 +60,7 @@ class COPA {
   uint32_t LastTransmittedTick;
   uint16_t WaitCmdAck; //тут хранится отправленая коптеру команда
   uint8_t NewTarget;
-  uint8_t InCRC_A;
+  uint8_t InCRC_A; //Данные контрольной суммы
   uint8_t InCRC_B;
   uint8_t copa_st;
   uint32_t devVers;      //	Версия устройства
@@ -157,10 +156,10 @@ class COPA {
 
   /*************************  ****************************/
   enum cctlParseStates {
-    CCTL_STATE_SYNC1 = 0, //проверяю 1-й байт
-    CCTL_STATE_SYNC2,     //проверяю 2-й байт
-    CCTL_STATE_SYNC3,     //проверяю 3-й байт
-    CCTL_STATE_SIZE1, //читаю количество байт пакета
+    CCTL_STATE_SYNC1 = 0, //проверка 1-й байта
+    CCTL_STATE_SYNC2,     //проверка 2-й байта
+    CCTL_STATE_SYNC3,     //проверка 3-й байта
+    CCTL_STATE_SIZE1, //чтение количества байт пакета
     CCTL_STATE_SIZE2, //
     CCTL_STATE_PAYLOAD,
     CCTL_STATE_CHK_SUM_A,
@@ -243,15 +242,15 @@ private:
   void CoveringOpen();   //открыть сервомашинки крышки.
   void CoveringClose();  //закрыть сервомашинки крышки.
   void CopaPacketMake(uint16_t cmd, void *body,
-                      uint16_t bodylen); //собираю пакет для отправки
+                      uint16_t bodylen); //Сборка пакета для отправки
   void CopaPacketSend();                 //отправить пакет в UART
   void CopaPacketCRCRecount(); //контрольная сумма
 
   void EquipmentOn();  //Оборудование включить
   void EquipmentOff(); //Оборудование отключить
   void TakeOffCmd();   //Взлёт.
-  uint8_t Telem_Get_Param_preset(uint16_t comand, //какую команду ищу
-                                 uint8_t preset_ //какой пресет проверяю
+  uint8_t Telem_Get_Param_preset(uint16_t comand, //Команда в пресете
+                                 uint8_t preset_ //Номер пресета
   ); //Узнать номер параметра в пресете
 
   void CopaActual_flag_on(uint16_t fl);  //включить бит
@@ -262,9 +261,6 @@ private:
   void preset_bit_set(uint16_t comand,
                       uint8_t preset_); //выставить бит параметра в пресете
 public:
-  /*########################################## глобальные функции
-   * ############################*/
-  int a = 0;
   ~COPA();
 
   //пакет телеметрии
@@ -279,13 +275,6 @@ public:
   uint8_t InBuff[CMD_CONTROL_MAX_PACKET_SIZE];
   uint16_t InSize; //количество байт входящего пакета
 
-  // sMissionPoint Target_Mission[8]; //массив точек полётного задания
-  /* Mission_tx Миссия готова к загрузке в коптер
-  0=не готова
-  1=готова к загрузке
-  2=загрузилась и надо её выгрузить для проверки
-  3=выгрузилась и надо проверить 4=проверена и готова к взлёту
-  */
   uint8_t Mission_stat = 0; //статус отправляемого пакета
 
   uint8_t Mission_Nup = 0; //Номер загружаемой точки миссии (грузится)
@@ -298,7 +287,7 @@ public:
   uint16_t Mission_count = 0; //сколько точек в миссии в коптере
   uint16_t
       Actual_Status_Flags; //флаги состояния например определина ли скорость
-                           // UART или получена телеметрия или ещё что то
+                           // UART или получена телеметрия
   uint32_t
       Mission_timer; //таймер для повторения загрузки или выгрузки точек задания
 

@@ -1,6 +1,6 @@
 #include "serial_link.h"
 #include <stdexcept>
-
+//***********О
 SerialLink::SerialLink(std::string address, int baudrate)
     : address_(address), baudrate_(baudrate) {}
 bool SerialLink::isUp() const { return ser_.isOpen(); }
