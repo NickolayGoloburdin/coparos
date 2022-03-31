@@ -56,7 +56,6 @@
 #define MISS_SET_HOME 10 //Сохранить точку дом
 //#define  OTI_NOGPS_VIRT_POLE   11          // лететь на цель в виртуальном
 //поле
-/*
 
 #pragma pack(push, 1)
 typedef struct { //заголовок пакета
