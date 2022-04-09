@@ -144,11 +144,13 @@ include
  add_executable(${PROJECT_NAME}_command_node src/command_node.cpp src/abstract_link.cpp src/command_handler.cpp src/serial_link.cpp)
  add_executable(${PROJECT_NAME}_telemetry_node src/telemetry_node.cpp src/abstract_link.cpp src/telemetry_handler.cpp src/serial_link.cpp)
  add_executable(${PROJECT_NAME}_services_node src/services_handler.cpp)
+ #add_executable(${PROJECT_NAME}_mobile_node src/mobile_handler.cpp src/abstract_link.cpp src/udp_link.cpp)
  
  
  add_dependencies(${PROJECT_NAME}_command_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
  add_dependencies(${PROJECT_NAME}_telemetry_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
  add_dependencies(${PROJECT_NAME}_services_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+ #add_dependencies(${PROJECT_NAME}_mobile_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 
 ## Rename C++ executable without prefix
@@ -173,6 +175,9 @@ include
  target_link_libraries(${PROJECT_NAME}_services_node
    ${catkin_LIBRARIES}
  )
+ #target_link_libraries(${PROJECT_NAME}_mobile_node
+ #  ${catkin_LIBRARIES}
+ #)
 
 #############
 ## Install ##
