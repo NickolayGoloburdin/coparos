@@ -10,6 +10,10 @@
 #include "copa_types.h"
 #include <coparos/Command.h>
 #include <coparos/MissionPoint.h>
+#include <std_msgs/ByteMultiArray.h>
+#include <std_msgs/MultiArrayDimension.h>
+#include <std_msgs/MultiArrayLayout.h>
+
 #include <math.h>
 #include <ros/ros.h>
 
@@ -25,6 +29,7 @@ class COPA {
   ros::Publisher status_pub_;
   ros::Publisher drone_info_pub_;
   ros::Publisher mission_point_request_pub_;
+  ros::Publisher byteArray_pub_;
   ros::Subscriber command_sub_;
   ros::Subscriber mission_point_sub_;
 

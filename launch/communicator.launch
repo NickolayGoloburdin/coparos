@@ -1,6 +1,6 @@
 <launch>
 <arg name="takeoff_height" default="10"/>
-<arg name="node_start_delay" default=“0.0” />
+<arg name="node_start_delay" default="0.0" />
 
   <node name="telemetry_handler" pkg="coparos" type="coparos_telemetry_node" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' " />
   <node name="command_handler" pkg="coparos" type="coparos_command_node" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' " />

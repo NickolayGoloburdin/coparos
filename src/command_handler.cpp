@@ -30,6 +30,7 @@ COPA::COPA(AbstractLink *link, ros::NodeHandle *nh) : link_(link) {
   /*****************Инициализация издателей для отправки данных в топики
    * РОС*******/
   ack_pub_ = nh->advertise<coparos::Ack>("/ack", 1000);
+  byteArray_pub_ = nh->advertise<std_msgs::ByteMultiArray>("/rowBytes", 1000);
   status_pub_ = nh->advertise<std_msgs::String>("/status", 1000);
   drone_info_pub_ = nh->advertise<coparos::DroneInfo>("/droneInfo", 1000);
   mission_point_request_pub_ =
@@ -103,8 +104,16 @@ void COPA::parseFunc() {
   int size;
   if (link_->isUp()) {
     std::tie(buf, size) = link_->getData();
-    CopaParseBUF(buf, size);
-    delete[] buf;
+    if (size > 0) {
+      std_msgs::ByteMultiArray msg;
+      msg.data.clear();
+      for (int i = 0; i < size; ++i) {
+        msg.data.push_back(buf[i]);
+      }
+      byteArray_pub_.publish(msg);
+      CopaParseBUF(buf, size);
+      delete[] buf;
+    }
   }
 }
 
