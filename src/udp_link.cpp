@@ -1,4 +1,5 @@
 #include "udp_link.h"
+#include <arpa/inet.h>
 #include <stdexcept>
 
 UDPLink::UDPLink(const std::string &addr, int r_port, int t_port)
@@ -15,7 +16,7 @@ UDPLink::UDPLink(const std::string &addr, int r_port, int t_port)
   in_addr.sin_addr.s_addr = htonl(INADDR_ANY);
   out_addr.sin_family = AF_INET;
   out_addr.sin_port = htons(t_port);
-  out_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+  out_addr.sin_addr.s_addr = INADDR_ANY;
 }
 
 bool UDPLink::isUp() const { return r >= 0; }
@@ -34,6 +35,10 @@ void UDPLink::sendData(const unsigned char *data, int size) {
 std::tuple<unsigned char *, int> UDPLink::getData() {
   unsigned char *buf = new unsigned char;
   int bytes_read;
-  bytes_read = recvfrom(sock, buf, 1024, 0, NULL, NULL);
+  struct sockaddr_in from;
+  socklen_t addrlen = sizeof(from);
+  bytes_read = recvfrom(sock, buf, 1024, 0, (struct sockaddr *)&from, &addrlen);
+  if (bytes_read > 0)
+    out_addr.sin_addr = from.sin_addr;
   return std::make_tuple(buf, bytes_read);
 }
