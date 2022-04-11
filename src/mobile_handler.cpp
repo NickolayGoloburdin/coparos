@@ -42,12 +42,14 @@ void MobileHandler::parseFunc() {
 }
 void MobileHandler::callback_bytes(const std_msgs::ByteMultiArray &msg) {
   int size = msg.data.size();
-  unsigned char *buffer = new unsigned char[size];
-  for (int i = 0; i < size; ++i) {
-    buffer[i] = static_cast<unsigned char>(msg.data[i]);
+  if (size > 0) {
+    unsigned char *buffer = new unsigned char[size];
+    for (int i = 0; i < size; ++i) {
+      buffer[i] = static_cast<unsigned char>(msg.data[i]);
+    }
+    link_->sendData(buffer, size);
+    delete[] buffer;
   }
-  link_->sendData(buffer, size);
-  delete[] buffer;
 }
 /******************************* Парсинг буфера
  * ******************************************************/
