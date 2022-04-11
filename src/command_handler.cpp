@@ -12,7 +12,10 @@
 #include <cstdint>
 #include <exception>
 #include <iostream>
+#include <std_msgs/ByteMultiArray.h>
 #include <std_msgs/Int16.h>
+#include <std_msgs/MultiArrayDimension.h>
+#include <std_msgs/MultiArrayLayout.h>
 #include <std_msgs/String.h>
 #include <std_msgs/UInt16.h>
 #include <vector>

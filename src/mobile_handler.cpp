@@ -8,11 +8,15 @@
 
 #include "mobile_handler.h"
 #include "abstract_link.h"
-
+#include "copa_types.h"
 /*********************************** Подсчёт CRC
  * *************************************/
 /*подсчёт CRC */
-MobileHandler::MobileHandler(AbstractLink *link) : link_(link) {}
+MobileHandler::MobileHandler(AbstractLink *link, ros::NodeHandle *nh)
+    : link_(link) {
+  byteArray_sub_ =
+      nh->subscribe("/rowBytes", 1000, &MobileHandler::callback_bytes, this);
+}
 
 MobileHandler::~MobileHandler() {}
 void MobileHandler::CRC_calc() {
@@ -36,7 +40,15 @@ void MobileHandler::parseFunc() {
     }
   }
 }
-
+void MobileHandler::callback_bytes(const std_msgs::ByteMultiArray &msg) {
+  int size = msg.data.size();
+  unsigned char *buffer = new unsigned char[size];
+  for (int i = 0; i < size; ++i) {
+    buffer[i] = static_cast<unsigned char>(msg.data[i]);
+  }
+  link_->sendData(buffer, size);
+  delete[] buffer;
+}
 /******************************* Парсинг буфера
  * ******************************************************/
 void MobileHandler::ParseBUF(const uint8_t *buffer, size_t size) {
@@ -100,6 +112,16 @@ void MobileHandler::Parse_Byte(uint8_t byte_) {
 
 void MobileHandler::PackRec(Mobile_Header_t *header, void *body) {
   switch (header->commandType) {
+  case CMD_DEVICE_INFO: {
+    uint16_t data = 1;
+    PacketMake(CMD_TEXT, &data, 2);
+    sendPacket();
+    break;
+  }
+  case CMD_PING:
+    break;
+  case CMD_SYSTEM_RESET:
+    break;
   default:
     printf("coomand is %d", header->commandType);
     break;
@@ -110,9 +132,9 @@ void MobileHandler::PackRec(Mobile_Header_t *header, void *body) {
  * отправки*************************************/
 void MobileHandler::PacketMake(uint8_t comand, void *body, uint8_t bodylen) {
   Mobile_Header_t *Hdr = (Mobile_Header_t *)OutBuff;
-  Hdr->id0 = MOBMAGIC4; // A
-  Hdr->id1 = MOBMAGIC5; // C
-  Hdr->id2 = MOBMAGIC6; // 5
+  Hdr->id0 = MOBMAGIC4;
+  Hdr->id1 = MOBMAGIC5;
+  Hdr->id2 = MOBMAGIC6;
   Hdr->packetLen =
       bodylen + (sizeof(Mobile_Header_t) - 4) +
       2; //размер полезной нагрузки плюс заголовок кроме 3 байт идентификатора

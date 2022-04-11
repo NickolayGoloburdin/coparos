@@ -2,6 +2,9 @@
 #define MOBILE_HANDLER
 #include "abstract_link.h"
 #include <ros/ros.h>
+#include <std_msgs/ByteMultiArray.h>
+#include <std_msgs/MultiArrayDimension.h>
+#include <std_msgs/MultiArrayLayout.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -37,11 +40,13 @@ private:
   void Parse_Byte(uint8_t byte);
   void PackRec(Mobile_Header_t *header, void *body);
   AbstractLink *link_;
+  ros::Subscriber byteArray_sub_;
 
 public:
   void parseFunc();
-  MobileHandler(AbstractLink *link);
+  MobileHandler(AbstractLink *link, ros::NodeHandle *nh);
   ~MobileHandler();
+  void callback_bytes(const std_msgs::ByteMultiArray &msg);
   uint8_t OutBuff[ACO_BUF_MAX_LENGTH];
   uint8_t OutSize; //количество байт исходящего пакета
   uint16_t packetNumber = 0;

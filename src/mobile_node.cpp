@@ -16,32 +16,32 @@
 // }
 
 int main(int argc, char **argv) {
-  // std::string ls_device, hs_device;
-  // bool realtime;
-  // //Инициализаци ноды РОС
-  // ros::init(argc, argv, "mobile_reader");
-  // ros::NodeHandle nh;
-  // //Чтение параметра  realtime, если этот параметр false то нода завершает
-  // //работу
-  // nh.getParam("/realtime", realtime);
-  // if (!realtime) {
-  //   return 0;
-  // }
-  // // ros::Subscriber write_sub = nh.subscribe("write", 1000, write_callback);
-  // //Инициализация модуля связи
-  // UDPLink *link = new UDPLink("localhost", 6600, 5600);
-  // //Инициализация модуля парсинга и отправки команд на коптер
-  // MobileHandler *handler = new MobileHandler(link);
-  // //Запуск работы модуля связи
-  // link->up();
-  // //Выставление частоты работы ноды
-  // ros::Rate loop_rate(5);
-  // while (ros::ok()) {
-  //   // Чтение данных с коптера
-  //   handler->parseFunc();
-  //   //Обновление состояния ноды
-  //   ros::spinOnce();
+  std::string ls_device, hs_device;
+  bool realtime;
+  //Инициализаци ноды РОС
+  ros::init(argc, argv, "mobile_reader");
+  ros::NodeHandle nh;
+  //Чтение параметра  realtime, если этот параметр false то нода завершает
+  //работу
+  nh.getParam("/realtime", realtime);
+  if (!realtime) {
+    return 0;
+  }
+  // ros::Subscriber write_sub = nh.subscribe("write", 1000, write_callback);
+  //Инициализация модуля связи
+  UDPLink *link = new UDPLink("localhost", 6600, 5600);
+  //Инициализация модуля парсинга и отправки команд на коптер
+  MobileHandler *handler = new MobileHandler(link, &nh);
+  //Запуск работы модуля связи
+  link->up();
+  //Выставление частоты работы ноды
+  ros::Rate loop_rate(5);
+  while (ros::ok()) {
+    // Чтение данных с коптера
+    handler->parseFunc();
+    //Обновление состояния ноды
+    ros::spinOnce();
 
-  //   loop_rate.sleep();
-  // }
+    loop_rate.sleep();
+  }
 }
