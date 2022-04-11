@@ -10,9 +10,6 @@
 #include "copa_types.h"
 #include <coparos/Command.h>
 #include <coparos/MissionPoint.h>
-#include <std_msgs/ByteMultiArray.h>
-#include <std_msgs/MultiArrayDimension.h>
-#include <std_msgs/MultiArrayLayout.h>
 
 #include <math.h>
 #include <ros/ros.h>
