@@ -40,7 +40,7 @@ private:
     actionlib::SimpleActionClient<copa_msgs::WindSpeedAction> ac("mes_wind",
                                                                  true);
     copa_msgs::WindSpeedGoal goal;
-    goal.order = true;
+    goal.start = true;
     ac.sendGoal(goal);
     bool finished_before_timeout = ac.waitForResult(ros::Duration(20.0));
     if (finished_before_timeout) {
