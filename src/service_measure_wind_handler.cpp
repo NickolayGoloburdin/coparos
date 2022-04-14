@@ -52,9 +52,9 @@ private:
       res.result = false;
       return true;
     }
-    actionlib::SimpleClientGoalState state = ac.getState();
-    state.result client_start =
-        n->serviceClient<coparos::Service_command>("Continue");
+    // actionlib::SimpleClientGoalState state = ac.getState();
+
+    n->serviceClient<coparos::Service_command>("Continue");
     if (client_start.call(cmd)) {
       if (cmd.response.result)
         ROS_INFO("Wind is measured Continue fly");
