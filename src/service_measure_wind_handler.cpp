@@ -11,9 +11,11 @@ public:
   ros::NodeHandle *n;
   ros::ServiceClient client_stop;
   ros::ServiceClient client_start;
-  Service(ros::NodeHandle *nh) : n(nh) {
+  actionlib::SimpleActionClient<copa_msgs::WindSpeedAction> ac;
+  Service(ros::NodeHandle *nh) : n(nh), ac("mes_wind", true) {
     client_stop = n->serviceClient<coparos::Service_command>("STOP");
     client_start = n->serviceClient<coparos::Service_command>("Continue");
+    ac.waitForServer();
     ros::ServiceServer service_measure_wind =
         n->advertiseService("MeasureWind", &Service::measure_wind, this);
   }
@@ -37,9 +39,6 @@ private:
       res.result = false;
       return true;
     }
-    actionlib::SimpleActionClient<copa_msgs::WindSpeedAction> ac("mes_wind",
-                                                                 true);
-    ac.waitForServer();
     copa_msgs::WindSpeedGoal goal;
     goal.start = true;
     ac.sendGoal(goal);
