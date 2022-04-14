@@ -1,11 +1,12 @@
 #include "coparos/Service_command.h"
 #include "ros/ros.h"
-#include <actionlib/server/simple_action_server.h>
+#include <actionlib/server/simple_action_client.h>
 #include <copa_msgs/WindSpeedAction.h>
 #include <copa_msgs/WindSpeedFeedback.h>
 #include <copa_msgs/WindSpeedGoal.h>
 #include <copa_msgs/WindSpeedResult.h>
 class Service {
+public:
   ros::NodeHandle *n;
   ros::ServiceClient client_stop;
   ros::ServiceClient client_start;
@@ -15,6 +16,8 @@ class Service {
     ros::ServiceServer service_measure_wind =
         n->advertiseService("MeasureWind", &Service::measure_wind, this);
   }
+
+private:
   bool measure_wind(coparos::Service_command::Request &req,
                     coparos::Service_command::Response &res) {
 
@@ -33,8 +36,8 @@ class Service {
       res.result = false;
       return true;
     }
-    actionlib::SimpleActionClient<coparos_msgs::WindSpeedAction> ac("mes_wind",
-                                                                    true);
+    actionlib::SimpleActionClient<copa_msgs::WindSpeedAction> ac("mes_wind",
+                                                                 true);
     coparos_msgs::WindSpeedGoal goal;
     goal.order = true;
     ac.sendGoal(goal);
@@ -48,7 +51,6 @@ class Service {
       return true;
     }
     client_start = n->serviceClient<coparos::Service_command>("Continue");
-    coparos::Service_command cmd;
     if (client_start.call(cmd)) {
       if (cmd.response.result)
         ROS_INFO("Wind is measured Continue fly");
