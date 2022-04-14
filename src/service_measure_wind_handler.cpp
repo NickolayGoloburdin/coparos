@@ -51,7 +51,7 @@ private:
       res.result = false;
       return true;
     }
-    copa_msgs::WindSpeedResult = ac.getResult();
+    copa_msgs::WindSpeedResult action_result = ac.getResult();
 
     n->serviceClient<coparos::Service_command>("Continue");
     if (client_start.call(cmd)) {
