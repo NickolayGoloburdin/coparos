@@ -6,5 +6,6 @@
   <node name="command_handler" pkg="coparos" type="coparos_command_node" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' " />
   <node name="services_handler" pkg="coparos" type="coparos_services_node" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
   <node name="mission_handler" pkg="coparos" type="mission_handler.py" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
-
+  <node name="measure_wind_service_node" pkg="coparos" type="coparos_measure_wind_service_node" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
+  
 </launch>
