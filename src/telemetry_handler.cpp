@@ -38,22 +38,19 @@ void TelemetryHandler_ACO::ACO_CRC_calc() {
 //Метод для парсинга входящих данных
 void TelemetryHandler_ACO::parseFunc() {
 
-  unsigned char *buf;
-  int size;
   if (link_->isUp()) {
-    std::tie(buf, size) = link_->getData();
-    ACOParseBUF(buf, size);
-    delete[] buf;
+    auto list_ptr = link_->getData();
+    if (list_ptr)
+      ACOParseBUF(list_ptr);
   }
 }
 
 /******************************* Парсинг буфера
  * ******************************************************/
-void TelemetryHandler_ACO::ACOParseBUF(const uint8_t *buffer, size_t size) {
-  uint16_t InSize = 0;
-  uint8_t InBuff[ACO_BUF_MAX_LENGTH];
-  for (size_t i = 0; i < size; i++)
-    ACO_Parse_Byte(buffer[i], InSize, InBuff);
+void TelemetryHandler_ACO::ACOParseBUF(
+    std::shared_ptr<std::list<unsigned char>> list_ptr) {
+  for (auto ptr = list_ptr->begin(); ptr != list_ptr->end(); ptr++)
+    ACO_Parse_Byte(*ptr);
 }
 /************************** Побайтное чтение пакета **************************/
 void TelemetryHandler_ACO::ACO_Parse_Byte(uint8_t byte_, uint16_t &InSize,

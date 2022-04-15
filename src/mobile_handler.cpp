@@ -30,14 +30,10 @@ void MobileHandler::CRC_calc() {
   OutBuff[OutSize - 1] = CRC_B;
 }
 void MobileHandler::parseFunc() {
-  unsigned char *buf;
-  int size;
   if (link_->isUp()) {
-    std::tie(buf, size) = link_->getData();
-    if (size > 0) {
-      ParseBUF(buf, size);
-      delete[] buf;
-    }
+    auto list_ptr = link_->getData();
+    if (list_ptr)
+      ParseBUF(list_ptr);
   }
 }
 void MobileHandler::callback_bytes(const std_msgs::ByteMultiArray &msg) {
@@ -53,9 +49,10 @@ void MobileHandler::callback_bytes(const std_msgs::ByteMultiArray &msg) {
 }
 /******************************* Парсинг буфера
  * ******************************************************/
-void MobileHandler::ParseBUF(const uint8_t *buffer, size_t size) {
-  for (size_t i = 0; i < size; i++)
-    Parse_Byte(buffer[i]);
+void MobileHandler::ParseBUF(
+    std::shared_ptr<std::list<unsigned char>> list_ptr) {
+  for (auto ptr = list_ptr->begin(); ptr != list_ptr->end(); ptr++)
+    Parse_Byte(*ptr);
 }
 /************************** Побайтное чтение пакета **************************/
 void MobileHandler::Parse_Byte(uint8_t byte_) {

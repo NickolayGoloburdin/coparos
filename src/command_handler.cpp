@@ -104,28 +104,18 @@ void COPA::callback_mission_point(const coparos::MissionPoint &msg) {
 //Метод парсинга данных с модуля связи
 void COPA::parseFunc() {
 
-  unsigned char *buf;
-  int size;
   if (link_->isUp()) {
-    std::tie(buf, size) = link_->getData();
-    if (size > 0) {
-      // std_msgs::ByteMultiArray msg;
-      // msg.data.clear();
-      // for (int i = 0; i < size; ++i) {
-      //   msg.data.push_back(buf[i]);
-      // }
-      // byteArray_pub_.publish(msg);
-      CopaParseBUF(buf, size);
-      delete[] buf;
-    }
+    auto list_ptr = link_->getData();
+    if (list_ptr)
+      CopaParseBUF(list_ptr);
   }
 }
 
 /******************************* Парсинг буфера
  * ******************************************************/
-void COPA::CopaParseBUF(const uint8_t *buffer, size_t size) {
-  for (size_t i = 0; i < size; i++)
-    CopaParseByte(buffer[i]);
+void COPA::CopaParseBUF(std::shared_ptr<std::list<unsigned char>> list_ptr) {
+  for (auto ptr = list_ptr->begin(); ptr != list_ptr->end(); ptr++)
+    CopaParseByte(*ptr);
 }
 /**********************************Побайтное чтение пакета с
  * коптера**********************************/

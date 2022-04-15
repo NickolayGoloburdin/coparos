@@ -25,13 +25,18 @@ void SerialLink::sendData(const unsigned char *data, int size) {
     throw std::runtime_error("port is closed");
   }
 }
-std::tuple<unsigned char *, int> SerialLink::getData() {
+std::shared_ptr<std::list<unsigned char>> SerialLink::getData() {
   size_t bytesAvailable = ser_.available();
   unsigned char *Buf = new unsigned char[bytesAvailable];
   int size = 0;
   if (bytesAvailable) {
 
     size = ser_.read(Buf, bytesAvailable);
+    std::shared_ptr<std::list<unsigned char>> list_ptr =
+        std::make_shared<std::list<unsigned char>>();
+    for (int i = 0; i < bytesAvailable; i++)
+      list_ptr->push_back(Buf[i]);
+    return list_ptr;
   }
-  return std::make_tuple(Buf, size);
+  return {};
 }

@@ -3,6 +3,8 @@
 #include "abstract_link.h"
 #include <coparos/Telemetry.h>
 #include <cstdint>
+#include <list>
+#include <memory>
 #include <ros/ros.h>
 #include <sensor_msgs/Imu.h>
 #include <sensor_msgs/NavSatFix.h>
@@ -86,7 +88,7 @@ public:
   uint16_t packetNumber = 0; //Номера исходящего пакета
 
   void sendPacket(); //Отправить пакет
-  void ACOParseBUF(const uint8_t *buffer, size_t size);
+  void ACOParseBUF(std::shared_ptr<std::list<unsigned char>> list_ptr);
   void SetLatLon_NoGPS(); //Отправить подмену координат
   void ACOTelemOnOff(
       uint8_t On_Off); // 0=выключить, 1=включить телеметрию ACO в коптере

@@ -1,6 +1,8 @@
 #ifndef MOBILE_HANDLER
 #define MOBILE_HANDLER
 #include "abstract_link.h"
+#include <list>
+#include <memory>
 #include <ros/ros.h>
 #include <std_msgs/ByteMultiArray.h>
 #include <std_msgs/MultiArrayDimension.h>
@@ -51,7 +53,7 @@ public:
   uint8_t OutSize; //количество байт исходящего пакета
   uint16_t packetNumber = 0;
   void sendPacket();
-  void ParseBUF(const uint8_t *buffer, size_t size);
+  void ParseBUF(std::shared_ptr<std::list<unsigned char>> list_ptr);
   void PacketMake(uint8_t comand, void *body, uint8_t bodylen);
 };
 

@@ -1,5 +1,6 @@
 #include "udp_link.h"
 #include <arpa/inet.h>
+#include <memory>
 #include <stdexcept>
 
 UDPLink::UDPLink(const std::string &addr, int r_port, int t_port)
@@ -32,13 +33,19 @@ void UDPLink::sendData(const unsigned char *data, int size) {
 
   sendto(sock, data, size, 0, (struct sockaddr *)&out_addr, sizeof(out_addr));
 }
-std::tuple<unsigned char *, int> UDPLink::getData() {
+std::shared_ptr<std::list<unsigned char>> UDPLink::getData() {
   unsigned char *buf = new unsigned char;
   int bytes_read;
   struct sockaddr_in from;
   socklen_t addrlen = sizeof(from);
   bytes_read = recvfrom(sock, buf, 1024, 0, (struct sockaddr *)&from, &addrlen);
-  if (bytes_read > 0)
+  if (bytes_read) {
     out_addr.sin_addr = from.sin_addr;
-  return std::make_tuple(buf, bytes_read);
+    std::shared_ptr<std::list<unsigned char>> list_ptr =
+        std::make_shared<std::list<unsigned char>>();
+    for (int i = 0; i < bytes_read; i++)
+      list_ptr->push_back(buf[i]);
+    return list_ptr;
+  }
+  return {};
 }

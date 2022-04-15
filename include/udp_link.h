@@ -16,7 +16,7 @@ public:
   void up() override;
   void down() override;
   void sendData(const unsigned char *data, int size) override;
-  std::tuple<unsigned char *, int> getData() override;
+  std::shared_ptr<std::list<char>> getData() override;
 
 private:
   std::string address_;

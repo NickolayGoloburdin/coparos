@@ -10,6 +10,8 @@
 #include "copa_types.h"
 #include <coparos/Command.h>
 #include <coparos/MissionPoint.h>
+#include <list>
+#include <memory>
 
 #include <math.h>
 #include <ros/ros.h>
@@ -302,7 +304,7 @@ public:
   uint32_t e_uint32(uint32_t t); //перевернуть байты
 
   void Preset_Set_Param(); //настроить пресет 1 для телеметрии
-  void CopaParseBUF(const uint8_t *buffer, size_t size); //Парсинг буфера
+  void CopaParseBUF(std::shared_ptr<std::list<unsigned char>> list_ptr);
   void Copa_Ping(); //Тестовая посылка для проверки канала связи и общего
                     //рабочего состояния устройств.
   uint8_t CopaActual_flag_get(uint16_t fl); //прочитать
