@@ -49,8 +49,10 @@ void TelemetryHandler_ACO::parseFunc() {
  * ******************************************************/
 void TelemetryHandler_ACO::ACOParseBUF(
     std::shared_ptr<std::list<unsigned char>> list_ptr) {
+  uint16_t InSize = 0;
+  uint8_t InBuff[ACO_BUF_MAX_LENGTH];
   for (auto ptr = list_ptr->begin(); ptr != list_ptr->end(); ptr++)
-    ACO_Parse_Byte(*ptr);
+    ACO_Parse_Byte(*ptr, InSize, InBuff);
 }
 /************************** Побайтное чтение пакета **************************/
 void TelemetryHandler_ACO::ACO_Parse_Byte(uint8_t byte_, uint16_t &InSize,
