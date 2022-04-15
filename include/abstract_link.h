@@ -2,6 +2,8 @@
 #define UDP_LINK_H
 #include "abstract_link.h"
 #include <fcntl.h>
+#include <list>
+#include <memory>
 #include <netinet/in.h>
 #include <stdexcept>
 #include <sys/socket.h>
