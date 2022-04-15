@@ -1,32 +1,18 @@
-#ifndef UDP_LINK_H
-#define UDP_LINK_H
-#include "abstract_link.h"
-#include <fcntl.h>
+#ifndef ABSTRACT_LINK_H
+#define ABSTRACT_LINK_H
 #include <list>
 #include <memory>
-#include <netinet/in.h>
-#include <stdexcept>
-#include <sys/socket.h>
-#include <sys/types.h>
-
-class UDPLink : public AbstractLink {
+#include <string>
+#include <tuple>
+class AbstractLink {
 
 public:
-  UDPLink(const std::string &address, int r_port, int t_port);
-  bool isUp() const override;
-  std::string address() override;
-  void up() override;
-  void down() override;
-  void sendData(const unsigned char *data, int size) override;
-  std::shared_ptr<std::list<unsigned char>> getData() override;
-
-private:
-  std::string address_;
-  int sock;
-  std::string addr;
-  struct sockaddr_in in_addr;
-  struct sockaddr_in out_addr;
-  int r;
+  explicit AbstractLink();
+  virtual bool isUp() const = 0;
+  virtual std::string address() = 0;
+  virtual void up() = 0;
+  virtual void down() = 0;
+  virtual void sendData(const unsigned char *data, int size) = 0;
+  virtual std::shared_ptr<std::list<unsigned char>> getData() = 0;
 };
-
 #endif // ABSTRACT_LINK_H
