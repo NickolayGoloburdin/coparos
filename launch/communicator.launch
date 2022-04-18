@@ -2,10 +2,10 @@
 <arg name="takeoff_height" default="10"/>
 <arg name="node_start_delay" default="0.0" />
 
-  <node name="telemetry_handler" pkg="coparos" type="coparos_telemetry_node" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' " />
-  <node name="command_handler" pkg="coparos" type="coparos_command_node" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' " />
-  <node name="services_handler" pkg="coparos" type="coparos_services_node" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
-  <node name="mission_handler" pkg="coparos" type="mission_handler.py" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
-  <node name="measure_wind_service_node" pkg="coparos" type="coparos_measure_wind_service_node" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
+  <node name="coparos_telemetry_handler" pkg="coparos" type="coparos_telemetry_node" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' " />
+  <node name="coparos_command_handler" pkg="coparos" type="coparos_command_node" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' " />
+  <node name="coparos_services_handler" pkg="coparos" type="coparos_services_node" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
+  <node name="coparos_mission_handler" pkg="coparos" type="mission_handler.py" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
+  <node name="coparos_measure_wind_service_node" pkg="coparos" type="coparos_measure_wind_service_node" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
   
 </launch>
