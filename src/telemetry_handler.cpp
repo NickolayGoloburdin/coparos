@@ -10,11 +10,14 @@
 #include "abstract_link.h"
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <coparos/Telemetry.h>
 
 /*********************************** Подсчёт CRC
  * *************************************/
 /*подсчёт CRC */
+float degree_to_radian(float degree){
+  double pi = 3.14159265359;
+    return (degree * (pi / 180));
+}
 TelemetryHandler_ACO::TelemetryHandler_ACO(AbstractLink *link,
                                            ros::NodeHandle *nh)
     : link_(link) {
@@ -22,7 +25,6 @@ TelemetryHandler_ACO::TelemetryHandler_ACO(AbstractLink *link,
   imu_pub_ = nh->advertise<sensor_msgs::Imu>("/imu", 1000);
   gps_pub_ = nh->advertise<sensor_msgs::NavSatFix>("/gps", 1000);
   baro_pub_ = nh->advertise<std_msgs::Float32>("/baro", 1000);
-  debug_pub_ = nh->advertise<coparos::Telemetry>("/debugTelemetry", 1000);
 }
 
 TelemetryHandler_ACO::~TelemetryHandler_ACO() {}
@@ -127,7 +129,6 @@ void TelemetryHandler_ACO::PackRec(Header_t *header, void *body) {
     std_msgs::Float32 baro_msg;
     sensor_msgs::NavSatFix gps_msg;
     sensor_msgs::Imu imu_msg;
-    coparos::Telemetry msg;
     //Выставление данных шапки сообщения: Времени и фрейма
     gps_msg.header.frame_id = "Global_frame";
     gps_msg.header.stamp = ros::Time::now();
@@ -142,17 +143,17 @@ void TelemetryHandler_ACO::PackRec(Header_t *header, void *body) {
     else
       gps_msg.status.status = -1;
     gps_msg.status.service = 1;
-    msg.lat = Telemetry_data.lat;
-    msg.lon = Telemetry_data.lon;
+    // msg.lat = Telemetry_data.lat;
+    // msg.lon = Telemetry_data.lon;
 
-    msg.gps_height = Telemetry_data.gps_height;
-    msg.hAcc = Telemetry_data.hAcc;
+    // msg.gps_height = Telemetry_data.gps_height;
+    // msg.hAcc = Telemetry_data.hAcc;
     imu_msg.header.frame_id = "local_frame";
     imu_msg.header.stamp = ros::Time::now();
     tf2::Quaternion myQuaternion;
     //Перевод данных инерциальной системы из углов эйлера в кватернион
-    myQuaternion.setRPY(Telemetry_data.IMU_PITCH, Telemetry_data.IMU_ROLL,
-                        Telemetry_data.IMU_YAW);
+    myQuaternion.setRPY(degree_to_radian(Telemetry_data.IMU_PITCH), degree_to_radian(Telemetry_data.IMU_ROLL),
+                        degree_to_radian(Telemetry_data.IMU_YAW));
     myQuaternion.normalize();
     geometry_msgs::Quaternion quat_msg;
     quat_msg = tf2::toMsg(myQuaternion);
@@ -163,9 +164,6 @@ void TelemetryHandler_ACO::PackRec(Header_t *header, void *body) {
     imu_msg.angular_velocity.y = Telemetry_data.rateY;
     imu_msg.angular_velocity.z = Telemetry_data.rateZ;
     imu_msg.angular_velocity_covariance[0] = -1;
-    msg.IMU_PITCH = Telemetry_data.IMU_PITCH;
-    msg.IMU_ROLL = Telemetry_data.IMU_ROLL;
-    msg.IMU_YAW = Telemetry_data.IMU_YAW;
     // msg.rateX = Telemetry_data.rateX;
     // msg.rateY = Telemetry_data.rateY;
     // msg.rateZ = Telemetry_data.rateZ;
@@ -175,7 +173,6 @@ void TelemetryHandler_ACO::PackRec(Header_t *header, void *body) {
     baro_pub_.publish(baro_msg);
     gps_pub_.publish(gps_msg);
     imu_pub_.publish(imu_msg);
-    debug_pub_.publish(msg);
     // msg.presAltOffsetAtGround = Telemetry_data.presAltOffsetAtGround;
     // msg.altitudeMS = Telemetry_data.ms5611_altitude;
     break;

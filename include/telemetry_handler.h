@@ -27,6 +27,7 @@ enum opticFlowCmdTypes {
 };
 
 #pragma pack(push, 1)
+float degree_to_radian(float degree);
 typedef struct {
   uint8_t id0;       // 0
   uint8_t id1;       // 1
@@ -77,8 +78,6 @@ private:
       gps_pub_; //Издатель в РОС, который посылает в топик gps координаты
   ros::Publisher
       baro_pub_; //Издатель в РОС, который посылает в топик значения барометра
-  ros::Publisher
-      debug_pub_;
 
 public:
   void parseFunc();
