@@ -15,7 +15,7 @@
  * *************************************/
 /*подсчёт CRC */
 float degree_to_radian(float degree){
-  double pi = 3.14159265359;
+  float pi = 3.14159265359;
     return (degree * (pi / 180));
 }
 TelemetryHandler_ACO::TelemetryHandler_ACO(AbstractLink *link,
