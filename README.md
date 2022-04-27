@@ -21,3 +21,5 @@ $udevadm trigger
 $reboot
 
 $sudo adduser $USER dialout
+
+You should have add additional pkg copa_msgs in your workspace
