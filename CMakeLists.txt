@@ -3,7 +3,6 @@ project(coparos)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
-
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -15,7 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf2
   copa_msgs
   actionlib
-  
+  mavros_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -113,8 +112,8 @@ generate_messages(
 catkin_package(
   INCLUDE_DIRS include
 #  LIBRARIES copaRos
- CATKIN_DEPENDS message_runtime roscpp std_msgs sensor_msgs copa_msgs
-  DEPENDS serial
+ CATKIN_DEPENDS message_runtime roscpp std_msgs sensor_msgs copa_msgs mavros_msgs
+  #DEPENDS serial
 )
 
 ###########
@@ -143,14 +142,12 @@ include
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
- add_executable(${PROJECT_NAME}_command_node src/command_node.cpp src/abstract_link.cpp src/command_handler.cpp src/serial_link.cpp)
- add_executable(${PROJECT_NAME}_telemetry_node src/telemetry_node.cpp src/abstract_link.cpp src/telemetry_handler.cpp src/serial_link.cpp)
+ 
  add_executable(${PROJECT_NAME}_services_node src/services_handler.cpp)
  #add_executable(${PROJECT_NAME}_mobile_node src/mobile_node.cpp src/mobile_handler.cpp src/abstract_link.cpp src/udp_link.cpp)
  add_executable(${PROJECT_NAME}_measure_wind_service_node src/service_measure_wind_handler.cpp)
  
- add_dependencies(${PROJECT_NAME}_command_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
- add_dependencies(${PROJECT_NAME}_telemetry_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
  add_dependencies(${PROJECT_NAME}_services_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
  #add_dependencies(${PROJECT_NAME}_mobile_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
  add_dependencies(${PROJECT_NAME}_measure_wind_service_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
@@ -167,14 +164,6 @@ include
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
- target_link_libraries(${PROJECT_NAME}_command_node
-   ${catkin_LIBRARIES}
-   serial
- )
- target_link_libraries(${PROJECT_NAME}_telemetry_node
-   ${catkin_LIBRARIES}
-   serial
- )
  target_link_libraries(${PROJECT_NAME}_services_node
    ${catkin_LIBRARIES}
  )
