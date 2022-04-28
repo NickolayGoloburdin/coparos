@@ -194,7 +194,7 @@ public:
     cmd2.request.base_mode = 1;
     cmd2.request.custom_mode = 3;
     if (client_continue.call(cmd2)) {
-      res.result = cmd.response.mode_sent;
+      res.result = cmd2.response.mode_sent;
       return true;
     } else {
       res.status = "Cannot call mavros service";
