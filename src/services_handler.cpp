@@ -42,7 +42,8 @@ public:
            coparos::Service_command::Response &res) {
 
     ROS_INFO("ARMING");
-    auto client_arm = n->serviceClient<mavros_msgs::CommandBool>("~cmd/arming");
+    auto client_arm =
+        n->serviceClient<mavros_msgs::CommandBool>("/mavros/cmd/arming");
     mavros_msgs::CommandBool cmd;
     cmd.request.value = true;
     if (client_arm.call(cmd)) {
@@ -61,7 +62,7 @@ public:
               coparos::Service_command::Response &res) {
     ROS_INFO("DISARMING");
     auto client_disarm =
-        n->serviceClient<mavros_msgs::CommandBool>("~cmd/arming");
+        n->serviceClient<mavros_msgs::CommandBool>("/mavros/cmd/arming");
     mavros_msgs::CommandBool cmd;
     cmd.request.value = false;
     if (client_disarm.call(cmd)) {
@@ -84,7 +85,7 @@ public:
     }
     ROS_INFO("TAKING OFF");
     auto client_takeoff =
-        n->serviceClient<mavros_msgs::CommandTOL>("~cmd/takeoff");
+        n->serviceClient<mavros_msgs::CommandTOL>("/mavros/cmd/takeoff");
     mavros_msgs::CommandTOL cmd;
 
     cmd.request.altitude = takeoff_height;
@@ -102,7 +103,7 @@ public:
             coparos::Service_command::Response &res) {
     ROS_INFO("LANDING");
     auto client_landing =
-        n->serviceClient<mavros_msgs::CommandTOL>("~cmd/land");
+        n->serviceClient<mavros_msgs::CommandTOL>("/mavros/cmd/land");
     mavros_msgs::CommandTOL cmd;
     if (client_landing.call(cmd)) {
       res.result = cmd.response.success;
@@ -119,7 +120,7 @@ public:
            coparos::Service_command::Response &res) {
     ROS_INFO("Returning to launch");
     auto client_rtl =
-        n->serviceClient<mavros_msgs::CommandLong>("~cmd/command");
+        n->serviceClient<mavros_msgs::CommandLong>("/mavros/cmd/command");
     mavros_msgs::CommandLong cmd;
     cmd.request.broadcast = true;
     cmd.request.command = uint16_t(20);
@@ -136,7 +137,8 @@ public:
   bool stop(coparos::Service_command::Request &req,
             coparos::Service_command::Response &res) {
     ROS_INFO("Stopping");
-    auto client_stop = n->serviceClient<mavros_msgs::SetMode>("~/set_mode");
+    auto client_stop =
+        n->serviceClient<mavros_msgs::SetMode>("/mavros/cmd/set_mode");
     mavros_msgs::SetMode cmd;
     cmd.request.base_mode = 1;
     cmd.request.custom_mode = 4;
@@ -152,7 +154,8 @@ public:
   bool continue_flight(coparos::Service_command::Request &req,
                        coparos::Service_command::Response &res) {
     ROS_INFO("Continue");
-    auto client_continue = n->serviceClient<mavros_msgs::SetMode>("~/set_mode");
+    auto client_continue =
+        n->serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
     mavros_msgs::SetMode cmd;
     cmd.request.base_mode = 1;
     cmd.request.custom_mode = 3;
@@ -177,7 +180,7 @@ public:
     }
     ROS_INFO("TAKING OFF");
     auto client_takeoff =
-        n->serviceClient<mavros_msgs::CommandTOL>("~cmd/takeoff");
+        n->serviceClient<mavros_msgs::CommandTOL>("/mavros/cmd/takeoff");
     mavros_msgs::CommandTOL cmd;
 
     cmd.request.altitude = takeoff_height;
@@ -189,7 +192,8 @@ public:
       res.result = false;
       return true;
     }
-    auto client_continue = n->serviceClient<mavros_msgs::SetMode>("~/set_mode");
+    auto client_continue =
+        n->serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
     mavros_msgs::SetMode cmd2;
     cmd2.request.base_mode = 1;
     cmd2.request.custom_mode = 3;
