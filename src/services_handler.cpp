@@ -141,7 +141,7 @@ public:
     cmd.request.base_mode = 1;
     cmd.request.custom_mode = 4;
     if (client_stop.call(cmd)) {
-      res.result = cmd.response.success;
+      res.result = cmd.response.mode_sent;
       return true;
     } else {
       res.status = "Cannot call mavros service";
@@ -157,7 +157,7 @@ public:
     cmd.request.base_mode = 1;
     cmd.request.custom_mode = 3;
     if (client_continue.call(cmd)) {
-      res.result = cmd.response.success;
+      res.result = cmd.response.mode_sent;
       return true;
     } else {
       res.status = "Cannot call mavros service";
@@ -194,7 +194,7 @@ public:
     cmd.request.base_mode = 1;
     cmd.request.custom_mode = 3;
     if (client_continue.call(cmd)) {
-      res.result = cmd.response.success;
+      res.result = cmd.response.mode_sent;
       return true;
     } else {
       res.status = "Cannot call mavros service";
