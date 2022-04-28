@@ -62,6 +62,9 @@
   <exec_depend>roscpp</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <depend>copa_msgs</depend>
+  <depend>mavros_msgs</depend>
+
+
    <!-- The export tag contains other, unspecified, tags -->
   <export>
     <!-- Other tools can request additional information be placed here -->
