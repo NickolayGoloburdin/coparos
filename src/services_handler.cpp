@@ -77,8 +77,7 @@ public:
   bool takeoff(coparos::Service_command::Request &req,
                coparos::Service_command::Response &res) {
     float takeoff_height;
-    if (!(n->getParam("/takeoff_height", takeoff_height))
-    {
+    if (!(n->getParam("/takeoff_height", takeoff_height))) {
       res.status = "Cannot read takeoff height from rosparam";
       res.result = false;
       return true;
@@ -171,8 +170,7 @@ public:
     ROS_INFO("Starting 1 click mission");
 
     float takeoff_height;
-    if (!(n->getParam("/takeoff_height", takeoff_height))
-    {
+    if (!(n->getParam("/takeoff_height", takeoff_height))) {
       res.status = "Cannot read takeoff height from rosparam";
       res.result = false;
       return true;
