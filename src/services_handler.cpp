@@ -1,4 +1,3 @@
-#include "copa_types.h"
 #include "coparos/Service_command.h"
 #include "mavros_msgs/CommandBool.h"
 #include "mavros_msgs/CommandHome.h"
