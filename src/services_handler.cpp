@@ -86,8 +86,8 @@ public:
     auto client_guided =
         n->serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
     mavros_msgs::SetMode cmd1;
-    cmd.request.base_mode = 1;
-    cmd.request.custom_mode = 'GUIDED';
+    cmd1.request.base_mode = 1;
+    cmd1.request.custom_mode = "GUIDED";
     if (client_guided.call(cmd1)) {
       res.result = cmd1.response.mode_sent;
     } else {
@@ -153,7 +153,7 @@ public:
         n->serviceClient<mavros_msgs::SetMode>("/mavros/cmd/set_mode");
     mavros_msgs::SetMode cmd;
     cmd.request.base_mode = 1;
-    cmd.request.custom_mode = 'GUIDED';
+    cmd.request.custom_mode = "GUIDED";
     if (client_stop.call(cmd)) {
       res.result = cmd.response.mode_sent;
       return true;
@@ -170,7 +170,7 @@ public:
         n->serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
     mavros_msgs::SetMode cmd;
     cmd.request.base_mode = 1;
-    cmd.request.custom_mode = 'AUTO';
+    cmd.request.custom_mode = "AUTO";
     if (client_continue.call(cmd)) {
       res.result = cmd.response.mode_sent;
       return true;
@@ -195,7 +195,7 @@ public:
         n->serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
     mavros_msgs::SetMode cmd;
     cmd.request.base_mode = 1;
-    cmd.request.custom_mode = 'GUIDED';
+    cmd.request.custom_mode = "GUIDED";
     if (client_guided.call(cmd)) {
       res.result = cmd.response.mode_sent;
     } else {
@@ -221,7 +221,7 @@ public:
         n->serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
     mavros_msgs::SetMode cmd2;
     cmd2.request.base_mode = 1;
-    cmd2.request.custom_mode = 3;
+    cmd2.request.custom_mode = "AUTO";
     if (client_continue.call(cmd2)) {
       res.result = cmd2.response.mode_sent;
       return true;
