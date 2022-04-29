@@ -1,5 +1,5 @@
 <launch>
-<arg name="takeoff_height" default="10"/>
+<arg name="takeoff_height" default="100"/>
 <arg name="node_start_delay" default="0.0" />
 <param name="takeoff_height" value="$(arg takeoff_height)" />
   <node name="coparos_services_handler" pkg="coparos" type="coparos_services_node" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>

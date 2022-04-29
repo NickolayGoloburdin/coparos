@@ -83,6 +83,18 @@ public:
       res.result = false;
       return true;
     }
+    auto client_guided =
+        n->serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
+    mavros_msgs::SetMode cmd1;
+    cmd.request.base_mode = 1;
+    cmd.request.custom_mode = 'GUIDED';
+    if (client_guided.call(cmd1)) {
+      res.result = cmd1.response.mode_sent;
+    } else {
+      res.status = "Cannot call mavros service";
+      res.result = false;
+      return true;
+    }
     ROS_INFO("TAKING OFF");
     auto client_takeoff =
         n->serviceClient<mavros_msgs::CommandTOL>("/mavros/cmd/takeoff");
@@ -141,7 +153,7 @@ public:
         n->serviceClient<mavros_msgs::SetMode>("/mavros/cmd/set_mode");
     mavros_msgs::SetMode cmd;
     cmd.request.base_mode = 1;
-    cmd.request.custom_mode = 4;
+    cmd.request.custom_mode = 'GUIDED';
     if (client_stop.call(cmd)) {
       res.result = cmd.response.mode_sent;
       return true;
@@ -158,7 +170,7 @@ public:
         n->serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
     mavros_msgs::SetMode cmd;
     cmd.request.base_mode = 1;
-    cmd.request.custom_mode = 3;
+    cmd.request.custom_mode = 'AUTO';
     if (client_continue.call(cmd)) {
       res.result = cmd.response.mode_sent;
       return true;
@@ -173,19 +185,32 @@ public:
     ROS_INFO("Starting 1 click mission");
 
     float takeoff_height;
+
     if (!(n->getParam("/takeoff_height", takeoff_height))) {
       res.status = "Cannot read takeoff height from rosparam";
+      res.result = false;
+      return true;
+    }
+    auto client_guided =
+        n->serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
+    mavros_msgs::SetMode cmd;
+    cmd.request.base_mode = 1;
+    cmd.request.custom_mode = 'GUIDED';
+    if (client_guided.call(cmd)) {
+      res.result = cmd.response.mode_sent;
+    } else {
+      res.status = "Cannot call mavros service";
       res.result = false;
       return true;
     }
     ROS_INFO("TAKING OFF");
     auto client_takeoff =
         n->serviceClient<mavros_msgs::CommandTOL>("/mavros/cmd/takeoff");
-    mavros_msgs::CommandTOL cmd;
+    mavros_msgs::CommandTOL cmd2;
 
     cmd.request.altitude = takeoff_height;
-    if (client_takeoff.call(cmd)) {
-      res.result = cmd.response.success;
+    if (client_takeoff.call(cmd2)) {
+      res.result = cmd2.response.success;
 
     } else {
       res.status = "Cannot call mavros service";
