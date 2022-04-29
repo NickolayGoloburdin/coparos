@@ -8,7 +8,7 @@
 #include <ros/ros.h>
 #include <sensor_msgs/Imu.h>
 #include <sensor_msgs/NavSatFix.h>
-#include <std_msgs/Float32.h>
+#include <std_msgs/Float64.h>
 #include <stdint.h>
 #include <string.h>
 #include <thread>

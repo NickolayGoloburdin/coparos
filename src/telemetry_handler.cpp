@@ -14,9 +14,9 @@
 /*********************************** Подсчёт CRC
  * *************************************/
 /*подсчёт CRC */
-float degree_to_radian(float degree){
+float degree_to_radian(float degree) {
   float pi = 3.14159265359;
-    return (degree * (pi / 180));
+  return (degree * (pi / 180));
 }
 TelemetryHandler_ACO::TelemetryHandler_ACO(AbstractLink *link,
                                            ros::NodeHandle *nh)
@@ -24,7 +24,7 @@ TelemetryHandler_ACO::TelemetryHandler_ACO(AbstractLink *link,
 
   imu_pub_ = nh->advertise<sensor_msgs::Imu>("/imu", 1000);
   gps_pub_ = nh->advertise<sensor_msgs::NavSatFix>("/gps", 1000);
-  baro_pub_ = nh->advertise<std_msgs::Float32>("/baro", 1000);
+  baro_pub_ = nh->advertise<std_msgs::Float64>("/baro", 1000);
 }
 
 TelemetryHandler_ACO::~TelemetryHandler_ACO() {}
@@ -152,7 +152,8 @@ void TelemetryHandler_ACO::PackRec(Header_t *header, void *body) {
     imu_msg.header.stamp = ros::Time::now();
     tf2::Quaternion myQuaternion;
     //Перевод данных инерциальной системы из углов эйлера в кватернион
-    myQuaternion.setRPY(degree_to_radian(Telemetry_data.IMU_PITCH), degree_to_radian(Telemetry_data.IMU_ROLL),
+    myQuaternion.setRPY(degree_to_radian(Telemetry_data.IMU_PITCH),
+                        degree_to_radian(Telemetry_data.IMU_ROLL),
                         degree_to_radian(Telemetry_data.IMU_YAW));
     myQuaternion.normalize();
     geometry_msgs::Quaternion quat_msg;
