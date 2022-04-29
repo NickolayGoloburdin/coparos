@@ -208,7 +208,7 @@ public:
         n->serviceClient<mavros_msgs::CommandTOL>("/mavros/cmd/takeoff");
     mavros_msgs::CommandTOL cmd2;
 
-    cmd.request.altitude = takeoff_height;
+    cmd2.request.altitude = takeoff_height;
     if (client_takeoff.call(cmd2)) {
       res.result = cmd2.response.success;
 
@@ -219,11 +219,11 @@ public:
     }
     auto client_continue =
         n->serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
-    mavros_msgs::SetMode cmd2;
-    cmd2.request.base_mode = 1;
-    cmd2.request.custom_mode = "AUTO";
-    if (client_continue.call(cmd2)) {
-      res.result = cmd2.response.mode_sent;
+    mavros_msgs::SetMode cmd3;
+    cmd3.request.base_mode = 1;
+    cmd3.request.custom_mode = "AUTO";
+    if (client_continue.call(cmd3)) {
+      res.result = cmd3.response.mode_sent;
       return true;
     } else {
       res.status = "Cannot call mavros service";
