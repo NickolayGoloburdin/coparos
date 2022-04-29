@@ -126,7 +126,7 @@ void TelemetryHandler_ACO::PackRec(Header_t *header, void *body) {
     Telemetry_data_t Telemetry_data;
     memcpy(&Telemetry_data, body, sizeof(Telemetry_data_t));
     //Создание сообщений спутниковой системы, инерциальной и барометра
-    std_msgs::Float32 baro_msg;
+    std_msgs::Float64 baro_msg;
     sensor_msgs::NavSatFix gps_msg;
     sensor_msgs::Imu imu_msg;
     //Выставление данных шапки сообщения: Времени и фрейма
