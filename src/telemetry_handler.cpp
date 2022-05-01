@@ -25,6 +25,8 @@ TelemetryHandler_ACO::TelemetryHandler_ACO(AbstractLink *link,
   imu_pub_ = nh->advertise<sensor_msgs::Imu>("/imu", 1000);
   gps_pub_ = nh->advertise<sensor_msgs::NavSatFix>("/gps", 1000);
   baro_pub_ = nh->advertise<std_msgs::Float64>("/baro", 1000);
+  fake_gps_sub_ = nh->subscribe("/gps_from_video", 1000,
+                                &TelemetryHandler_ACO::callback_fake_gps, this);
 }
 
 TelemetryHandler_ACO::~TelemetryHandler_ACO() {}
@@ -213,6 +215,10 @@ void TelemetryHandler_ACO::ACOTelemOnOff(uint8_t On_Off) {
   if (On_Off == 1)
     ACOPacketMake(OF_CMD_START, 0, 0);
   sendPacket();
+}
+void TelemetryHandler_ACO::callback_fake_gps(
+    const sensor_msgs::NavSatFix &msg) {
+  SetLatLon_NoGPS(msg.latitude, msg.longitude, 2);
 }
 void TelemetryHandler_ACO::SetLatLon_NoGPS(double lat, double lon,
                                            uint8_t flags) {

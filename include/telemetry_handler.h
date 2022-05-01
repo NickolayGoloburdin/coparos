@@ -87,6 +87,7 @@ private:
       gps_pub_; //Издатель в РОС, который посылает в топик gps координаты
   ros::Publisher
       baro_pub_; //Издатель в РОС, который посылает в топик значения барометра
+  ros::Subscriber fake_gps_sub_;
 
 public:
   void parseFunc();
@@ -105,6 +106,7 @@ public:
       uint8_t On_Off); // 0=выключить, 1=включить телеметрию ACO в коптере
   void ACOPacketMake(uint8_t comand, void *body,
                      uint8_t bodylen); //Конструктор пакета для отправки
+  void callback_fake_gps(const sensor_msgs::NavSatFix &msg);
 };
 
 #endif // ABSTRACT_LINK_H
