@@ -214,4 +214,13 @@ void TelemetryHandler_ACO::ACOTelemOnOff(uint8_t On_Off) {
     ACOPacketMake(OF_CMD_START, 0, 0);
   sendPacket();
 }
+void TelemetryHandler_ACO::SetLatLon_NoGPS(double lat, double lon,
+                                           uint8_t flags) {
+  opticFlowDataStruct_t data;
+  data.lat = lat;
+  data.lon = lon;
+  data.flags = 2;
+  ACOPacketMake(OF_CMD_FLOW, &data, sizeof(opticFlowDataStruct_t));
+  sendPacket();
+}
 void TelemetryHandler_ACO::sendPacket() { link_->sendData(OutBuff, OutSize); }

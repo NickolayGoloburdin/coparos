@@ -22,6 +22,8 @@ public:
   ros::ServiceServer service_continue_flight; //Сервис продолжения полета
   ros::ServiceServer service_start_mission; //Сервис запуска миссии
   ros::ServiceServer service_clear_mission; //Сервис очистки миссии
+  ros::ServiceServer service_other_gps; //Сервис включения подмены gps координат
+  bool useFakeGps = false;
   ServiceHandler(ros::NodeHandle *nh) : n(nh) {
     //Инициализация сервисо и подписчиков РОС
     cmd_pub_ = n->advertise<coparos::Command>("/command", 1000);
@@ -39,6 +41,8 @@ public:
         "Start_mission", &ServiceHandler::start_mission, this);
     service_clear_mission = n->advertiseService(
         "Clear_mission", &ServiceHandler::clear_mission, this);
+    service_other_gps = n->advertiseService(
+        "Set_gps_mode", &ServiceHandler::set_gps_mode, this);
     ack_processor =
         n->subscribe("/ack", 1000, &ServiceHandler::callback_ack, this);
   }
@@ -221,6 +225,41 @@ public:
     } else {
       res.status = "Controller doesn't response";
       res.result = false;
+      return true;
+    }
+  }
+
+  bool set_gps_mode(coparos::Service_command::Request &req,
+                    coparos::Service_command::Response &res) {
+
+    msg.command = CMD_GPS_PASSTHROUGH;
+    cmd_pub_.publish(msg);
+    auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
+                                                        ros::Duration(0.1));
+    if (ack) {
+      if (ack->command == uint16_t(CMD_GPS_PASSTHROUGH)) {
+        if (ack->result) {
+          res.status = "Success";
+          res.result = true;
+          useFakeGps = !useFakeGps;
+          ROS_INFO("Use fake gps:", useFakeGps);
+          return true;
+        } else {
+          res.status = ack->status;
+          res.result = false;
+          ROS_INFO("Use fake gps:", useFakeGps);
+          return true;
+        }
+      } else {
+        res.status = "Other command recieved";
+        res.result = false;
+        ROS_INFO("Use fake gps:", useFakeGps);
+        return true;
+      }
+    } else {
+      res.status = "Controller doesn't response";
+      res.result = false;
+      ROS_INFO("Use fake gps:", useFakeGps);
       return true;
     }
   }

@@ -55,6 +55,15 @@ typedef struct {
                                // высоты msl)
   float ms5611_altitude; // 61-64//- высота чисто по баро
 } Telemetry_data_t;
+typedef struct {
+  double lat;
+  double lon;
+  uint8_t flags; // состояние решения на OFM
+                 // первые 2 бита :
+                 //   0b00 - нет решения
+                 //   0b01 - относительные координаты (виртуальная СК)
+                 //   0b10 - абсолютные координаты (NED)
+} opticFlowDataStruct_t;
 #pragma pack(pop)
 
 class TelemetryHandler_ACO {
@@ -90,7 +99,8 @@ public:
 
   void sendPacket(); //Отправить пакет
   void ACOParseBUF(std::shared_ptr<std::list<unsigned char>> list_ptr);
-  void SetLatLon_NoGPS(); //Отправить подмену координат
+  void SetLatLon_NoGPS(double lat, double lon,
+                       uint8_t flags); //Отправить подмену координат
   void ACOTelemOnOff(
       uint8_t On_Off); // 0=выключить, 1=включить телеметрию ACO в коптере
   void ACOPacketMake(uint8_t comand, void *body,
