@@ -21,7 +21,7 @@ float degree_to_radian(float degree) {
 TelemetryHandler_ACO::TelemetryHandler_ACO(AbstractLink *link,
                                            ros::NodeHandle *nh,
                                            HandlerType type)
-    : link_(link), nh_(nh, ) type_(type) {
+    : link_(link), nh_(nh, ), type_(type) {
   if (type_ == RECIEVER || type_ == DUPLEX) {
     imu_pub_ = nh_->advertise<sensor_msgs::Imu>("/imu", 1000);
     gps_pub_ = nh_->advertise<sensor_msgs::NavSatFix>("/gps", 1000);
