@@ -29,8 +29,11 @@ int main(int argc, char **argv) {
   if (!realtime) {
     return 0;
   }
+  std::string port = "/dev/ttyTHS1";
+  if (argc > 1)
+    port = argv[1];
   //Инициализация модуля связи по последовательному порту
-  SerialLink *link_ls = new SerialLink("/dev/ttyTHS1", 115200);
+  SerialLink *link_ls = new SerialLink(port, 115200);
   //Инициализация модуля коммуникации
   COPA *copa = new COPA(link_ls, &nh);
   //Запуск модуля свзяи

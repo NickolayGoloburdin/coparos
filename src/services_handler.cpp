@@ -243,6 +243,7 @@ public:
           res.result = true;
           useFakeGps = !useFakeGps;
           ROS_INFO("Use fake gps:", useFakeGps);
+          n->setParam("/use_gps_from_video", useFakeGps);
           return true;
         } else {
           res.status = ack->status;

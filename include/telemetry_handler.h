@@ -80,7 +80,7 @@ private:
   void PackRec(Header_t *header,
                void *body); //Метод обработки полученного пакета
   AbstractLink *link_; //Интерфейс предачи данных
-
+  ros::NodeHandle *nh_;
   ros::Publisher imu_pub_; //Издатель в РОС, который посылает в топик значения
                            //инерциальной системы
   ros::Publisher

@@ -145,12 +145,18 @@ include
 ## The recommended prefix ensures that target names across packages don't collide
  add_executable(${PROJECT_NAME}_command_node src/command_node.cpp src/abstract_link.cpp src/command_handler.cpp src/serial_link.cpp)
  add_executable(${PROJECT_NAME}_telemetry_node src/telemetry_node.cpp src/abstract_link.cpp src/telemetry_handler.cpp src/serial_link.cpp)
+ add_executable(${PROJECT_NAME}_telemetry_reciever_node src/telemetry_reciever_node.cpp src/abstract_link.cpp src/telemetry_handler.cpp src/serial_link.cpp)
+ add_executable(${PROJECT_NAME}_telemetry_transmitter_node src/telemetry_transmitter_node.cpp src/abstract_link.cpp src/telemetry_handler.cpp src/serial_link.cpp)
+
  add_executable(${PROJECT_NAME}_services_node src/services_handler.cpp)
  #add_executable(${PROJECT_NAME}_mobile_node src/mobile_node.cpp src/mobile_handler.cpp src/abstract_link.cpp src/udp_link.cpp)
  add_executable(${PROJECT_NAME}_measure_wind_service_node src/service_measure_wind_handler.cpp)
  
  add_dependencies(${PROJECT_NAME}_command_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
  add_dependencies(${PROJECT_NAME}_telemetry_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+ add_dependencies(${PROJECT_NAME}_telemetry_transmitter_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+ add_dependencies(${PROJECT_NAME}_telemetry_reciever_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+ 
  add_dependencies(${PROJECT_NAME}_services_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
  #add_dependencies(${PROJECT_NAME}_mobile_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
  add_dependencies(${PROJECT_NAME}_measure_wind_service_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
@@ -172,6 +178,14 @@ include
    serial
  )
  target_link_libraries(${PROJECT_NAME}_telemetry_node
+   ${catkin_LIBRARIES}
+   serial
+ )
+ target_link_libraries(${PROJECT_NAME}_telemetry_transmitter_node
+   ${catkin_LIBRARIES}
+   serial
+ )
+ target_link_libraries(${PROJECT_NAME}_telemetry_reciever_node
    ${catkin_LIBRARIES}
    serial
  )

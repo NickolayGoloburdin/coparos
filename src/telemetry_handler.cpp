@@ -21,16 +21,16 @@ float degree_to_radian(float degree) {
 TelemetryHandler_ACO::TelemetryHandler_ACO(AbstractLink *link,
                                            ros::NodeHandle *nh,
                                            HandlerType type)
-    : link_(link), type_(type) {
+    : link_(link), nh_(nh, ) type_(type) {
   if (type_ == RECIEVER || type_ == DUPLEX) {
-    imu_pub_ = nh->advertise<sensor_msgs::Imu>("/imu", 1000);
-    gps_pub_ = nh->advertise<sensor_msgs::NavSatFix>("/gps", 1000);
-    baro_pub_ = nh->advertise<std_msgs::Float64>("/baro", 1000);
+    imu_pub_ = nh_->advertise<sensor_msgs::Imu>("/imu", 1000);
+    gps_pub_ = nh_->advertise<sensor_msgs::NavSatFix>("/gps", 1000);
+    baro_pub_ = nh_->advertise<std_msgs::Float64>("/baro", 1000);
   }
   if (type_ == TRANSMITTER || type_ == DUPLEX)
     fake_gps_sub_ =
-        nh->subscribe("/gps_from_video", 1000,
-                      &TelemetryHandler_ACO::callback_fake_gps, this);
+        nh_->subscribe("/gps_from_video", 1000,
+                       &TelemetryHandler_ACO::callback_fake_gps, this);
 }
 
 TelemetryHandler_ACO::~TelemetryHandler_ACO() {}
@@ -224,7 +224,11 @@ void TelemetryHandler_ACO::ACOTelemOnOff(uint8_t On_Off) {
 }
 void TelemetryHandler_ACO::callback_fake_gps(
     const sensor_msgs::NavSatFix &msg) {
-  SetLatLon_NoGPS(msg.latitude, msg.longitude, 2);
+  bool fakeGps = false;
+  if (nh_->getParam("/use_gps_from_video", fakeGps)) {
+    if (fakeGps)
+      SetLatLon_NoGPS(msg.latitude, msg.longitude, 2);
+  }
 }
 void TelemetryHandler_ACO::SetLatLon_NoGPS(double lat, double lon,
                                            uint8_t flags) {
