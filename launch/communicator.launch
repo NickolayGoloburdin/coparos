@@ -1,8 +1,9 @@
 <launch>
 <arg name="takeoff_height" default="10"/>
 <arg name="node_start_delay" default="0.0" />
+<arg name="high_speed_port" default="/dev/ttyUSB0" />
 <param name="use_gps_from_video" value="false" />
-  <node name="coparos_telemetry_handler" pkg="coparos" type="coparos_telemetry_node" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' " />
+  <node name="coparos_telemetry_handler" pkg="coparos" type="coparos_telemetry_node" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' " args="$(arg high_speed_port)" />
   <node name="coparos_command_handler" pkg="coparos" type="coparos_command_node" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' " />
   <node name="coparos_services_handler" pkg="coparos" type="coparos_services_node" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
   <node name="coparos_mission_handler" pkg="coparos" type="mission_handler.py" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
