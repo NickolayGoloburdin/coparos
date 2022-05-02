@@ -65,7 +65,7 @@ typedef struct {
                  //   0b10 - абсолютные координаты (NED)
 } opticFlowDataStruct_t;
 #pragma pack(pop)
-
+enum HandlerType { RECIEVER, TRANSMITTER, DUPLEX };
 class TelemetryHandler_ACO {
 protected:          //номер байта входящего пакета
   uint8_t CRC_A;    //для подсчёта контрольной суммы
@@ -88,10 +88,12 @@ private:
   ros::Publisher
       baro_pub_; //Издатель в РОС, который посылает в топик значения барометра
   ros::Subscriber fake_gps_sub_;
+  HandlerType type_;
 
 public:
   void parseFunc();
-  TelemetryHandler_ACO(AbstractLink *link, ros::NodeHandle *nh);
+  TelemetryHandler_ACO(AbstractLink *link, ros::NodeHandle *nh,
+                       HandlerType type);
   ~TelemetryHandler_ACO();
   uint8_t
       OutBuff[ACO_BUF_MAX_LENGTH]; //буфер для формирования исходящего пакета

@@ -38,17 +38,15 @@ int main(int argc, char *argv[]) {
   SerialLink *link_hs = new SerialLink(port, 921600);
   //Инициализация модуля парсинга и отправки команд на коптер
   TelemetryHandler_ACO *handler =
-      new TelemetryHandler_ACO(link_hs, &nh, HandlerType::DUPLEX);
+      new TelemetryHandler_ACO(link_hs, &nh, HandlerType::TRANSMITTER);
   //Запуск работы модуля связи
   link_hs->up();
   //Команда включить отправку телеметрии
-  handler->ACOTelemOnOff(1);
   //Выставление частоты работы ноды
   ros::Rate loop_rate(100);
   while (ros::ok()) {
     // Чтение данных с коптера
-    handler->parseFunc();
-    //Обновление состояния ноды
+
     ros::spinOnce();
 
     loop_rate.sleep();

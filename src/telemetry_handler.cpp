@@ -19,14 +19,18 @@ float degree_to_radian(float degree) {
   return (degree * (pi / 180));
 }
 TelemetryHandler_ACO::TelemetryHandler_ACO(AbstractLink *link,
-                                           ros::NodeHandle *nh)
-    : link_(link) {
-
-  imu_pub_ = nh->advertise<sensor_msgs::Imu>("/imu", 1000);
-  gps_pub_ = nh->advertise<sensor_msgs::NavSatFix>("/gps", 1000);
-  baro_pub_ = nh->advertise<std_msgs::Float64>("/baro", 1000);
-  fake_gps_sub_ = nh->subscribe("/gps_from_video", 1000,
-                                &TelemetryHandler_ACO::callback_fake_gps, this);
+                                           ros::NodeHandle *nh,
+                                           HandlerType type)
+    : link_(link), type_(type) {
+  if (type_ == RECIEVER || type_ == DUPLEX) {
+    imu_pub_ = nh->advertise<sensor_msgs::Imu>("/imu", 1000);
+    gps_pub_ = nh->advertise<sensor_msgs::NavSatFix>("/gps", 1000);
+    baro_pub_ = nh->advertise<std_msgs::Float64>("/baro", 1000);
+  }
+  if (type_ == TRANSMITTER || type_ == DUPLEX)
+    fake_gps_sub_ =
+        nh->subscribe("/gps_from_video", 1000,
+                      &TelemetryHandler_ACO::callback_fake_gps, this);
 }
 
 TelemetryHandler_ACO::~TelemetryHandler_ACO() {}
@@ -43,6 +47,8 @@ void TelemetryHandler_ACO::ACO_CRC_calc() {
 }
 //Метод для парсинга входящих данных
 void TelemetryHandler_ACO::parseFunc() {
+  if (type_ == TRANSMITTER)
+    return;
 
   if (link_->isUp()) {
     auto list_ptr = link_->getData();
