@@ -4,6 +4,7 @@
 #include "mavros_msgs/CommandInt.h"
 #include "mavros_msgs/CommandLong.h"
 #include "mavros_msgs/CommandTOL.h"
+#include "mavros_msgs/ParamSet.h"
 #include "mavros_msgs/SetMode.h"
 #include "ros/ros.h"
 // Класс для работы сервисов передачи команд и миссий в коптер
@@ -20,6 +21,8 @@ public:
   ros::ServiceServer service_continue_flight; //Сервис продолжения полета
   ros::ServiceServer service_start_mission; //Сервис запуска миссии
   ros::ServiceServer service_clear_mission; //Сервис очистки миссии
+  ros::ServiceServer service_other_gps; //Сервис включения подмены gps координат
+  bool useFakeGps = false;
   ServiceHandler(ros::NodeHandle *nh) : n(nh) {
     //Инициализация сервисо и подписчиков РОС
     service_arm = n->advertiseService("Arm", &ServiceHandler::arm, this);
@@ -36,6 +39,8 @@ public:
         "Start_mission", &ServiceHandler::start_mission, this);
     service_clear_mission = n->advertiseService(
         "Clear_mission", &ServiceHandler::clear_mission, this);
+    service_other_gps = n->advertiseService(
+        "Set_gps_mode", &ServiceHandler::set_gps_mode, this);
   }
   //Функция обработчик ответа с коптера
   bool arm(coparos::Service_command::Request &req,
@@ -156,6 +161,31 @@ public:
     cmd.request.custom_mode = "GUIDED";
     if (client_stop.call(cmd)) {
       res.result = cmd.response.mode_sent;
+      return true;
+    } else {
+      res.status = "Cannot call mavros service";
+      res.result = false;
+      return true;
+    }
+  }
+  bool set_gps_mode(coparos::Service_command::Request &req,
+                    coparos::Service_command::Response &res) {
+
+    ROS_INFO("Stopping");
+    auto client_stop =
+        n->serviceClient<mavros_msgs::SetMode>("/mavros/param/set");
+    mavros_msgs::ParamSet cmd;
+    if (!useFakeGps) {
+      cmd.request.param_id = "GPS_TYPE";
+      cmd.request.value.integer = 14;
+    } else {
+      cmd.request.param_id = "GPS_TYPE";
+      cmd.request.value.integer = 1;
+    }
+    if (client_stop.call(cmd)) {
+      useFakeGps = !useFakeGps;
+      res.result = cmd.response.success;
+      ROS_INFO("Use fake gps:", useFakeGps);
       return true;
     } else {
       res.status = "Cannot call mavros service";
