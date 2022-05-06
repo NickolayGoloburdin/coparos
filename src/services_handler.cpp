@@ -44,9 +44,9 @@ public:
     service_clear_mission = n->advertiseService(
         "Clear_mission", &ServiceHandler::clear_mission, this);
     service_other_gps = n->advertiseService(
-        "Set_gps_mode", &ServiceHandler::set_gps_mode, this);
-    service_set_angles =
-        n->advertiseService("Set_angles", &ServiceHandler::set_angles, this);
+        "On_off_replace_gps", &ServiceHandler::set_gps_mode, this);
+    service_set_velocity_vector = n->advertiseService(
+        "Set_velocity_vector", &ServiceHandler::set_velocity_vector, this);
     service_set_mode =
         n->advertiseService("Set_flight_mode", &ServiceHandler::set_mode, this);
     ack_processor =
