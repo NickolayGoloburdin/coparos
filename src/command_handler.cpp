@@ -1080,7 +1080,7 @@ void COPA::CopaSetMove(float dx, float dy, float dz, uint32_t duration) {
   CopaPacketMake(CMD_NAV_SET_MOVE, &mov_, 8);
   CopaPacketSend();
 }
-void CopaSetNavMode(uint8_t mode) {
+void COPA::CopaSetNavMode(uint8_t mode) {
 
   CopaPacketMake(CMD_SET_NAV_MODE, &mode, 1);
   CopaPacketSend();
