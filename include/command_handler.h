@@ -10,6 +10,7 @@
 #include "copa_types.h"
 #include <coparos/Command.h>
 #include <coparos/MissionPoint.h>
+#include <cstdint>
 #include <list>
 #include <memory>
 
@@ -233,6 +234,7 @@ private:
   void CopaAddHeading(void *body); //Угол, на который следует довернуть коптер
   void CopaSetMove(float dx, float dy, float dz,
                    uint32_t duration); //Установить вектор скорости движения
+  void CopaSetNavMode(uint8_t mode);
   void Copa_Get_info(); //Проверка коптера - чтение ID коптера.
   void Copa_Motors_On();                //Запуск двигателей.
   void Copa_Motors_Off();               //Стоп Двигателей

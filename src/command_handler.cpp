@@ -79,8 +79,11 @@ void COPA::callback_command(const coparos::Command &msg) {
   case CMD_NAV_SET_MOVE:
     CopaSetMove(msg.data1, msg.data2, msg.data3, uint32_t(msg.data4));
     break;
+  case CMD_SET_NAV_MODE:
+    CopaSetNavMode(uint8_t(msg.data1));
   }
 }
+
 //Метод обработчик точек миссий из топика
 void COPA::callback_mission_point(const coparos::MissionPoint &msg) {
   sMissionPoint point;
@@ -1075,6 +1078,11 @@ void COPA::CopaSetMove(float dx, float dy, float dz, uint32_t duration) {
   mov_.val_float3 = e_float(dz);
   mov_.val_u32 = e_float(duration);
   CopaPacketMake(CMD_NAV_SET_MOVE, &mov_, 8);
+  CopaPacketSend();
+}
+void CopaSetNavMode(uint8_t mode) {
+
+  CopaPacketMake(CMD_SET_NAV_MODE, &mode, 1);
   CopaPacketSend();
 }
 //-------------------------------------------

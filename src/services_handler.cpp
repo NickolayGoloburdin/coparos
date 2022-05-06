@@ -23,7 +23,8 @@ public:
   ros::ServiceServer service_start_mission; //Сервис запуска миссии
   ros::ServiceServer service_clear_mission; //Сервис очистки миссии
   ros::ServiceServer service_other_gps; //Сервис включения подмены gps координат
-  ros::ServiceServer service_set_angles;
+  ros::ServiceServer service_set_velocity_vector;
+  ros::ServiceServer service_set_mode;
   bool useFakeGps = false;
   ServiceHandler(ros::NodeHandle *nh) : n(nh) {
     //Инициализация сервисо и подписчиков РОС
@@ -46,6 +47,8 @@ public:
         "Set_gps_mode", &ServiceHandler::set_gps_mode, this);
     service_set_angles =
         n->advertiseService("Set_angles", &ServiceHandler::set_angles, this);
+    service_set_mode =
+        n->advertiseService("Set_flight_mode", &ServiceHandler::set_mode, this);
     ack_processor =
         n->subscribe("/ack", 1000, &ServiceHandler::callback_ack, this);
   }
@@ -355,19 +358,49 @@ public:
     }
   }
 
-  bool set_angles(coparos::Service_command::Request &req,
-                  coparos::Service_command::Response &res) {
-    ROS_INFO("Set move");
+  bool service_set_velocity_vector(coparos::Service_command::Request &req,
+                                   coparos::Service_command::Response &res) {
+    ROS_INFO("Set velocity vector");
     msg.command = CMD_NAV_SET_MOVE;
-    msg.data1 = req.param1;
-    msg.data2 = req.param2;
-    msg.data3 = req.param3;
-    msg.data4 = req.param4;
+    msg.data1 = req.param1; // dx
+    msg.data2 = req.param2; // dy
+    msg.data3 = req.param3; // dz
+    msg.data4 = req.param4; // duration
     cmd_pub_.publish(msg);
     auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
                                                         ros::Duration(0.1));
     if (ack) {
       if (ack->command == uint16_t(CMD_NAV_SET_MOVE)) {
+        if (ack->result) {
+          res.status = "Success";
+          res.result = true;
+          return true;
+        } else {
+          res.status = ack->status;
+          res.result = false;
+          return true;
+        }
+      } else {
+        res.status = "Other command recieved";
+        res.result = false;
+        return true;
+      }
+    } else {
+      res.status = "Controller doesn't response";
+      res.result = false;
+      return true;
+    }
+  }
+  bool set_mode(coparos::Service_command::Request &req,
+                coparos::Service_command::Response &res) {
+    ROS_INFO("Set velocity vector");
+    msg.command = CMD_SET_NAV_MODE;
+    msg.data1 = req.param1; // mode
+    cmd_pub_.publish(msg);
+    auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
+                                                        ros::Duration(0.1));
+    if (ack) {
+      if (ack->command == uint16_t(CMD_SET_NAV_MODE)) {
         if (ack->result) {
           res.status = "Success";
           res.result = true;
