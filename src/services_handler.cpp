@@ -358,8 +358,8 @@ public:
     }
   }
 
-  bool service_set_velocity_vector(coparos::Service_command::Request &req,
-                                   coparos::Service_command::Response &res) {
+  bool set_velocity_vector(coparos::Service_command::Request &req,
+                           coparos::Service_command::Response &res) {
     ROS_INFO("Set velocity vector");
     msg.command = CMD_NAV_SET_MOVE;
     msg.data1 = req.param1; // dx
