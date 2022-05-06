@@ -23,6 +23,7 @@ public:
   ros::ServiceServer service_start_mission; //Сервис запуска миссии
   ros::ServiceServer service_clear_mission; //Сервис очистки миссии
   ros::ServiceServer service_other_gps; //Сервис включения подмены gps координат
+  ros::ServiceServer service_set_angles;
   bool useFakeGps = false;
   ServiceHandler(ros::NodeHandle *nh) : n(nh) {
     //Инициализация сервисо и подписчиков РОС
@@ -43,6 +44,8 @@ public:
         "Clear_mission", &ServiceHandler::clear_mission, this);
     service_other_gps = n->advertiseService(
         "Set_gps_mode", &ServiceHandler::set_gps_mode, this);
+    service_set_angles =
+        n->advertiseService("Set_angles", &ServiceHandler::set_angles, this);
     ack_processor =
         n->subscribe("/ack", 1000, &ServiceHandler::callback_ack, this);
   }
@@ -331,6 +334,40 @@ public:
                                                         ros::Duration(0.1));
     if (ack) {
       if (ack->command == uint16_t(CMD_NAV_CLEAR_WP)) {
+        if (ack->result) {
+          res.status = "Success";
+          res.result = true;
+          return true;
+        } else {
+          res.status = ack->status;
+          res.result = false;
+          return true;
+        }
+      } else {
+        res.status = "Other command recieved";
+        res.result = false;
+        return true;
+      }
+    } else {
+      res.status = "Controller doesn't response";
+      res.result = false;
+      return true;
+    }
+  }
+
+  bool set_angles(coparos::Service_command::Request &req,
+                  coparos::Service_command::Response &res) {
+    ROS_INFO("Set move");
+    msg.command = CMD_NAV_SET_MOVE;
+    msg.data1 = req.param1;
+    msg.data2 = req.param2;
+    msg.data3 = req.param3;
+    msg.data4 = req.param4;
+    cmd_pub_.publish(msg);
+    auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
+                                                        ros::Duration(0.1));
+    if (ack) {
+      if (ack->command == uint16_t(CMD_NAV_SET_MOVE)) {
         if (ack->result) {
           res.status = "Success";
           res.result = true;
