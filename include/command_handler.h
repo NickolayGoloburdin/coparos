@@ -129,6 +129,7 @@ class COPA {
     float val_float3;
     uint32_t val_u32;
   } __attribute__((packed)) mov_t_;
+
   /*************************  ****************************/
   /*
   typedef struct {
@@ -231,7 +232,8 @@ private:
   Copa_PreStartCheck(uint32_t AltMap_Pstart_); //Предстартовая проверка
                                                //готовности системы к взлёту.
 
-  void CopaAddHeading(void *body); //Угол, на который следует довернуть коптер
+  void CopaSetHeading(float yaw,
+                      float vel); //Угол, на который следует довернуть коптер
   void CopaSetMove(float dx, float dy, float dz,
                    uint32_t duration); //Установить вектор скорости движения
   void CopaSetNavMode(uint8_t mode);

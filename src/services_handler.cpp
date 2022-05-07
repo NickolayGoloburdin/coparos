@@ -9,9 +9,7 @@ public:
   ros::Publisher
       cmd_pub_; //Издатель для отправки команд в модуль коммуникации с коптером
   ros::NodeHandle *n; //Указатель на ноду РОС
-  coparos::Command
-      msg; //Сообщение РОС для хранения отпраленной на коптер команды
-  coparos::Ack ack_msg; //Сообщения для храниния ответа на команду с коптера
+                      //Сообщение РОС для хранения отпраленной на коптер команды
   ros::Subscriber ack_processor; // Подписчик на ответы с коптера
   ros::ServiceServer service_arm; //Сервис для снятия коптера с предохранителя
   ros::ServiceServer service_disarm; //Сервис для выключения двигателей
@@ -25,6 +23,7 @@ public:
   ros::ServiceServer service_other_gps; //Сервис включения подмены gps координат
   ros::ServiceServer service_set_velocity_vector;
   ros::ServiceServer service_set_mode;
+  ros::ServiceServer service_set_yaw;
   bool useFakeGps = false;
   ServiceHandler(ros::NodeHandle *nh) : n(nh) {
     //Инициализация сервисо и подписчиков РОС
@@ -49,18 +48,19 @@ public:
         "Set_velocity_vector", &ServiceHandler::set_velocity_vector, this);
     service_set_mode =
         n->advertiseService("Set_flight_mode", &ServiceHandler::set_mode, this);
+    service_set_yaw =
+        n->advertiseService("Set_yaw", &ServiceHandler::set_yaw, this);
     ack_processor =
         n->subscribe("/ack", 1000, &ServiceHandler::callback_ack, this);
   }
-  void callback_ack(const coparos::Ack msg) {
-    ack_msg = msg;
-  } //Функция обработчик ответа с коптера
+
   bool arm(coparos::Service_command::Request &req,
            coparos::Service_command::Response &res) {
     //Каждый сервис работает по принципу
     // 1. Отправил команду на коптер 2. Получил ответ об обработке команды 3.
     // Вывел ответ об успешности выполнения команды
     ROS_INFO("ARMING");
+    coparos::Command msg;
     msg.command = CMD_NAV_MOTORS_ON;
     cmd_pub_.publish(msg);
     auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
@@ -91,6 +91,7 @@ public:
   bool disarm(coparos::Service_command::Request &req,
               coparos::Service_command::Response &res) {
     ROS_INFO("DISARMING");
+    coparos::Command msg;
     msg.command = CMD_NAV_MOTORS_OFF;
     cmd_pub_.publish(msg);
     auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
@@ -117,9 +118,42 @@ public:
       return true;
     }
   }
+  bool set_yaw(coparos::Service_command::Request &req,
+               coparos::Service_command::Response &res) {
+    ROS_INFO("Setting yaw angle");
+    coparos::Command msg;
+    msg.command = CMD_NAV_SET_ABS_HEADING;
+    msg.data1 = req.param1;
+    msg.data1 = req.param2;
+    msg cmd_pub_.publish(msg);
+    auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
+                                                        ros::Duration(0.1));
+    if (ack) {
+      if (ack->command == uint16_t(CMD_NAV_SET_ABS_HEADING)) {
+        if (ack->result) {
+          res.status = "Success";
+          res.result = true;
+          return true;
+        } else {
+          res.status = ack->status;
+          res.result = false;
+          return true;
+        }
+      } else {
+        res.status = "Other command recieved";
+        res.result = false;
+        return true;
+      }
+    } else {
+      res.status = "Controller doesn't response";
+      res.result = false;
+      return true;
+    }
+  }
   bool takeoff(coparos::Service_command::Request &req,
                coparos::Service_command::Response &res) {
     ROS_INFO("TAKING OFF");
+    coparos::Command msg;
     msg.command = CMD_NAV_TAKE_OFF;
     cmd_pub_.publish(msg);
     auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
@@ -149,6 +183,7 @@ public:
   bool land(coparos::Service_command::Request &req,
             coparos::Service_command::Response &res) {
     ROS_INFO("LANDING");
+    coparos::Command msg;
     msg.command = CMD_NAV_TO_LAND;
     cmd_pub_.publish(msg);
     auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
@@ -179,6 +214,7 @@ public:
   bool rtl(coparos::Service_command::Request &req,
            coparos::Service_command::Response &res) {
     ROS_INFO("Returning to launch");
+    coparos::Command msg;
     msg.command = CMD_NAV_GOTO_HOME;
     cmd_pub_.publish(msg);
     auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
@@ -208,6 +244,7 @@ public:
   bool stop(coparos::Service_command::Request &req,
             coparos::Service_command::Response &res) {
     ROS_INFO("Stopping");
+    coparos::Command msg;
     msg.command = CMD_NAV_STOP_MOTION;
     cmd_pub_.publish(msg);
     auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
@@ -237,7 +274,7 @@ public:
 
   bool set_gps_mode(coparos::Service_command::Request &req,
                     coparos::Service_command::Response &res) {
-
+    coparos::Command msg;
     msg.command = CMD_GPS_PASSTHROUGH;
     cmd_pub_.publish(msg);
     auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
@@ -273,6 +310,7 @@ public:
   bool continue_flight(coparos::Service_command::Request &req,
                        coparos::Service_command::Response &res) {
     ROS_INFO("Continue");
+    coparos::Command msg;
     msg.command = CMD_NAV_CONTINUE_MOTION;
     cmd_pub_.publish(msg);
     auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
@@ -302,6 +340,7 @@ public:
   bool start_mission(coparos::Service_command::Request &req,
                      coparos::Service_command::Response &res) {
     ROS_INFO("Starting 1 click mission");
+    coparos::Command msg;
     msg.command = CMD_EXEC_SWITCH_N;
     cmd_pub_.publish(msg);
     auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
@@ -331,6 +370,7 @@ public:
   bool clear_mission(coparos::Service_command::Request &req,
                      coparos::Service_command::Response &res) {
     ROS_INFO("Cleaning mission");
+    coparos::Command msg;
     msg.command = CMD_NAV_CLEAR_WP;
     cmd_pub_.publish(msg);
     auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
@@ -361,6 +401,7 @@ public:
   bool set_velocity_vector(coparos::Service_command::Request &req,
                            coparos::Service_command::Response &res) {
     ROS_INFO("Set velocity vector");
+    coparos::Command msg;
     msg.command = CMD_NAV_SET_MOVE;
     msg.data1 = req.param1; // dx
     msg.data2 = req.param2; // dy
@@ -394,6 +435,7 @@ public:
   bool set_mode(coparos::Service_command::Request &req,
                 coparos::Service_command::Response &res) {
     ROS_INFO("Set velocity vector");
+    coparos::Command msg;
     msg.command = CMD_SET_NAV_MODE;
     msg.data1 = req.param1; // mode
     cmd_pub_.publish(msg);

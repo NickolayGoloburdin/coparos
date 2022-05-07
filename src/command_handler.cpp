@@ -81,6 +81,10 @@ void COPA::callback_command(const coparos::Command &msg) {
     break;
   case CMD_SET_NAV_MODE:
     CopaSetNavMode(uint8_t(msg.data1));
+    break;
+  case CMD_NAV_SET_ABS_HEADING:
+    CopaSetHeading(msg.data1, msg.data2);
+    break;
   }
 }
 
@@ -1044,20 +1048,13 @@ void COPA::CopaExecSwitch_N(uint8_t count) {
 /*	Угол, на который следует довернуть
  *  аппарат относительно текущего курса
  *   с заданной угловой скоростью.*/
-void COPA::CopaAddHeading(void *body) {
-  /*addHeading	Угол (в градусах), на который нужно довернуть аппарат.
-  Диапазон значений от -360 до +360 градусов. Вращение аппарата вокруг своей
-  оси будет происходить по кратчайшему пути. Пример: Аппарат смотрит на Север
-  (0 градусов). После командой "довернуть на 270 градусов" аппарат начнёт
-  движение против часовой стрелки на -90 градусов, и остановится на курсе 270
-  градусов. float	setHeadingRate	Угловая скорость в градусах в секунду, с
-  которой нужно производить разворот аппарата на новый курс.*/
+void COPA::CopaSetHeading(float yaw, float vel) {
 
   mov_t_ mov_;
-  mov_.val_float1 = e_float(((mov_t_ *)body)->val_float1);
-  mov_.val_float2 = e_float(((mov_t_ *)body)->val_float2);
+  mov_.val_float1 = e_float(yaw);
+  mov_.val_float2 = e_float(vel);
 
-  CopaPacketMake(CMD_NAV_ADD_HEADING, &mov_, 8);
+  CopaPacketMake(CMD_NAV_SET_ABS_HEADING, &mov_, 8);
   CopaPacketSend();
 }
 /*Установить вектор скорости движения
