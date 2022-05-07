@@ -121,8 +121,8 @@ public:
     coparos::Command msg;
     msg.command = CMD_NAV_SET_ABS_HEADING;
     msg.data1 = req.param1;
-    msg.data1 = req.param2;
-    msg cmd_pub_.publish(msg);
+    msg.data2 = req.param2;
+    cmd_pub_.publish(msg);
     auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
                                                         ros::Duration(0.1));
     if (ack) {
