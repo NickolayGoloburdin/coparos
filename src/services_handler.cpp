@@ -1,4 +1,5 @@
 #include "coparos/Service_command.h"
+#include "geometry_msgs/TwistStamped.h"
 #include "mavros_msgs/CommandBool.h"
 #include "mavros_msgs/CommandHome.h"
 #include "mavros_msgs/CommandInt.h"
@@ -10,7 +11,8 @@
 // Класс для работы сервисов передачи команд и миссий в коптер
 class ServiceHandler {
 public:
-  ros::NodeHandle *n;            //Указатель на ноду РОС
+  ros::NodeHandle *n; //Указатель на ноду РОС
+  ros::Publisher cmd_vel_pub;
   ros::Subscriber ack_processor; // Подписчик на ответы с коптера
   ros::ServiceServer service_arm; //Сервис для снятия коптера с предохранителя
   ros::ServiceServer service_disarm; //Сервис для выключения двигателей
@@ -22,8 +24,13 @@ public:
   ros::ServiceServer service_start_mission; //Сервис запуска миссии
   ros::ServiceServer service_clear_mission; //Сервис очистки миссии
   ros::ServiceServer service_other_gps; //Сервис включения подмены gps координат
+  ros::ServiceServer service_set_velocity_vector;
+  ros::ServiceServer service_set_mode;
+
   bool useFakeGps = false;
   ServiceHandler(ros::NodeHandle *nh) : n(nh) {
+    cmd_vel_pub = n->advertise<geometry_msgs::TwistStamped>(
+        "/mavros/setpoint_attitude/cmd_vel", 1000);
     //Инициализация сервисо и подписчиков РОС
     service_arm = n->advertiseService("Arm", &ServiceHandler::arm, this);
     service_disarm =
@@ -40,7 +47,11 @@ public:
     service_clear_mission = n->advertiseService(
         "Clear_mission", &ServiceHandler::clear_mission, this);
     service_other_gps = n->advertiseService(
-        "Set_gps_mode", &ServiceHandler::set_gps_mode, this);
+        "On_off_replace_gps", &ServiceHandler::set_gps_mode, this);
+    service_set_velocity_vector = n->advertiseService(
+        "Set_velocity_vector", &ServiceHandler::set_velocity_vector, this);
+    service_set_mode =
+        n->advertiseService("Set_flight_mode", &ServiceHandler::set_mode, this);
   }
   //Функция обработчик ответа с коптера
   bool arm(coparos::Service_command::Request &req,
@@ -186,6 +197,36 @@ public:
       useFakeGps = !useFakeGps;
       res.result = cmd.response.success;
       ROS_INFO("Use fake gps:", useFakeGps);
+      return true;
+    } else {
+      res.status = "Cannot call mavros service";
+      res.result = false;
+      return true;
+    }
+  }
+  bool set_velocity_vector(coparos::Service_command::Request &req,
+                           coparos::Service_command::Response &res) {
+    // geometry_msgs::TwistStamped msg;
+    // // add header
+    // cmd_vel_pub.publish(msg)
+    return false;
+  }
+  bool set_mode(coparos::Service_command::Request &req,
+                coparos::Service_command::Response &res) {
+    ROS_INFO("Stopping");
+    auto client_stop =
+        n->serviceClient<mavros_msgs::SetMode>("/mavros/cmd/set_mode");
+    mavros_msgs::SetMode cmd;
+    cmd.request.base_mode = 1;
+    switch (uint8_t(req.param1)) {
+    case 3:
+      cmd.request.custom_mode = "GUIDED";
+      break;
+    case 4:
+      cmd.request.custom_mode = "AUTO";
+    }
+    if (client_stop.call(cmd)) {
+      res.result = cmd.response.mode_sent;
       return true;
     } else {
       res.status = "Cannot call mavros service";
