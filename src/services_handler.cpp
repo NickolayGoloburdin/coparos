@@ -10,7 +10,6 @@ public:
       cmd_pub_; //Издатель для отправки команд в модуль коммуникации с коптером
   ros::NodeHandle *n; //Указатель на ноду РОС
                       //Сообщение РОС для хранения отпраленной на коптер команды
-  ros::Subscriber ack_processor; // Подписчик на ответы с коптера
   ros::ServiceServer service_arm; //Сервис для снятия коптера с предохранителя
   ros::ServiceServer service_disarm; //Сервис для выключения двигателей
   ros::ServiceServer service_takeoff; //Сервис взлета
@@ -50,8 +49,6 @@ public:
         n->advertiseService("Set_flight_mode", &ServiceHandler::set_mode, this);
     service_set_yaw =
         n->advertiseService("Set_yaw", &ServiceHandler::set_yaw, this);
-    ack_processor =
-        n->subscribe("/ack", 1000, &ServiceHandler::callback_ack, this);
   }
 
   bool arm(coparos::Service_command::Request &req,
