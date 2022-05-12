@@ -22,7 +22,7 @@ AircraftHandler::AircraftHandler(AbstractLink *link, ros::NodeHandle *nh)
       nh_->subscribe("/state", 1000, &AircraftHandler::callback_state, this);
 }
 
-AircraftHandler::~AircraftHandler() { tab.close(); }
+AircraftHandler::~AircraftHandler() {}
 
 // Подсчет контрольной суммы исходящего пакета
 
