@@ -11,8 +11,11 @@ public:
   ros::NodeHandle *n;
   ros::ServiceClient client_stop;
   ros::ServiceClient client_start;
+  ros::Publisher log_pub_;
+  std_msgs::String log;
   actionlib::SimpleActionClient<copa_msgs::WindSpeedAction> ac;
   Service(ros::NodeHandle *nh) : n(nh), ac("mes_wind", true) {
+    log_pub_ = n->advertise<std_msgs::String>("/logging_topic", 1000);
     client_stop = n->serviceClient<coparos::Service_command>("STOP");
     client_start = n->serviceClient<coparos::Service_command>("Continue");
     ac.waitForServer();
@@ -26,10 +29,12 @@ private:
 
     coparos::Service_command cmd;
     if (client_stop.call(cmd)) {
-      if (cmd.response.result)
-        ROS_INFO("Drone is stopped, start measuring wind");
-      else {
-        ROS_INFO("Cannot stop drone");
+      if (cmd.response.result) {
+        log.data = "Drone is stopped, start measuring wind";
+        log_pub_.publish(log);
+      } else {
+        log.data = "Cannot stop drone";
+        log_pub_.publish(log);
         res.status = "Drone doesn't responce on command";
         res.result = false;
         return true;
@@ -59,10 +64,12 @@ private:
 
     n->serviceClient<coparos::Service_command>("Continue");
     if (client_start.call(cmd)) {
-      if (cmd.response.result)
-        ROS_INFO("Wind is measured Continue fly");
-      else {
-        ROS_INFO("Cannot start drone");
+      if (cmd.response.result) {
+        log.data = "Wind is measured Continue fly";
+        log_pub_.publish(log);
+      } else {
+        log.data = "Cannot start drone";
+        log_pub_.publish(log);
         res.status = "Drone doesn't responce on command";
         res.result = false;
         return true;
