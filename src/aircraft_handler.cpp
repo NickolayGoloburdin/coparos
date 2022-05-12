@@ -8,6 +8,7 @@
 
 #include "aircraft_handler.h"
 #include "abstract_link.h"
+#include <tf/transform_datatypes.h>
 
 AircraftHandler::AircraftHandler(AbstractLink *link, ros::NodeHandle *nh)
     : link_(link), nh_(nh) {
@@ -47,6 +48,12 @@ void AircraftHandler::callback_baro(const std_msgs::Float64 &msg) {
 }
 void AircraftHandler::callback_imu(const sensor_msgs::Imu &msg) {
   // info.yaw =
+  tf::Quaternion q(msg.orientation.x, msg.orientation.y, msg.orientation.z,
+                   msg.orientation.w);
+  tf::Matrix3x3 m(q);
+  double roll, pitch, yaw;
+  m.getRPY(roll, pitch, yaw);
+  info.yaw = yaw;
 }
 void AircraftHandler::callback_state(const std_msgs::Int16 &msg) {
   info.state = msg.data;
