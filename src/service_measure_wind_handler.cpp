@@ -6,6 +6,7 @@
 #include <copa_msgs/WindSpeedFeedback.h>
 #include <copa_msgs/WindSpeedGoal.h>
 #include <copa_msgs/WindSpeedResult.h>
+#include <std_msgs/String.h>
 class Service {
 public:
   ros::NodeHandle *n;
