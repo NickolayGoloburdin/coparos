@@ -20,9 +20,10 @@ AircraftHandler::AircraftHandler(AbstractLink *link, ros::NodeHandle *nh)
   imu_sub_ = nh_->subscribe("/imu", 1000, &AircraftHandler::callback_imu, this);
   state_sub_ =
       nh_->subscribe("/state", 1000, &AircraftHandler::callback_state, this);
+  tab = ofstream("aircraft_log.bin", ios::binary);
 }
 
-AircraftHandler::~AircraftHandler() {}
+AircraftHandler::~AircraftHandler() { tab.close(); }
 
 // Подсчет контрольной суммы исходящего пакета
 
@@ -61,6 +62,7 @@ void AircraftHandler::callback_state(const std_msgs::Int16 &msg) {
 
 void AircraftHandler::sendInfo() {
   PacketMake(&info, sizeof(Data_t));
+  tab.write((char *)&info, sizeof(Data_t));
   sendPacket();
 }
 /*******************сборка пакет для
