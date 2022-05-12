@@ -17,9 +17,9 @@
 #define MAGIC1 0xD5
 
 enum CommandTypes { INFO_CMD = 0x01 };
-
-#pragma pack(push, 1)
 float degree_to_radian(float degree);
+#pragma pack(push, 1)
+
 typedef struct {
   uint8_t start_byte; // 0
   uint8_t packet_id;  // 1

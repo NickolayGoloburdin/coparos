@@ -169,9 +169,13 @@ void TelemetryHandler_ACO::PackRec(Header_t *header, void *body) {
     //Заполнение полей сообщения телеметрии
     imu_msg.orientation = quat_msg;
     imu_msg.orientation_covariance[0] = -1;
-    imu_msg.angular_velocity.x = degree_to_radian(Telemetry_data.rateX);
-    imu_msg.angular_velocity.y = degree_to_radian(Telemetry_data.rateY);
-    imu_msg.angular_velocity.z = degree_to_radian(Telemetry_data.rateZ);
+    // imu_msg.angular_velocity.x = degree_to_radian(Telemetry_data.rateX);
+    // imu_msg.angular_velocity.y = degree_to_radian(Telemetry_data.rateY);
+    // imu_msg.angular_velocity.z = degree_to_radian(Telemetry_data.rateZ);
+    imu_msg.angular_velocity.x = Telemetry_data.IMU_PITCH;
+    imu_msg.angular_velocity.y = Telemetry_data.IMU_ROLL;
+    imu_msg.angular_velocity.z = Telemetry_data.IMU_YAW;
+
     imu_msg.angular_velocity_covariance[0] = -1;
     // msg.rateX = Telemetry_data.rateX;
     // msg.rateY = Telemetry_data.rateY;
