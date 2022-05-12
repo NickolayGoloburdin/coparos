@@ -318,6 +318,7 @@ public:
   }
   bool continue_flight(coparos::Service_command::Request &req,
                        coparos::Service_command::Response &res) {
+    coparos::Command msg;
     log.data = "CONTINUE";
     log_pub_.publish(log);
     msg.command = CMD_NAV_CONTINUE_MOTION;
