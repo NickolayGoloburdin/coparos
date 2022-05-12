@@ -20,7 +20,7 @@ AircraftHandler::AircraftHandler(AbstractLink *link, ros::NodeHandle *nh)
   imu_sub_ = nh_->subscribe("/imu", 1000, &AircraftHandler::callback_imu, this);
   state_sub_ =
       nh_->subscribe("/state", 1000, &AircraftHandler::callback_state, this);
-  tab.open("/home/jetson/aircraft_log.bin", ios::out | ios::binary);
+  tab.open("/home/jetson/aircraft_log.bin", std::ios::out | std::ios::binary);
 }
 
 AircraftHandler::~AircraftHandler() { tab.close(); }
