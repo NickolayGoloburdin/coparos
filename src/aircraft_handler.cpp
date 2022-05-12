@@ -69,8 +69,8 @@ void AircraftHandler::sendInfo() {
  * отправки*************************************/
 void AircraftHandler::PacketMake(void *body, uint8_t bodylen) {
   Header_t *Hdr = (Header_t *)OutBuff;
-  Hdr->start_byte = MAGIC1; // A
-  Hdr->packet_id = packetNumber++;
+  Hdr->start_byte = 0xD5; // A
+  Hdr->packet_id = 0x44;
   Hdr->packetLen = bodylen;
   if (bodylen) //если полезная нагрузка не пустая то присоединяется полезная
                //нагрузка
