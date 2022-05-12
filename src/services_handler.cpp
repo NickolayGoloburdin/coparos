@@ -94,6 +94,7 @@ public:
   }
   bool disarm(coparos::Service_command::Request &req,
               coparos::Service_command::Response &res) {
+    coparos::Command msg;
     log.data = "DISARMING";
     log_pub_.publish(log);
     msg.command = CMD_NAV_MOTORS_OFF;
