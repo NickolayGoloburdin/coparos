@@ -63,7 +63,7 @@ void AircraftHandler::callback_state(const std_msgs::Int16 &msg) {
 void AircraftHandler::sendInfo() {
   PacketMake(&info, sizeof(Data_t));
   tab.write((char *)&info, sizeof(Data_t));
-  sendPacket();
+  // sendPacket();
 }
 /*******************сборка пакет для
  * отправки*************************************/

@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
   //Инициализация модуля парсинга и отправки команд на коптер
   AircraftHandler *handler = new AircraftHandler(link_hs, &nh);
   //Запуск работы модуля связи
-  link_hs->up();
+  // link_hs->up();
   //Выставление частоты работы ноды
   ros::Rate loop_rate(20);
   while (ros::ok()) {
