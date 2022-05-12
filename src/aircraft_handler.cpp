@@ -66,6 +66,7 @@ void AircraftHandler::sendInfo() {
   PacketMake(&info, sizeof(Data_t));
   tab.write((char *)&info, sizeof(Data_t));
   sendPacket();
+  tab.close();
 }
 /*******************сборка пакет для
  * отправки*************************************/
