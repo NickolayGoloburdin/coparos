@@ -8,6 +8,6 @@
   <node name="coparos_services_handler" pkg="coparos" type="coparos_services_node" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
   <node name="coparos_mission_handler" pkg="coparos" type="mission_handler.py" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
   <node name="coparos_measure_wind_service_node" pkg="coparos" type="coparos_measure_wind_service_node" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
-  <!-- <node name="coparos_aircraft_node" pkg="coparos" type="coparos_aircraft_node" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/> -->
+  <node name="coparos_aircraft_node" pkg="coparos" type="coparos_aircraft_node" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
   
 </launch>

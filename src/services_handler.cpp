@@ -3,11 +3,14 @@
 #include "ros/ros.h"
 #include <coparos/Ack.h>
 #include <coparos/Command.h>
+#include <std_msgs/String.h>
+#include <string>
 // Класс для работы сервисов передачи команд и миссий в коптер
 class ServiceHandler {
 public:
   ros::Publisher
       cmd_pub_; //Издатель для отправки команд в модуль коммуникации с коптером
+  ros::Publisher log_pub_;
   ros::NodeHandle *n; //Указатель на ноду РОС
                       //Сообщение РОС для хранения отпраленной на коптер команды
   ros::ServiceServer service_arm; //Сервис для снятия коптера с предохранителя
@@ -23,10 +26,13 @@ public:
   ros::ServiceServer service_set_velocity_vector;
   ros::ServiceServer service_set_mode;
   ros::ServiceServer service_set_yaw;
+  std_msgs::String log;
+
   bool useFakeGps = false;
   ServiceHandler(ros::NodeHandle *nh) : n(nh) {
     //Инициализация сервисо и подписчиков РОС
     cmd_pub_ = n->advertise<coparos::Command>("/command", 1000);
+    log_pub_ = n->advertise<std_msgs::String>("/logging_topic", 1000);
     service_arm = n->advertiseService("Arm", &ServiceHandler::arm, this);
     service_disarm =
         n->advertiseService("Disarm", &ServiceHandler::disarm, this);
@@ -56,7 +62,8 @@ public:
     //Каждый сервис работает по принципу
     // 1. Отправил команду на коптер 2. Получил ответ об обработке команды 3.
     // Вывел ответ об успешности выполнения команды
-    ROS_INFO("ARMING");
+    log.data = "ARMING";
+    log_pub_.publish(log);
     coparos::Command msg;
     msg.command = CMD_NAV_MOTORS_ON;
     cmd_pub_.publish(msg);
@@ -87,8 +94,8 @@ public:
   }
   bool disarm(coparos::Service_command::Request &req,
               coparos::Service_command::Response &res) {
-    ROS_INFO("DISARMING");
-    coparos::Command msg;
+    log.data = "DISARMING";
+    log_pub_.publish(log);
     msg.command = CMD_NAV_MOTORS_OFF;
     cmd_pub_.publish(msg);
     auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
@@ -117,7 +124,8 @@ public:
   }
   bool set_yaw(coparos::Service_command::Request &req,
                coparos::Service_command::Response &res) {
-    ROS_INFO("Setting yaw angle");
+    log.data = "Setting yaw";
+    log_pub_.publish(log);
     coparos::Command msg;
     msg.command = CMD_NAV_SET_ABS_HEADING;
     msg.data1 = req.param1;
@@ -149,7 +157,8 @@ public:
   }
   bool takeoff(coparos::Service_command::Request &req,
                coparos::Service_command::Response &res) {
-    ROS_INFO("TAKING OFF");
+    log.data = "TAKING OFF";
+    log_pub_.publish(log);
     coparos::Command msg;
     msg.command = CMD_NAV_TAKE_OFF;
     cmd_pub_.publish(msg);
@@ -179,7 +188,8 @@ public:
   }
   bool land(coparos::Service_command::Request &req,
             coparos::Service_command::Response &res) {
-    ROS_INFO("LANDING");
+    log.data = "LANDING";
+    log_pub_.publish(log);
     coparos::Command msg;
     msg.command = CMD_NAV_TO_LAND;
     cmd_pub_.publish(msg);
@@ -210,7 +220,8 @@ public:
 
   bool rtl(coparos::Service_command::Request &req,
            coparos::Service_command::Response &res) {
-    ROS_INFO("Returning to launch");
+    log.data = "RTL";
+    log_pub_.publish(log);
     coparos::Command msg;
     msg.command = CMD_NAV_GOTO_HOME;
     cmd_pub_.publish(msg);
@@ -240,7 +251,8 @@ public:
   }
   bool stop(coparos::Service_command::Request &req,
             coparos::Service_command::Response &res) {
-    ROS_INFO("Stopping");
+    log.data = "STOPPING";
+    log_pub_.publish(log);
     coparos::Command msg;
     msg.command = CMD_NAV_STOP_MOTION;
     cmd_pub_.publish(msg);
@@ -272,12 +284,12 @@ public:
   bool set_gps_mode(coparos::Service_command::Request &req,
                     coparos::Service_command::Response &res) {
     coparos::Command msg;
-    msg.command = CMD_GPS_PASSTHROUGH;
+    msg.command = CMD_GNSS_USE;
     cmd_pub_.publish(msg);
     auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
                                                         ros::Duration(0.1));
     if (ack) {
-      if (ack->command == uint16_t(CMD_GPS_PASSTHROUGH)) {
+      if (ack->command == uint16_t(CMD_GNSS_USE)) {
         if (ack->result) {
           res.status = "Success";
           res.result = true;
@@ -306,8 +318,8 @@ public:
   }
   bool continue_flight(coparos::Service_command::Request &req,
                        coparos::Service_command::Response &res) {
-    ROS_INFO("Continue");
-    coparos::Command msg;
+    log.data = "CONTINUE";
+    log_pub_.publish(log);
     msg.command = CMD_NAV_CONTINUE_MOTION;
     cmd_pub_.publish(msg);
     auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
@@ -336,7 +348,8 @@ public:
   }
   bool start_mission(coparos::Service_command::Request &req,
                      coparos::Service_command::Response &res) {
-    ROS_INFO("Starting 1 click mission");
+    log.data = "Starting mission 1";
+    log_pub_.publish(log);
     coparos::Command msg;
     msg.command = CMD_EXEC_SWITCH_N;
     cmd_pub_.publish(msg);
@@ -366,7 +379,8 @@ public:
   }
   bool clear_mission(coparos::Service_command::Request &req,
                      coparos::Service_command::Response &res) {
-    ROS_INFO("Cleaning mission");
+    log.data = "Clearing mission";
+    log_pub_.publish(log);
     coparos::Command msg;
     msg.command = CMD_NAV_CLEAR_WP;
     cmd_pub_.publish(msg);
@@ -397,7 +411,10 @@ public:
 
   bool set_velocity_vector(coparos::Service_command::Request &req,
                            coparos::Service_command::Response &res) {
-    ROS_INFO("Set velocity vector");
+    log.data = "Set Velocity vector:" + std::to_string(req.param1) +
+               std::to_string(req.param2) + std::to_string(req.param3) +
+               std::to_string(req.param4);
+    log_pub_.publish(log);
     coparos::Command msg;
     msg.command = CMD_NAV_SET_MOVE;
     msg.data1 = req.param1; // dx
@@ -431,7 +448,8 @@ public:
   }
   bool set_mode(coparos::Service_command::Request &req,
                 coparos::Service_command::Response &res) {
-    ROS_INFO("Set velocity vector");
+    log.data = "Set mode: " + std::to_string(req.param1);
+    log_pub_.publish(log);
     coparos::Command msg;
     msg.command = CMD_SET_NAV_MODE;
     msg.data1 = req.param1; // mode
