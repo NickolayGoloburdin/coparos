@@ -51,7 +51,7 @@ private:
   ros::Subscriber baro_sub_;
   ros::Subscriber imu_sub_;
   ros::Subscriber state_sub_;
-  ofstream tab;
+  std::ofstream tab;
   void callback_gps(const sensor_msgs::NavSatFix &msg);
   void callback_baro(const std_msgs::Float64 &msg);
   void callback_imu(const sensor_msgs::Imu &msg);
