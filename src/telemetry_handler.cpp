@@ -143,7 +143,7 @@ void TelemetryHandler_ACO::PackRec(Header_t *header, void *body) {
     //Заполнение полей сообщения
     gps_msg.latitude = Telemetry_data.lat;
     gps_msg.longitude = Telemetry_data.lon;
-    gps_msg.altitude = Telemetry_data.gps_height;
+    gps_msg.altitude = Telemetry_data.ALTITUDE;
     //Выставление статуса данных спутников, если связи ссо спутниками нет статус
     //-1, если есть то 0
     if (Telemetry_data.lat == 0 || Telemetry_data.lon == 0)
