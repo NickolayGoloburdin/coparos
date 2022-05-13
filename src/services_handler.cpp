@@ -23,7 +23,7 @@ public:
   ros::ServiceServer service_start_mission; //Сервис запуска миссии
   ros::ServiceServer service_clear_mission; //Сервис очистки миссии
   ros::ServiceServer service_other_gps; //Сервис включения подмены gps координат
-  ros::ServiceServer service_set_velocity_vector;
+  ros::ServiceServer service_set_pry;
   ros::ServiceServer service_set_mode;
   ros::ServiceServer service_set_yaw;
   std_msgs::String log;
@@ -49,8 +49,8 @@ public:
         "Clear_mission", &ServiceHandler::clear_mission, this);
     service_other_gps = n->advertiseService(
         "On_off_replace_gps", &ServiceHandler::set_gps_mode, this);
-    service_set_velocity_vector = n->advertiseService(
-        "Set_velocity_vector", &ServiceHandler::set_velocity_vector, this);
+    service_set_pry = n->advertiseService("Set_pitch_roll_yaw",
+                                          &ServiceHandler::set_pry, this);
     service_set_mode =
         n->advertiseService("Set_flight_mode", &ServiceHandler::set_mode, this);
     service_set_yaw =
@@ -412,23 +412,21 @@ public:
     }
   }
 
-  bool set_velocity_vector(coparos::Service_command::Request &req,
-                           coparos::Service_command::Response &res) {
-    log.data = "Set Velocity vector:" + std::to_string(req.param1) +
+  bool set_pry(coparos::Service_command::Request &req,
+               coparos::Service_command::Response &res) {
+    log.data = "Set Pitch Roll Yaw:" + std::to_string(req.param1) +
                std::to_string(req.param2) + std::to_string(req.param3) +
                std::to_string(req.param4);
     log_pub_.publish(log);
     coparos::Command msg;
-    msg.command = CMD_NAV_SET_MOVE;
-    msg.data1 = req.param1; // dx
-    msg.data2 = req.param2; // dy
-    msg.data3 = req.param3; // dz
-    msg.data4 = req.param4; // duration
+    msg.command = CMD_SET_MAN_TARGET_ANGLES;
+    msg.data1 = req.param1; // pitch
+    msg.data2 = req.param2; // roll
     cmd_pub_.publish(msg);
     auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
                                                         ros::Duration(0.1));
     if (ack) {
-      if (ack->command == uint16_t(CMD_NAV_SET_MOVE)) {
+      if (ack->command == uint16_t(CMD_SET_MAN_TARGET_ANGLES)) {
         if (ack->result) {
           res.status = "Success";
           res.result = true;

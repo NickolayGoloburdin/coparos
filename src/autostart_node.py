@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import roslaunch
 import rospy
-from std_msgs import Float64
+from std_msgs.msg import Float64
 class Start:
     def __init__(self,baseAltitude, path):
         self.baseAltitude = baseAltitude

@@ -76,8 +76,8 @@ void COPA::callback_command(const coparos::Command &msg) {
     break;
   case CMD_EXEC_SWITCH_N:
     CopaExecSwitch_N(1);
-  case CMD_NAV_SET_MOVE:
-    CopaSetMove(msg.data1, msg.data2, msg.data3, uint32_t(msg.data4));
+  case CMD_SET_MAN_TARGET_ANGLES:
+    CopaSetAngles(msg.data1, msg.data2);
     break;
   case CMD_SET_NAV_MODE:
     CopaSetNavMode(uint8_t(msg.data1));
@@ -1062,19 +1062,11 @@ void COPA::CopaSetHeading(float yaw, float vel) {
  * аппарата dVx, dVy, dVz на заданное
  * время =t (в мс) от момента прихода команды
  * (время ограничено TMAX=10сек).*/
-void COPA::CopaSetMove(float dx, float dy, float dz, uint32_t duration) {
-  /*Примечание: значения dVx,dVy,dVz по модулю должны быть по меньше 50.0!
-   *Если указать значение больше 50 - то эта ось будет проигнорирована.
-   *Например, если указать { 100.0, 100.0, -1.0, 1000} - то это означает,
-   *что нужно начать снижение со скоростью 1m/s, не изменяя текущую
-   *что скорость аппарата в осях X и Y, при этом действать команда будет 1
-   *секунду.*/
+void COPA::CopaSetAngles(float dx, float dy) {
   mov_t_ mov_;
   mov_.val_float1 = e_float(dx);
   mov_.val_float2 = e_float(dy);
-  mov_.val_float3 = e_float(dz);
-  mov_.val_u32 = e_float(duration);
-  CopaPacketMake(CMD_NAV_SET_MOVE, &mov_, 8);
+  CopaPacketMake(CMD_SET_MAN_TARGET_ANGLES, &mov_, 8);
   CopaPacketSend();
 }
 void COPA::CopaSetNavMode(uint8_t mode) {
