@@ -25,10 +25,10 @@ int main(int argc, char **argv) {
   ros::init(argc, argv, "command_node");
   ros::NodeHandle nh;
 
-  nh.getParam("/realtime", realtime);
-  if (!realtime) {
-    return 0;
-  }
+  // nh.getParam("/realtime", realtime);
+  // if (!realtime) {
+  //   return 0;
+  // }
   std::string port = "/dev/ttyTHS1";
   if (argc > 1)
     port = argv[1];

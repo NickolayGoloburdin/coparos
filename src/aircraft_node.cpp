@@ -24,10 +24,10 @@ int main(int argc, char *argv[]) {
   ros::NodeHandle nh;
   //Чтение параметра  realtime, если этот параметр false то нода завершает
   //работу
-  nh.getParam("/realtime", realtime);
-  if (!realtime) {
-    return 0;
-  }
+  // nh.getParam("/realtime", realtime);
+  // if (!realtime) {
+  //   return 0;
+  // }
   std::string port = "/dev/ttyUSB0";
   if (argc > 1)
     port = argv[1];
