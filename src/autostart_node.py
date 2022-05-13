@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import roslaunch
 import rospy
-from std_msgs.msg import Float64
+from std_msgs.msg import Float64, String
 class Start:
     def __init__(self,baseAltitude, path):
         self.baseAltitude = baseAltitude
@@ -10,6 +10,7 @@ class Start:
         roslaunch.configure_logging(self.uuid)
         self.launch = roslaunch.parent.ROSLaunchParent(self.uuid, [path])
         self.sub_altitude = rospy.Subscriber("/baro",Float64, self.gps_cb, queue_size=10)
+        self.log_pub = rospy.Publisher("/logging_topic", String, queue_size=1)
     def gps_cb(self,data):
         if abs(data.data - self.baseAltitude) > 20:
             self.setStatus(True)
