@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
   //Запуск работы модуля связи
   // link_hs->up();
   //Выставление частоты работы ноды
-  ros::Rate loop_rate(1);
+  ros::Rate loop_rate(5);
   while (ros::ok()) {
     // Чтение данных с коптера
     handler->sendInfo();
