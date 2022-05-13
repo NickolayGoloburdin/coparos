@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import roslaunch
 import rospy
 from std_msgs import Float64
