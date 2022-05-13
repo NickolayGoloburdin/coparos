@@ -12,7 +12,6 @@
 
 AircraftHandler::AircraftHandler(AbstractLink *link, ros::NodeHandle *nh)
     : link_(link), nh_(nh) {
-  info = {0};
   info.cmd = 0x01;
   gps_sub_ = nh_->subscribe("/gps", 1000, &AircraftHandler::callback_gps, this);
   baro_sub_ =

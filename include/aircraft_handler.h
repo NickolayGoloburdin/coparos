@@ -14,7 +14,6 @@
 #include <string.h>
 
 #define ACO_BUF_MAX_LENGTH 255
-#define MAGIC1 0xD5
 
 enum CommandTypes { INFO_CMD = 0x01 };
 float degree_to_radian(float degree);
