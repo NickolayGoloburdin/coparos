@@ -385,7 +385,7 @@ enum cmdControlTypes {
    * параметры - два флоата питч и ролл на которые надо наклониться
    * перед их юзанием нужно установить режим 1 по команде ,которую выше описывал
    */
-  MD_SET_MAN_TARGET_ANGLES = 0x001E,
+  CMD_SET_MAN_TARGET_ANGLES = 0x001E,
   CMD_PHOTO_CMD = 0x0040,
   CMD_PHOTO_SET_DELTA_TIME = 0x0041,
   CMD_PHOTO_SET_PITCH_ABS_ANGLE = 0x0042,

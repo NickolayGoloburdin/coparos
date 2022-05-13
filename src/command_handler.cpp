@@ -1063,9 +1063,9 @@ void COPA::CopaSetHeading(float yaw, float vel) {
  * время =t (в мс) от момента прихода команды
  * (время ограничено TMAX=10сек).*/
 void COPA::CopaSetAngles(float dx, float dy) {
-  mov_t_ mov_;
-  mov_.val_float1 = e_float(dx);
-  mov_.val_float2 = e_float(dy);
+  ManTargetAngeles_t mov_;
+  mov_.Pitch = e_float(dx);
+  mov_.Roll = e_float(dy);
   CopaPacketMake(CMD_SET_MAN_TARGET_ANGLES, &mov_, 8);
   CopaPacketSend();
 }
