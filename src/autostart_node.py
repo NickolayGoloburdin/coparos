@@ -12,7 +12,11 @@ class Start:
         self.launch = roslaunch.parent.ROSLaunchParent(self.uuid, [path])
         self.sub_altitude = rospy.Subscriber("/baro",Float64, self.gps_cb, queue_size=10)
         self.log_pub = rospy.Publisher("/logging_topic", String, queue_size=1)
+        self.baro_relative_pub = rospy.Publisher("/baro_relative", Float64, queue_size=2)
     def gps_cb(self,data):
+        msg = Float64()
+        msg.data = data.data - self.baseAltitude
+        self.baro_relative_pub.publish(msg)
         if abs(data.data - self.baseAltitude) > 20:
             self.setStatus(True)
         else:
