@@ -2,13 +2,18 @@
 import roslaunch
 import rospy
 from std_msgs.msg import Float64, String
+
+
+uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
+roslaunch.configure_logging(uuid)
+launch = roslaunch.parent.ROSLaunchParent(uuid, ["/home/jetson/copa5/ws/src/image_matching/image_processing/launch/find_pose.launch"])
 class Start:
-    def __init__(self,baseAltitude, path):
+    def __init__(self,baseAltitude):
         self.baseAltitude = baseAltitude
         self.status = False
-        self.uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
-        roslaunch.configure_logging(self.uuid)
-        self.launch = roslaunch.parent.ROSLaunchParent(self.uuid, [path])
+        # self.uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
+        # roslaunch.configure_logging(self.uuid)
+        # self.launch = roslaunch.parent.ROSLaunchParent(self.uuid, [path])
         self.sub_altitude = rospy.Subscriber("/baro",Float64, self.gps_cb, queue_size=10)
         self.log_pub = rospy.Publisher("/logging_topic", String, queue_size=1)
         self.baro_realtive_pub = rospy.Publisher("/baro_relative", Float64, queue_size=1)
@@ -21,9 +26,11 @@ class Start:
         else:
             self.setStatus(False)
     def systemStart(self):
-        self.launch.start()
+        global launch
+        launch.start()
     def systemStop(self):
-        self.launch.shutdown()
+        global launch
+        launch.shutdown()
     def setStatus(self,state):
         if self.status != state:
             if state == True:
@@ -35,10 +42,14 @@ class Start:
 
 
 if __name__ == "__main__":
+    baseAltitude = baseAltitude
+    status = False
     
+
+
     rospy.init_node('AutoStartNode', anonymous=True)
     baro = rospy.wait_for_message("/baro", Float64)
-    node = Start(baro.data, "/home/jetson/copa5/ws/src/image_matching/image_processing/launch/find_pose.launch")
+    node = Start(baro.data)
     rospy.loginfo("AutoStart enabled")
     rospy.spin()
 # 3 seconds later
