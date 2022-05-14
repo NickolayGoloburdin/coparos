@@ -19,7 +19,7 @@ class Start:
         self.baro_relative_pub.publish(msg)
         if abs(data.data - self.baseAltitude) > 20:
             self.setStatus(True)
-        else:
+        elif abs(data.data - self.baseAltitude) <= 10:
             self.setStatus(False)
     def systemStart(self):
         self.launch.start()
