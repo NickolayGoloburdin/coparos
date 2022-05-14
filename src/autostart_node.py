@@ -42,10 +42,6 @@ class Start:
 
 
 if __name__ == "__main__":
-    baseAltitude = baseAltitude
-    status = False
-    
-
 
     rospy.init_node('AutoStartNode', anonymous=True)
     baro = rospy.wait_for_message("/baro", Float64)
