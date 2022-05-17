@@ -7,7 +7,7 @@ from coparos.msg import MissionPoint as MissionPointMsg
 from coparos.srv import Service_command, Load_mission, Service_commandResponse, Load_missionResponse
 from std_msgs.msg import Int16
 from std_srvs.srv import Trigger, TriggerResponce
-from mavros_msgs.srv import WaypointPus
+from mavros_msgs.srv import WaypointPush
 from mavros_msgs.msg import Waypoint
 # Структура точки полетного задания
 
