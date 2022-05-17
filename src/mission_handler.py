@@ -60,11 +60,6 @@ class MissionHandler:
     def init(self):
         self.counter = 0
         # Инициализация издателя для отправки точки в коптер
-        self.pub = rospy.Publisher(
-            "/MissionPoint", MissionPointMsg, queue_size=10)
-        # Подписчик на топик запрашиваемой коптером точки
-        self.mission_request_handler = rospy.Subscriber(
-            "/mission_request", Int16, self.handle_request)
         self.load_mission_service = rospy.Service(
             "/LoadMissionFromFile", Load_mission, self.load_mission_from_file)  # Сервис загрузки миссии из JSON
         self.reset_service = rospy.Service(
