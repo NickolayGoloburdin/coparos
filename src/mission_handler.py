@@ -72,7 +72,9 @@ class MissionHandler:
         # Метод начала загрузки полетного задания в коптер
 
     def prepare_waypoints(self):
-        a = 0
+        waypoints = []
+        for i in self.points:
+            pt = Waypoint()
 
     def send_mission(self, req):
 
