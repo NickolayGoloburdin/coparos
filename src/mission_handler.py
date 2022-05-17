@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
+from operator import truediv
+from sre_constants import SUCCESS
 import rospy
 import numpy as np
 from coparos.msg import MissionPoint as MissionPointMsg
 from coparos.srv import Service_command, Load_mission, Service_commandResponse, Load_missionResponse
 from std_msgs.msg import Int16
-from std_srvs.srv import Empty, EmptyResponse
-from mavros_msgs.srv import WaypointPush, WaypointPushResponse
+from std_srvs.srv import Trigger, TriggerResponce
+from mavros_msgs.srv import WaypointPus
 from mavros_msgs.msg import Waypoint
 # Структура точки полетного задания
 
 
 class MissionPoint:
-    def __init__(self, pList=None):
+    def init(self, pList=None):
         if pList == None:
             self.targetLat = 0
             self.targetLon = 0
@@ -55,7 +57,7 @@ class MissionPoint:
 
 
 class MissionHandler:
-    def __init__(self):
+    def init(self):
         self.counter = 0
         # Инициализация издателя для отправки точки в коптер
         self.pub = rospy.Publisher(
@@ -66,24 +68,54 @@ class MissionHandler:
         self.load_mission_service = rospy.Service(
             "/LoadMissionFromFile", Load_mission, self.load_mission_from_file)  # Сервис загрузки миссии из JSON
         self.reset_service = rospy.Service(
-            "/SendMission", Empty, self.send_mission)  # Сервис отправки миссии
+            "/SendMission", Trigger, self.send_mission)  # Сервис отправки миссии
         self.points = []
 
         # Метод начала загрузки полетного задания в коптер
 
     def prepare_waypoints(self):
         waypoints = []
+        pt = Waypoint()
+        pt.frame = 0
+        pt.is_current = False
+        pt.autocontinue = True
+        pt.z_alt = self.points[0].targetAlt
+        pt.command = 22
+        waypoints.append(pt)
         for i in self.points:
-            pt = Waypoint()
+            pt.frame = 0
+            pt.is_current = False
+            pt.autocontinue = True
+            pt.x_lat = i.targetLat
+            pt.y_long = i.targetLon
+            pt.z_alt = i.targetAlt
+            pt.command = 16
+            waypoints.append(pt)
+        pt.frame = 0
+        pt.is_current = False
+        pt.autocontinue = True
+        pt.command = 20
+        waypoints.append(pt)
+        return waypoints
 
     def send_mission(self, req):
-
+        res = TriggerResponce()
+        wps = self.prepare_waypoints()
         if len(self.points) == 0:
             rospy.logerr("Mission is empty")
-            return EmptyResponse()
-        msg = self.create_msg_point(0)
-        self.pub.publish(msg)
-        return EmptyResponse()
+            res.message = "Mission is empty"
+            res.success = False
+            return res
+        rospy.wait_for_service('/mavros/mission/push')
+        try:
+            push = rospy.ServiceProxy('/mavros/mission/push', WaypointPush)
+            resp1 = push(0, wps)
+            res.success = resp1.success
+            res.message = "pushed {} points".format(resp1.wp_transfered)
+        except rospy.ServiceException as e:
+            print("Service call failed: %s" % e)
+        res.success = True
+        return res
 
     def load_mission_from_file(self, req):
         file_name = "/home/jetson/copa5/missions/{}.BIN".format(req.number)
@@ -104,7 +136,7 @@ class MissionHandler:
             self.points.append(MissionPoint(i))
 
 
-if __name__ == '__main__':
+if __name__ == 'main':
     rospy.init_node('Mission_handler')
     MissionHandler()
     rospy.spin()
