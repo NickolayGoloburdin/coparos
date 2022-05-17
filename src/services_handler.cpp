@@ -195,6 +195,7 @@ public:
     }
     if (client_stop.call(cmd)) {
       useFakeGps = !useFakeGps;
+      n->setParam("/use_gps_from_video", useFakeGps);
       res.result = cmd.response.success;
       ROS_INFO("Use fake gps:", useFakeGps);
       return true;
