@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import rospy
+import numpy as np
 from coparos.msg import MissionPoint as MissionPointMsg
 from coparos.srv import Service_command, Load_mission, Service_commandResponse, Load_missionResponse
 from std_msgs.msg import Int16
@@ -56,7 +57,7 @@ class MissionHandler:
 
     def create_msg_point(self, i):
         # Инициализация сообщения с запрашиваемой точкой
-        msg = MissionPoint()
+        msg = MissionPointMsg()
         msg.targetLat = self.points[i].targetLat
         msg.targetLon = self.points[i].targetLon
         msg.targetAlt = self.points[i].targetAlt
