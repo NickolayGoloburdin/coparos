@@ -71,13 +71,13 @@ public:
     msg.command = CMD_NAV_MOTORS_ON;
     cmd_pub_.publish(msg);
     // ros::Duration(0.1).sleep();
-    if (ack->command == CMD_NAV_MOTORS_ON) {
-      if (ack->result) {
+    if (ack.command == CMD_NAV_MOTORS_ON) {
+      if (ack.result) {
         res.status = "Success";
         res.result = true;
         return true;
       } else {
-        res.status = ack->status;
+        res.status = ack.status;
         res.result = false;
         return true;
       }
