@@ -70,7 +70,7 @@ public:
     coparos::Command msg;
     msg.command = CMD_NAV_MOTORS_ON;
     cmd_pub_.publish(msg);
-    ros::spin();
+    ros::spinOnce();
     // ros::Duration(0.1).sleep();
     if (ack_.command == CMD_NAV_MOTORS_ON) {
       if (ack_.result) {
