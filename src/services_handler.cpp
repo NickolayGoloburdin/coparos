@@ -28,7 +28,7 @@ public:
   ros::ServiceServer service_set_mode;
   ros::ServiceServer service_set_yaw;
   std_msgs::String log;
-  coparos::ack ack_;
+  coparos::Ack ack_;
 
   bool useFakeGps = false;
   ServiceHandler(ros::NodeHandle *nh) : n(nh) {
@@ -59,7 +59,7 @@ public:
     service_set_yaw =
         n->advertiseService("Set_yaw", &ServiceHandler::set_yaw, this);
   }
-  void callback_ack(const coparos::ack &msg) { ack_ = msg; }
+  void callback_ack(const coparos::Ack &msg) { ack_ = msg; }
   bool arm(coparos::Service_command::Request &req,
            coparos::Service_command::Response &res) {
     //Каждый сервис работает по принципу
