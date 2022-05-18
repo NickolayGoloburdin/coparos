@@ -4,7 +4,7 @@ import numpy as np
 from coparos.msg import MissionPoint as MissionPointMsg
 from coparos.srv import Service_command, Load_mission, Service_commandResponse, Load_missionResponse
 from std_msgs.msg import Int16
-from std_srvs.srv import Empty, EmptyResponse
+from std_srvs.srv import Empty, EmptyResponse, Trigger, TriggerResponse
 # Структура точки полетного задания
 
 
@@ -64,7 +64,7 @@ class MissionHandler:
         self.load_mission_service = rospy.Service(
             "/LoadMissionFromFile", Load_mission, self.load_mission_from_file)  # Сервис загрузки миссии из JSON
         self.reset_service = rospy.Service(
-            "/SendMission", Empty, self.send_mission)  # Сервис отправки миссии
+            "/SendMission", Trigger, self.send_mission)  # Сервис отправки миссии
         self.points = []
 
     def handle_request(self, msg):  # Метод обработчки сообщения запрашиваемой точки
@@ -105,10 +105,10 @@ class MissionHandler:
 
         if len(self.points) == 0:
             rospy.logerr("Mission is empty")
-            return False
+            return TriggerResponse(False)
         msg = self.create_msg_point(0)
         self.pub.publish(msg)
-        return EmptyResponse()
+        return TriggerResponse(True)
 
     def load_mission_from_file(self, req):
         file_name = "/home/jetson/copa5/missions/{}.BIN".format(req.number)
