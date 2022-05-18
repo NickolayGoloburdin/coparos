@@ -239,7 +239,7 @@ public:
     cmd_pub_.publish(msg);
 
     if (ack_.command == uint16_t(CMD_GNSS_USE)) {
-      if (ack.result) {
+      if (ack_.result) {
         res.status = "Success";
         res.result = true;
         useFakeGps = !useFakeGps;
