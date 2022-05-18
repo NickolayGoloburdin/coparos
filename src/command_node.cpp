@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
   //Выставление пресетов для получения параметров с коптера
   copa->Preset_Set_Param();
   //Выставление частоты обработки команд с коптера
-  ros::Rate loop_rate(100);
+  ros::Rate loop_rate(50);
   while (ros::ok()) {
     // Чтение и парсинг входных данных с коптера
     copa->parseFunc();
