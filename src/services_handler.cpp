@@ -33,9 +33,9 @@ public:
   bool useFakeGps = false;
   ServiceHandler(ros::NodeHandle *nh) : n(nh) {
     //Инициализация сервисо и подписчиков РОС
-    ack_sub_ = n->subscribe("/ack", 1000, &ServiceHandler::callback_ack, this);
-    cmd_pub_ = n->advertise<coparos::Command>("/command", 1000);
-    log_pub_ = n->advertise<std_msgs::String>("/logging_topic", 1000);
+    ack_sub_ = n->subscribe("/ack", 5, &ServiceHandler::callback_ack, this);
+    cmd_pub_ = n->advertise<coparos::Command>("/command", 5);
+    log_pub_ = n->advertise<std_msgs::String>("/logging_topic", 5);
     service_arm = n->advertiseService("Arm", &ServiceHandler::arm, this);
     service_disarm =
         n->advertiseService("Disarm", &ServiceHandler::disarm, this);
@@ -70,6 +70,7 @@ public:
     coparos::Command msg;
     msg.command = CMD_NAV_MOTORS_ON;
     cmd_pub_.publish(msg);
+    ros::spin();
     // ros::Duration(0.1).sleep();
     if (ack_.command == CMD_NAV_MOTORS_ON) {
       if (ack_.result) {
