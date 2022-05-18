@@ -70,14 +70,14 @@ public:
     coparos::Command msg;
     msg.command = CMD_NAV_MOTORS_ON;
     cmd_pub_.publish(msg);
-    // ros::Duration(0.1).sleep();
-    if (ack.command == CMD_NAV_MOTORS_ON) {
-      if (ack.result) {
+    ros::Duration(0.1).sleep();
+    if (ack_.command == CMD_NAV_MOTORS_ON) {
+      if (ack_.result) {
         res.status = "Success";
         res.result = true;
         return true;
       } else {
-        res.status = ack.status;
+        res.status = ack_.status;
         res.result = false;
         return true;
       }
