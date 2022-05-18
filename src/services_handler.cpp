@@ -11,7 +11,6 @@ public:
   ros::Publisher
       cmd_pub_; //Издатель для отправки команд в модуль коммуникации с коптером
   ros::Publisher log_pub_;
-  ros::Subscriber ack_sub_;
   ros::NodeHandle *n; //Указатель на ноду РОС
                       //Сообщение РОС для хранения отпраленной на коптер команды
   ros::ServiceServer service_arm; //Сервис для снятия коптера с предохранителя
@@ -28,14 +27,12 @@ public:
   ros::ServiceServer service_set_mode;
   ros::ServiceServer service_set_yaw;
   std_msgs::String log;
-  coparos::Ack ack_;
 
   bool useFakeGps = false;
   ServiceHandler(ros::NodeHandle *nh) : n(nh) {
     //Инициализация сервисо и подписчиков РОС
-    ack_sub_ = n->subscribe("/ack", 5, &ServiceHandler::callback_ack, this);
-    cmd_pub_ = n->advertise<coparos::Command>("/command", 5);
-    log_pub_ = n->advertise<std_msgs::String>("/logging_topic", 5);
+    cmd_pub_ = n->advertise<coparos::Command>("/command", 1000);
+    log_pub_ = n->advertise<std_msgs::String>("/logging_topic", 1000);
     service_arm = n->advertiseService("Arm", &ServiceHandler::arm, this);
     service_disarm =
         n->advertiseService("Disarm", &ServiceHandler::disarm, this);
@@ -59,7 +56,7 @@ public:
     service_set_yaw =
         n->advertiseService("Set_yaw", &ServiceHandler::set_yaw, this);
   }
-  void callback_ack(const coparos::Ack &msg) { ack_ = msg; }
+
   bool arm(coparos::Service_command::Request &req,
            coparos::Service_command::Response &res) {
     //Каждый сервис работает по принципу
@@ -70,15 +67,21 @@ public:
     coparos::Command msg;
     msg.command = CMD_NAV_MOTORS_ON;
     cmd_pub_.publish(msg);
-    ros::spinOnce();
-    // ros::Duration(0.1).sleep();
-    if (ack_.command == CMD_NAV_MOTORS_ON) {
-      if (ack_.result) {
-        res.status = "Success";
-        res.result = true;
-        return true;
+    auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
+                                                        ros::Duration(0.4));
+    if (ack) {
+      if (ack->command == CMD_NAV_MOTORS_ON) {
+        if (ack->result) {
+          res.status = "Success";
+          res.result = true;
+          return true;
+        } else {
+          res.status = ack->status;
+          res.result = false;
+          return true;
+        }
       } else {
-        res.status = ack_.status;
+        res.status = "Other command recieved";
         res.result = false;
         return true;
       }
@@ -87,7 +90,6 @@ public:
       res.result = false;
       return true;
     }
-
     //   ROS_INFO("sending back response: [%ld]", (long int)res.sum);
   }
   bool disarm(coparos::Service_command::Request &req,
@@ -97,14 +99,21 @@ public:
     log_pub_.publish(log);
     msg.command = CMD_NAV_MOTORS_OFF;
     cmd_pub_.publish(msg);
-
-    if (ack_.command == CMD_NAV_MOTORS_OFF) {
-      if (ack_.result) {
-        res.status = "Success";
-        res.result = true;
-        return true;
+    auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
+                                                        ros::Duration(0.1));
+    if (ack) {
+      if (ack->command == uint16_t(CMD_NAV_MOTORS_OFF)) {
+        if (ack->result) {
+          res.status = "Success";
+          res.result = true;
+          return true;
+        } else {
+          res.status = ack->status;
+          res.result = false;
+          return true;
+        }
       } else {
-        res.status = ack_.status;
+        res.status = "Other command recieved";
         res.result = false;
         return true;
       }
@@ -123,13 +132,21 @@ public:
     msg.data1 = req.param1;
     msg.data2 = req.param2;
     cmd_pub_.publish(msg);
-    if (ack_.command == CMD_NAV_SET_ABS_HEADING) {
-      if (ack_.result) {
-        res.status = "Success";
-        res.result = true;
-        return true;
+    auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
+                                                        ros::Duration(0.1));
+    if (ack) {
+      if (ack->command == uint16_t(CMD_NAV_SET_ABS_HEADING)) {
+        if (ack->result) {
+          res.status = "Success";
+          res.result = true;
+          return true;
+        } else {
+          res.status = ack->status;
+          res.result = false;
+          return true;
+        }
       } else {
-        res.status = ack_.status;
+        res.status = "Other command recieved";
         res.result = false;
         return true;
       }
@@ -146,13 +163,21 @@ public:
     coparos::Command msg;
     msg.command = CMD_NAV_TAKE_OFF;
     cmd_pub_.publish(msg);
-    if (ack_.command == CMD_NAV_TAKE_OFF) {
-      if (ack_.result) {
-        res.status = "Success";
-        res.result = true;
-        return true;
+    auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
+                                                        ros::Duration(0.1));
+    if (ack) {
+      if (ack->command == uint16_t(CMD_NAV_TAKE_OFF)) {
+        if (ack->result) {
+          res.status = "Success";
+          res.result = true;
+          return true;
+        } else {
+          res.status = ack->status;
+          res.result = false;
+          return true;
+        }
       } else {
-        res.status = ack_.status;
+        res.status = "Other command recieved";
         res.result = false;
         return true;
       }
@@ -169,13 +194,21 @@ public:
     coparos::Command msg;
     msg.command = CMD_NAV_TO_LAND;
     cmd_pub_.publish(msg);
-    if (ack_.command == CMD_NAV_TO_LAND) {
-      if (ack_.result) {
-        res.status = "Success";
-        res.result = true;
-        return true;
+    auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
+                                                        ros::Duration(0.1));
+    if (ack) {
+      if (ack->command == uint16_t(CMD_NAV_TO_LAND)) {
+        if (ack->result) {
+          res.status = "Success";
+          res.result = true;
+          return true;
+        } else {
+          res.status = ack->status;
+          res.result = false;
+          return true;
+        }
       } else {
-        res.status = ack_.status;
+        res.status = "Other command recieved";
         res.result = false;
         return true;
       }
@@ -193,13 +226,21 @@ public:
     coparos::Command msg;
     msg.command = CMD_NAV_GOTO_HOME;
     cmd_pub_.publish(msg);
-    if (ack_.command == CMD_NAV_GOTO_HOME) {
-      if (ack_.result) {
-        res.status = "Success";
-        res.result = true;
-        return true;
+    auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
+                                                        ros::Duration(0.1));
+    if (ack) {
+      if (ack->command == uint16_t(CMD_NAV_GOTO_HOME)) {
+        if (ack->result) {
+          res.status = "Success";
+          res.result = true;
+          return true;
+        } else {
+          res.status = ack->status;
+          res.result = false;
+          return true;
+        }
       } else {
-        res.status = ack_.status;
+        res.status = "Other command recieved";
         res.result = false;
         return true;
       }
@@ -216,13 +257,21 @@ public:
     coparos::Command msg;
     msg.command = CMD_NAV_STOP_MOTION;
     cmd_pub_.publish(msg);
-    if (ack_.command == CMD_NAV_STOP_MOTION) {
-      if (ack_.result) {
-        res.status = "Success";
-        res.result = true;
-        return true;
+    auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
+                                                        ros::Duration(0.1));
+    if (ack) {
+      if (ack->command == uint16_t(CMD_NAV_STOP_MOTION)) {
+        if (ack->result) {
+          res.status = "Success";
+          res.result = true;
+          return true;
+        } else {
+          res.status = ack->status;
+          res.result = false;
+          return true;
+        }
       } else {
-        res.status = ack_.status;
+        res.status = "Other command recieved";
         res.result = false;
         return true;
       }
@@ -238,23 +287,31 @@ public:
     coparos::Command msg;
     msg.command = CMD_GNSS_USE;
     cmd_pub_.publish(msg);
-
-    if (ack_.command == uint16_t(CMD_GNSS_USE)) {
-      if (ack_.result) {
-        res.status = "Success";
-        res.result = true;
-        useFakeGps = !useFakeGps;
-        ROS_INFO("Use fake gps:", useFakeGps);
-        n->setParam("/use_gps_from_video", useFakeGps);
-        return true;
+    auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
+                                                        ros::Duration(0.1));
+    if (ack) {
+      if (ack->command == uint16_t(CMD_GNSS_USE)) {
+        if (ack->result) {
+          res.status = "Success";
+          res.result = true;
+          useFakeGps = !useFakeGps;
+          ROS_INFO("Use fake gps:", useFakeGps);
+          n->setParam("/use_gps_from_video", useFakeGps);
+          return true;
+        } else {
+          res.status = ack->status;
+          res.result = false;
+          ROS_INFO("Use fake gps:", useFakeGps);
+          return true;
+        }
       } else {
-        res.status = ack_.status;
+        res.status = "Other command recieved";
         res.result = false;
         ROS_INFO("Use fake gps:", useFakeGps);
         return true;
       }
     } else {
-      res.status = "Other command recieved";
+      res.status = "Controller doesn't response";
       res.result = false;
       ROS_INFO("Use fake gps:", useFakeGps);
       return true;
@@ -267,13 +324,21 @@ public:
     log_pub_.publish(log);
     msg.command = CMD_NAV_CONTINUE_MOTION;
     cmd_pub_.publish(msg);
-    if (ack_.command == CMD_NAV_CONTINUE_MOTION) {
-      if (ack_.result) {
-        res.status = "Success";
-        res.result = true;
-        return true;
+    auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
+                                                        ros::Duration(0.1));
+    if (ack) {
+      if (ack->command == uint16_t(CMD_NAV_CONTINUE_MOTION)) {
+        if (ack->result) {
+          res.status = "Success";
+          res.result = true;
+          return true;
+        } else {
+          res.status = ack->status;
+          res.result = false;
+          return true;
+        }
       } else {
-        res.status = ack_.status;
+        res.status = "Other command recieved";
         res.result = false;
         return true;
       }
@@ -290,13 +355,21 @@ public:
     coparos::Command msg;
     msg.command = CMD_EXEC_SWITCH_N;
     cmd_pub_.publish(msg);
-    if (ack_.command == CMD_EXEC_SWITCH_N) {
-      if (ack_.result) {
-        res.status = "Success";
-        res.result = true;
-        return true;
+    auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
+                                                        ros::Duration(0.1));
+    if (ack) {
+      if (ack->command == uint16_t(CMD_EXEC_SWITCH_N)) {
+        if (ack->result) {
+          res.status = "Success";
+          res.result = true;
+          return true;
+        } else {
+          res.status = ack->status;
+          res.result = false;
+          return true;
+        }
       } else {
-        res.status = ack_.status;
+        res.status = "Other command recieved";
         res.result = false;
         return true;
       }
@@ -313,13 +386,21 @@ public:
     coparos::Command msg;
     msg.command = CMD_NAV_CLEAR_WP;
     cmd_pub_.publish(msg);
-    if (ack_.command == CMD_EXEC_SWITCH_N) {
-      if (ack_.result) {
-        res.status = "Success";
-        res.result = true;
-        return true;
+    auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
+                                                        ros::Duration(0.1));
+    if (ack) {
+      if (ack->command == uint16_t(CMD_NAV_CLEAR_WP)) {
+        if (ack->result) {
+          res.status = "Success";
+          res.result = true;
+          return true;
+        } else {
+          res.status = ack->status;
+          res.result = false;
+          return true;
+        }
       } else {
-        res.status = ack_.status;
+        res.status = "Other command recieved";
         res.result = false;
         return true;
       }
@@ -341,14 +422,21 @@ public:
     msg.data1 = req.param1; // pitch
     msg.data2 = req.param2; // roll
     cmd_pub_.publish(msg);
-
-    if (ack_.command == CMD_SET_MAN_TARGET_ANGLES) {
-      if (ack_.result) {
-        res.status = "Success";
-        res.result = true;
-        return true;
+    auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
+                                                        ros::Duration(0.1));
+    if (ack) {
+      if (ack->command == uint16_t(CMD_SET_MAN_TARGET_ANGLES)) {
+        if (ack->result) {
+          res.status = "Success";
+          res.result = true;
+          return true;
+        } else {
+          res.status = ack->status;
+          res.result = false;
+          return true;
+        }
       } else {
-        res.status = ack_.status;
+        res.status = "Other command recieved";
         res.result = false;
         return true;
       }
@@ -366,13 +454,21 @@ public:
     msg.command = CMD_SET_NAV_MODE;
     msg.data1 = req.param1; // mode
     cmd_pub_.publish(msg);
-    if (ack_.command == CMD_SET_NAV_MODE) {
-      if (ack_.result) {
-        res.status = "Success";
-        res.result = true;
-        return true;
+    auto ack = ros::topic::waitForMessage<coparos::Ack>("/ack", *n,
+                                                        ros::Duration(0.1));
+    if (ack) {
+      if (ack->command == uint16_t(CMD_SET_NAV_MODE)) {
+        if (ack->result) {
+          res.status = "Success";
+          res.result = true;
+          return true;
+        } else {
+          res.status = ack->status;
+          res.result = false;
+          return true;
+        }
       } else {
-        res.status = ack_.status;
+        res.status = "Other command recieved";
         res.result = false;
         return true;
       }
