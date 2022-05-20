@@ -34,7 +34,7 @@ public:
   ServiceHandler(ros::NodeHandle *nh) : n(nh) {
     //Инициализация сервисо и подписчиков РОС
     cmd_pub_ = n->advertise<coparos::Command>("/command", 1000);
-    ack_sub_ = n->subscribe("/ack", 1000, &ServiceHandler::callback_ack, this);
+    ack_sub_ = n->subscribe("/ack", 1, &ServiceHandler::callback_ack, this);
     log_pub_ = n->advertise<std_msgs::String>("/logging_topic", 1000);
     service_arm = n->advertiseService("Arm", &ServiceHandler::arm, this);
     service_disarm =
@@ -59,7 +59,7 @@ public:
     service_set_yaw =
         n->advertiseService("Set_yaw", &ServiceHandler::set_yaw, this);
   }
-  void callback_ack(coparos::Ack &msg) { ack_ = msg; }
+  void callback_ack(const coparos::Ack &msg) { ack_ = msg; }
 
   bool arm(coparos::Service_command::Request &req,
            coparos::Service_command::Response &res) {
