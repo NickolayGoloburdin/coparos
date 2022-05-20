@@ -248,7 +248,9 @@ private:
   void Copa_ContinueMotion(); //Продолжить выполнение активной задачи.
   void Copa_GoTo_Home(); //Лететь в точку "Дом"
   void CoveringOpen();   //открыть сервомашинки крышки.
-  void CoveringClose();  //закрыть сервомашинки крышки.
+  void SetGnss(uint8_t i);
+
+  void CoveringClose(); //закрыть сервомашинки крышки.
   void CopaPacketMake(uint16_t cmd, void *body,
                       uint16_t bodylen); //Сборка пакета для отправки
   void CopaPacketSend();                 //отправить пакет в UART

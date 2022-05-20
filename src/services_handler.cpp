@@ -23,7 +23,11 @@ public:
   ros::ServiceServer service_continue_flight; //Сервис продолжения полета
   ros::ServiceServer service_start_mission; //Сервис запуска миссии
   ros::ServiceServer service_clear_mission; //Сервис очистки миссии
-  ros::ServiceServer service_other_gps; //Сервис включения подмены gps координат
+  ros::ServiceServer
+      service_enable_gps; //Сервис включения подмены gps координат
+  ros::ServiceServer
+      service_disable_gps; //Сервис включения подмены gps координат
+
   ros::ServiceServer service_set_pry;
   ros::ServiceServer service_set_mode;
   ros::ServiceServer service_set_yaw;
@@ -50,8 +54,10 @@ public:
         "Start_mission", &ServiceHandler::start_mission, this);
     service_clear_mission = n->advertiseService(
         "Clear_mission", &ServiceHandler::clear_mission, this);
-    service_other_gps = n->advertiseService(
-        "On_off_replace_gps", &ServiceHandler::set_gps_mode, this);
+    service_enable_gps =
+        n->advertiseService("Enable_gps", &ServiceHandler::enable_gnss, this);
+    service_disable_gps =
+        n->advertiseService("Disable_gps", &ServiceHandler::disable_gnss, this);
     service_set_pry = n->advertiseService("Set_pitch_roll_yaw",
                                           &ServiceHandler::set_pry, this);
     service_set_mode =
@@ -250,9 +256,10 @@ public:
     }
   }
 
-  bool set_gps_mode(coparos::Service_command::Request &req,
-                    coparos::Service_command::Response &res) {
+  bool enable_gnss(coparos::Service_command::Request &req,
+                   coparos::Service_command::Response &res) {
     coparos::Command msg;
+    msg.data1 = 1;
     msg.command = CMD_GNSS_USE;
     cmd_pub_.publish(msg);
     ros::Duration(0.1).sleep();
@@ -262,7 +269,37 @@ public:
       if (ack_.result) {
         res.status = "Success";
         res.result = true;
-        useFakeGps = !useFakeGps;
+        useFakeGps = true;
+        ROS_INFO("Use fake gps:", useFakeGps);
+        n->setParam("/use_gps_from_video", useFakeGps);
+        return true;
+      } else {
+        res.status = ack_.status;
+        res.result = false;
+        ROS_INFO("Use fake gps:", useFakeGps);
+        return true;
+      }
+    } else {
+      res.status = "Controller does not response";
+      res.result = false;
+      ROS_INFO("Use fake gps:", useFakeGps);
+      return true;
+    }
+  }
+  bool disable_gnss(coparos::Service_command::Request &req,
+                    coparos::Service_command::Response &res) {
+    coparos::Command msg;
+    msg.data1 = 0;
+    msg.command = CMD_GNSS_USE;
+    cmd_pub_.publish(msg);
+    ros::Duration(0.1).sleep();
+    ros::spinOnce();
+
+    if (ack_.command == uint16_t(CMD_GNSS_USE)) {
+      if (ack_.result) {
+        res.status = "Success";
+        res.result = true;
+        useFakeGps = false;
         ROS_INFO("Use fake gps:", useFakeGps);
         n->setParam("/use_gps_from_video", useFakeGps);
         return true;

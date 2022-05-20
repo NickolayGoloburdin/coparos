@@ -85,6 +85,9 @@ void COPA::callback_command(const coparos::Command &msg) {
   case CMD_NAV_SET_ABS_HEADING:
     CopaSetHeading(msg.data1, msg.data2);
     break;
+  case CMD_GNSS_USE:
+    SetGnss(uint8_t(msg.data1));
+    break;
   }
 }
 
@@ -1082,6 +1085,11 @@ void COPA::Copa_Get_info() {
   CopaPacketMake(CMD_GET_DEVICE_INFO, 0, 0);
   CopaPacketSend();
 }
+void SetGnss(uint8_t i) {
+  CopaPacketMake(CMD_GNSS_USE, &i, 1);
+  CopaPacketSend();
+}
+
 /**********************************	Запуск
  * двигателей.**********************************/
 void COPA::Copa_Motors_On() {
