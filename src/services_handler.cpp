@@ -10,6 +10,7 @@ class ServiceHandler {
 public:
   ros::Publisher
       cmd_pub_; //Издатель для отправки команд в модуль коммуникации с коптером
+  ros::Subscriber ack_sub_;
   ros::Publisher log_pub_;
   ros::NodeHandle *n; //Указатель на ноду РОС
                       //Сообщение РОС для хранения отпраленной на коптер команды
@@ -27,11 +28,13 @@ public:
   ros::ServiceServer service_set_mode;
   ros::ServiceServer service_set_yaw;
   std_msgs::String log;
+  coparos::Ack ack_;
 
   bool useFakeGps = false;
   ServiceHandler(ros::NodeHandle *nh) : n(nh) {
     //Инициализация сервисо и подписчиков РОС
     cmd_pub_ = n->advertise<coparos::Command>("/command", 1000);
+    ack_sub_ = n->subscribe("/ack", 1000, &ServiceHandler::callback_ack, this);
     log_pub_ = n->advertise<std_msgs::String>("/logging_topic", 1000);
     service_arm = n->advertiseService("Arm", &ServiceHandler::arm, this);
     service_disarm =
@@ -56,6 +59,7 @@ public:
     service_set_yaw =
         n->advertiseService("Set_yaw", &ServiceHandler::set_yaw, this);
   }
+  void callback_ack(coparos::Ack &msg) { ack_ = msg; }
 
   bool arm(coparos::Service_command::Request &req,
            coparos::Service_command::Response &res) {
@@ -67,29 +71,24 @@ public:
     coparos::Command msg;
     msg.command = CMD_NAV_MOTORS_ON;
     cmd_pub_.publish(msg);
-    auto ack =
-        ros::topic::waitForMessage<coparos::Ack>("/ack", ros::Duration(5));
-    if (ack) {
-      if (ack->command == CMD_NAV_MOTORS_ON) {
-        if (ack->result) {
-          res.status = "Success";
-          res.result = true;
-          return true;
-        } else {
-          res.status = ack->status;
-          res.result = false;
-          return true;
-        }
+    ros::Duration(2).sleep();
+    ros::spinOnce();
+    if (ack->command == CMD_NAV_MOTORS_ON) {
+      if (ack->result) {
+        res.status = "Success";
+        res.result = true;
+        return true;
       } else {
-        res.status = "Other command recieved";
+        res.status = ack->status;
         res.result = false;
         return true;
       }
     } else {
-      res.status = "Controller doesn't response";
+      res.status = "Other command recieved";
       res.result = false;
       return true;
     }
+
     //   ROS_INFO("sending back response: [%ld]", (long int)res.sum);
   }
   bool disarm(coparos::Service_command::Request &req,
