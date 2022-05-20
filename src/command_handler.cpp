@@ -1085,7 +1085,7 @@ void COPA::Copa_Get_info() {
   CopaPacketMake(CMD_GET_DEVICE_INFO, 0, 0);
   CopaPacketSend();
 }
-void SetGnss(uint8_t i) {
+void COPA::SetGnss(uint8_t i) {
   CopaPacketMake(CMD_GNSS_USE, &i, 1);
   CopaPacketSend();
 }
