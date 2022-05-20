@@ -68,7 +68,7 @@ public:
     msg.command = CMD_NAV_MOTORS_ON;
     cmd_pub_.publish(msg);
     auto ack =
-        ros::topic::waitForMessage<coparos::Ack>("/ack", *n, ros::Duration(1));
+        ros::topic::waitForMessage<coparos::Ack>("/ack", *n, ros::Duration(5));
     if (ack) {
       if (ack->command == CMD_NAV_MOTORS_ON) {
         if (ack->result) {
