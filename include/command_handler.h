@@ -238,6 +238,8 @@ private:
                       float vel); //Угол, на который следует довернуть коптер
   void CopaSetAngles(float dx, float dy); //Установить вектор скорости движения
   void CopaSetNavMode(uint8_t mode);
+  void Copa_Go_To(double lat, double lon, float alt, float hspeed,
+                  float vspeed);
   void Copa_Get_info(); //Проверка коптера - чтение ID коптера.
   void Copa_Motors_On();                //Запуск двигателей.
   void Copa_Motors_Off();               //Стоп Двигателей

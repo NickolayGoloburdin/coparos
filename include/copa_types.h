@@ -1042,7 +1042,13 @@ typedef struct {
   float altVel;
   float endVel; //
 } landBody_t;
-
+typedef struct {
+  double lat; //
+  double lon;
+  float alt;
+  float hspeed;
+  float vspeed; //
+} pointGoTo_t;
 #pragma pack(pop)
 
 #ifdef telFld

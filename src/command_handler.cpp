@@ -90,6 +90,9 @@ void COPA::callback_command(const coparos::Command &msg) {
   case CMD_GNSS_USE:
     SetGnss(uint8_t(msg.data1));
     break;
+  case CMD_NAV_SET_TARGET_ABS:
+    Copa_Go_To(msg.data1, msg.data2, msg.data3, 10.0, 10.0);
+    break;
   }
 }
 void COPA::callback_angles(const geometry_msgs::Vector3 &msg) {
@@ -1079,6 +1082,17 @@ void COPA::CopaSetAngles(float dx, float dy) {
 void COPA::CopaSetNavMode(uint8_t mode) {
 
   CopaPacketMake(CMD_SET_NAV_MODE, &mode, 1);
+  CopaPacketSend();
+}
+void COPA::Copa_Go_To(double lat, double lon, float alt, float hspeed,
+                      float vspeed) {
+  pointGoTo_t point;
+  point.lat = lat;
+  point.lon = lon;
+  point.alt = alt;
+  point.hspeed = hspeed;
+  point.vspeed = vspeed;
+  CopaPacketMake(CMD_NAV_SET_TARGET_ABS, &point, sizeof(pointGoTo_t));
   CopaPacketSend();
 }
 //-------------------------------------------

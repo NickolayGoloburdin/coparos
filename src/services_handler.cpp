@@ -31,6 +31,7 @@ public:
   ros::ServiceServer service_set_pry;
   ros::ServiceServer service_set_mode;
   ros::ServiceServer service_set_yaw;
+  ros::ServiceServer fly_to_;
   std_msgs::String log;
   coparos::Ack ack_;
 
@@ -45,6 +46,7 @@ public:
         n->advertiseService("Disarm", &ServiceHandler::disarm, this);
     service_takeoff =
         n->advertiseService("Takeoff", &ServiceHandler::takeoff, this);
+    fly_to_ = n->advertiseService("FlyTo", &ServiceHandler::fly_to, this);
     service_land = n->advertiseService("Land", &ServiceHandler::land, this);
     service_rtl = n->advertiseService("RTL", &ServiceHandler::rtl, this);
     service_stop = n->advertiseService("STOP", &ServiceHandler::stop, this);
@@ -437,6 +439,37 @@ public:
     ros::spinOnce();
 
     if (ack_.command == uint16_t(CMD_SET_NAV_MODE)) {
+      if (ack_.result) {
+        res.status = "Success";
+        res.result = true;
+        return true;
+      } else {
+        res.status = ack_.status;
+        res.result = false;
+        return true;
+      }
+    } else {
+      res.status = "Controller does not response";
+      res.result = false;
+      return true;
+    }
+  }
+  bool fly_to(coparos::Service_command::Request &req,
+              coparos::Service_command::Response &res) {
+    log.data = "Fly to point: " + std::to_string(req.param1) + " ; " +
+               std::to_string(req.param1);
+    log_pub_.publish(log);
+    coparos::Command msg;
+    msg.command = CMD_NAV_SET_TARGET_ABS;
+    msg.data1 = req.param1;
+    msg.data2 = req.param2;
+    msg.data3 = req.param3;
+    msg.data4 = req.param4;
+    cmd_pub_.publish(msg);
+    ros::Duration(0.1).sleep();
+    ros::spinOnce();
+
+    if (ack_.command == uint16_t(CMD_NAV_SET_TARGET_ABS)) {
       if (ack_.result) {
         res.status = "Success";
         res.result = true;
