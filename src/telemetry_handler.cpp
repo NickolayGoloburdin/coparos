@@ -28,9 +28,8 @@ TelemetryHandler_ACO::TelemetryHandler_ACO(AbstractLink *link,
     baro_pub_ = nh_->advertise<std_msgs::Float64>("/baro", 1000);
   }
   if (type_ == TRANSMITTER || type_ == DUPLEX)
-    fake_gps_sub_ =
-        nh_->subscribe("/gps_from_video", 1000,
-                       &TelemetryHandler_ACO::callback_fake_gps, this);
+    fake_gps_sub_ = nh_->subscribe(
+        "/gpsFromVideo", 1000, &TelemetryHandler_ACO::callback_fake_gps, this);
 }
 
 TelemetryHandler_ACO::~TelemetryHandler_ACO() {}

@@ -38,7 +38,7 @@ COPA::COPA(AbstractLink *link, ros::NodeHandle *nh) : link_(link) {
   status_pub_ = nh->advertise<std_msgs::String>("/status", 10);
   drone_info_pub_ = nh->advertise<coparos::DroneInfo>("/droneInfo", 10);
   mission_point_request_pub_ =
-      nh->advertise<std_msgs::Int16>("/mission_request", 10);
+      nh->advertise<std_msgs::Int16>("/missionRequest", 10);
   command_sub_ = nh->subscribe("/command", 10, &COPA::callback_command, this);
   mission_point_sub_ =
       nh->subscribe("/missionPoint", 10, &COPA::callback_mission_point, this);

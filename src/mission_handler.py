@@ -60,7 +60,7 @@ class MissionHandler:
             "/MissionPoint", MissionPointMsg, queue_size=10)
         # Подписчик на топик запрашиваемой коптером точки
         self.mission_request_handler = rospy.Subscriber(
-            "/mission_request", Int16, self.handle_request)
+            "/missionRequest", Int16, self.handle_request)
         self.load_mission_service = rospy.Service(
             "/LoadMissionFromFile", Load_mission, self.load_mission_from_file)  # Сервис загрузки миссии из JSON
         self.reset_service = rospy.Service(
