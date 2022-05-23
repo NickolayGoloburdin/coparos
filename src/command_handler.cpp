@@ -32,16 +32,18 @@ COPA::COPA(AbstractLink *link, ros::NodeHandle *nh) : link_(link) {
   NewTarget = 0;
   /*****************Инициализация издателей для отправки данных в топики
    * РОС*******/
-  ack_pub_ = nh->advertise<coparos::Ack>("/ack", 1000);
+  ack_pub_ = nh->advertise<coparos::Ack>("/ack", 10);
   // byteArray_pub_ = nh->advertise<std_msgs::ByteMultiArray>("/rowBytes",
   // 1000);
-  status_pub_ = nh->advertise<std_msgs::String>("/status", 1000);
-  drone_info_pub_ = nh->advertise<coparos::DroneInfo>("/droneInfo", 1000);
+  status_pub_ = nh->advertise<std_msgs::String>("/status", 10);
+  drone_info_pub_ = nh->advertise<coparos::DroneInfo>("/droneInfo", 10);
   mission_point_request_pub_ =
-      nh->advertise<std_msgs::Int16>("/mission_request", 1000);
-  command_sub_ = nh->subscribe("/command", 1000, &COPA::callback_command, this);
+      nh->advertise<std_msgs::Int16>("/mission_request", 10);
+  command_sub_ = nh->subscribe("/command", 10, &COPA::callback_command, this);
   mission_point_sub_ =
-      nh->subscribe("/missionPoint", 1000, &COPA::callback_mission_point, this);
+      nh->subscribe("/missionPoint", 10, &COPA::callback_mission_point, this);
+  angles_sub_ =
+      nh->subscribe("/manualAngles", 10, &COPA::callback_angles, this);
   nh->getParam("/takeoff_height", takeoff_height);
 }
 COPA::~COPA() {}
@@ -90,7 +92,9 @@ void COPA::callback_command(const coparos::Command &msg) {
     break;
   }
 }
-
+void COPA::callback_angles(const geometry_msgs::Vector3 &msg) {
+  CopaSetAngles(msg.x, msg.y);
+}
 //Метод обработчик точек миссий из топика
 void COPA::callback_mission_point(const coparos::MissionPoint &msg) {
   sMissionPoint point;

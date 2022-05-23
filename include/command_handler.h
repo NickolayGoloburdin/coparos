@@ -11,6 +11,7 @@
 #include <coparos/Command.h>
 #include <coparos/MissionPoint.h>
 #include <cstdint>
+#include <geometry_msgs/Vector3.h>
 #include <list>
 #include <memory>
 
@@ -32,6 +33,7 @@ class COPA {
   ros::Publisher byteArray_pub_;
   ros::Subscriber command_sub_;
   ros::Subscriber mission_point_sub_;
+  ros::Subscriber angles_sub_;
 
   float takeoff_height;
   /*############# types ###########*/
@@ -276,6 +278,7 @@ public:
   //пакет телеметрии
   void callback_command(const coparos::Command &msg);
   void callback_mission_point(const coparos::MissionPoint &msg);
+  void callback_angles(const geometry_msgs::Vector3 &msg);
   uint8_t presetStatSet =
       1; //статус инициализации (настройки пресета) если меньше
          // 4 то ещё не настроен
