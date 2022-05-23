@@ -14,14 +14,14 @@ protected:
   coparos::AzimuthFlyResult result_;
 
 public:
-  AzimuthFlyAction(std::string name)
+  AzimuthFlyActionServer(std::string name)
       : as_(nh_, name,
             boost::bind(&AzimuthFlyActionServer::executeCB, this, _1), false),
         action_name_(name) {
     as_.start();
   }
 
-  ~AzimuthFlyAction(void) {}
+  ~AzimuthFlyActionServer(void) {}
 
   void executeCB(const coparos::AzimuthFlyGoalConstPtr &goal) {
     // helper variables

@@ -152,6 +152,7 @@ include
  #add_executable(${PROJECT_NAME}_mobile_node src/mobile_node.cpp src/mobile_handler.cpp src/abstract_link.cpp src/udp_link.cpp)
  add_executable(${PROJECT_NAME}_measure_wind_service_node src/service_measure_wind_handler.cpp)
  add_executable(${PROJECT_NAME}_aircraft_node src/aircraft_node.cpp src/abstract_link.cpp src/aircraft_handler.cpp src/serial_link.cpp)
+ add_executable(${PROJECT_NAME}_azimuth_fly_action src/azimuth_fly_to_point_action.cpp)
 
 
 
@@ -164,6 +165,7 @@ include
  #add_dependencies(${PROJECT_NAME}_mobile_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
  add_dependencies(${PROJECT_NAME}_measure_wind_service_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
  add_dependencies(${PROJECT_NAME}_aircraft_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+ add_dependencies(${PROJECT_NAME}_azimuth_fly_action ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 
 ## Rename C++ executable without prefix
@@ -202,7 +204,9 @@ include
  target_link_libraries(${PROJECT_NAME}_measure_wind_service_node
  ${catkin_LIBRARIES}
 )
-
+target_link_libraries(${PROJECT_NAME}_azimuth_fly_action
+ ${catkin_LIBRARIES}
+)
 target_link_libraries(${PROJECT_NAME}_aircraft_node
    ${catkin_LIBRARIES}
    serial
