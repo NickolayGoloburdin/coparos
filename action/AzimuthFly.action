@@ -1,7 +1,6 @@
 #goal definition
 MissionPoint current
 MissionPoint target
-float32 azimuth
 ---
 #result definition
 bool target_reached

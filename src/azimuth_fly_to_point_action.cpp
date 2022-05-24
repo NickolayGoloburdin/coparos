@@ -2,6 +2,73 @@
 #include <coparos/AzimuthFlyAction.h>
 #include <ros/ros.h>
 
+float getAzimuth(double lat1, double lon1, double lat2, double lon2) {}
+// function TForm1.CalcDirection(Lat1,Long1,Lat2,Long2: Extended) : Extended;
+//  var e : Extended; //эксцентриситет сферойда
+//  d_long : Extended; //числитель формулы
+//  a,b : Extended; //постоянные Земли
+// begin
+
+//  //сперва для прямых углов:
+//  if (lat1=lat2) and (long1<long2) then
+//  begin
+//   Result:=90;
+//   exit;
+//  end
+//  else
+//  if (lat1=lat2) and (long1>long2) then
+//   begin
+//   Result:=270;
+//   exit;
+//  end
+//  else
+//  if (lat1>lat2) and (long1=long2) then
+//   begin
+//   Result:=180;
+//   exit;
+//  end
+//  else
+//  if (lat1<lat2) and (long1=long2) then
+//   begin
+//   Result:=0;
+//   exit;
+//  end;
+
+//  a:=6378137.0; //большая полуось Земли (экваториальный радиус)
+//  b:=6371000.0; //малая полуось Земли (полярный радиус)
+//  e := sqrt(1-(b*b)/(a*a));
+
+//  if abs(long2-long1)<=180 then
+//   d_long:=long2-long1
+//  else
+//  if long2-long1<-180 then
+//   d_long:=360+long2-long1
+//  else
+//  if long2-long1>180 then
+//   d_long:=long2-long1-360;
+
+//  Result:=(180/pi)*ArcTan(DegToRad(d_long) / (
+//  ln(tan((pi/4)+(DegToRad(lat2)/2)) * Power(
+//  (1-e*sin(DegToRad(lat2)))/(1+e*sin(DegToRad(lat2))) , e/2 ))
+//  - ln(tan((pi/4)+(DegToRad(lat1)/2)) * Power(
+//  (1-e*sin(DegToRad(lat1)))/(1+e*sin(DegToRad(lat1))) , e/2 )) ) );
+
+//  if (lat1>lat2) and (Result<0) then
+//   Result := Result + 180
+//  else
+//  if (long1>long2) and (lat1>lat2) then
+//   Result := Result + 180
+//  else
+//  if (long1<long2) and (Round(Result)=-90) then
+//   Result:= Result+180
+//  else
+//  if (long1>long2) and (Round(Result)=90) then
+//   Result:= Result+180;
+
+//  if Result < 0 then
+//   Result := 360 + Result;
+
+// end;
 class AzimuthFlyActionServer {
 protected:
   ros::NodeHandle nh_;
