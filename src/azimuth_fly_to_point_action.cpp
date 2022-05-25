@@ -50,12 +50,11 @@ double getAzimuth(double lat1, double lon1, double lat2, double lon2) {
     azimuth += 180;
   } else if (lon1 > lon2 && lat1 > lat2) {
     azimuth += 180;
-  } else if (lon1 < lon2 &&) {
+  } else if (lon1 < lon2 && (int)azimuth == -90) {
     azimuth += 180;
-  } else if (lon1 > lon2 &&) {
+  } else if (lon1 > lon2 && (int)azimuth == 90) {
     azimuth += 180;
   }
-
   if (azimuth < 0) {
     azimuth += 360;
   }
