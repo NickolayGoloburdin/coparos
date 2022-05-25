@@ -1,5 +1,5 @@
 uint16 command
-float32 data1
-float32 data2
-float32 data3
-float32 data4 
+float64 data1
+float64 data2
+float64 data3
+float64 data4 

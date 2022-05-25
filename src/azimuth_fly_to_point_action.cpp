@@ -1,74 +1,79 @@
 #include <actionlib/server/simple_action_server.h>
+#include <cmath>
 #include <coparos/AzimuthFlyAction.h>
+#include <math.h>
 #include <ros/ros.h>
+#include <tuple>
+#define PI 3.141592653589793238463
 
-float getAzimuth(double lat1, double lon1, double lat2, double lon2) {}
-// function TForm1.CalcDirection(Lat1,Long1,Lat2,Long2: Extended) : Extended;
-//  var e : Extended; //эксцентриситет сферойда
-//  d_long : Extended; //числитель формулы
-//  a,b : Extended; //постоянные Земли
-// begin
+#define degToRad(angleInDegrees) ((angleInDegrees)*PI / 180.0)
+#define radToDeg(angleInRadians) ((angleInRadians)*180.0 / PI)
+const float a = 6378137.0;
+const float b = 6371000.0;
+inline double to_degrees(double radians) { return radians * (180.0 / PI); }
+double getAzimuth(double lat1, double lon1, double lat2, double lon2) {
+  float azimuth;
+  float d_lon;
 
-//  //сперва для прямых углов:
-//  if (lat1=lat2) and (long1<long2) then
-//  begin
-//   Result:=90;
-//   exit;
-//  end
-//  else
-//  if (lat1=lat2) and (long1>long2) then
-//   begin
-//   Result:=270;
-//   exit;
-//  end
-//  else
-//  if (lat1>lat2) and (long1=long2) then
-//   begin
-//   Result:=180;
-//   exit;
-//  end
-//  else
-//  if (lat1<lat2) and (long1=long2) then
-//   begin
-//   Result:=0;
-//   exit;
-//  end;
+  const float e = std::sqrt(1 - (b * b) / (a * a));
+  if (lat1 == lat2 && lon1 == lon2) {
+    azimuth = 180.0;
+  } else if (lat1 == lat2 && lon1 > lon2) {
+    azimuth = 270.0;
+  } else if (lat1 == lat2 && lon1 < lon2) {
+    azimuth = 90.0;
+  } else if (lat1 < lat2 && lon1 == lon2) {
+    azimuth = 0.0;
+  } else if (lat1 > lat2 && lon1 == lon2) {
+    azimuth = 180.0;
+  }
+  if (std::fabs(lon2 - lon1) <= 180) {
+    d_lon = lon1 - lon2;
+  } else if (lon2 - lon1 < -180) {
+    d_lon = 360 + lon2 - lon1;
+  } else if (lon2 - lon1 > 180) {
+    d_lon = lon2 - lon1 - 360;
+  }
 
-//  a:=6378137.0; //большая полуось Земли (экваториальный радиус)
-//  b:=6371000.0; //малая полуось Земли (полярный радиус)
-//  e := sqrt(1-(b*b)/(a*a));
+  azimuth =
+      (180 / PI) *
+      std::atan(degToRad(d_lon) /
+                (std::log(std::tan((PI / 4) + (degToRad(lat2) / 2)) *
+                          std::pow((double)(1 - e * std::sin(degToRad(lat2))) /
+                                       (1 + e * std::sin(degToRad(lat2))),
+                                   (double)e / 2)) -
+                 std::log(tan((PI / 4) + (degToRad(lat1) / 2)) *
+                          std::pow((double)(1 - e * sin(degToRad(lat1))) /
+                                       (1 + e * sin(degToRad(lat1))),
+                                   (double)e / 2))));
+  if (lat1 > lat2 && azimuth < 0) {
+    azimuth += 180;
+  } else if (lon1 > lon2 && lat1 > lat2) {
+    azimuth += 180;
+  } else if (lon1 < lon2 &&) {
+    azimuth += 180;
+  } else if (lon1 > lon2 &&) {
+    azimuth += 180;
+  }
 
-//  if abs(long2-long1)<=180 then
-//   d_long:=long2-long1
-//  else
-//  if long2-long1<-180 then
-//   d_long:=360+long2-long1
-//  else
-//  if long2-long1>180 then
-//   d_long:=long2-long1-360;
+  if (azimuth < 0) {
+    azimuth += 360;
+  }
+  return azimuth;
+}
+double distanceEarth(double lat1, double lon1, double lat2, double lon2) {
+  double lat1r, lon1r, lat2r, lon2r, u, v;
+  lat1r = degToRad(lat1);
+  lon1r = degToRad(lon1);
+  lat2r = degToRad(lat2);
+  lon2r = degToRad(lon2);
+  u = std::sin((lat2r - lat1r) / 2);
+  v = std::sin((lon2r - lon1r) / 2);
+  return 2.0 * b *
+         std::asin(
+             std::sqrt(u * u + std::cos(lat1r) * std::cos(lat2r) * v * v));
+}
 
-//  Result:=(180/pi)*ArcTan(DegToRad(d_long) / (
-//  ln(tan((pi/4)+(DegToRad(lat2)/2)) * Power(
-//  (1-e*sin(DegToRad(lat2)))/(1+e*sin(DegToRad(lat2))) , e/2 ))
-//  - ln(tan((pi/4)+(DegToRad(lat1)/2)) * Power(
-//  (1-e*sin(DegToRad(lat1)))/(1+e*sin(DegToRad(lat1))) , e/2 )) ) );
-
-//  if (lat1>lat2) and (Result<0) then
-//   Result := Result + 180
-//  else
-//  if (long1>long2) and (lat1>lat2) then
-//   Result := Result + 180
-//  else
-//  if (long1<long2) and (Round(Result)=-90) then
-//   Result:= Result+180
-//  else
-//  if (long1>long2) and (Round(Result)=90) then
-//   Result:= Result+180;
-
-//  if Result < 0 then
-//   Result := 360 + Result;
-
-// end;
 class AzimuthFlyActionServer {
 protected:
   ros::NodeHandle nh_;
