@@ -3,62 +3,27 @@
 #include <coparos/AzimuthFlyAction.h>
 #include <math.h>
 #include <ros/ros.h>
-#include <tuple>
-#define PI 3.141592653589793238463
-
+#define PI 3.14159265358979323846
+#define RADIO_TERRESTRE 6372797.56085
+#define GRADOS_RADIANES PI / 180
+#define RADIANES_GRADOS 180 / PI
 #define degToRad(angleInDegrees) ((angleInDegrees)*PI / 180.0)
 #define radToDeg(angleInRadians) ((angleInRadians)*180.0 / PI)
 const float a = 6378137.0;
 const float b = 6371000.0;
-inline double to_degrees(double radians) { return radians * (180.0 / PI); }
-double getAzimuth(double lat1, double lon1, double lat2, double lon2) {
-  float azimuth;
-  float d_lon;
+double calculateBearing(double lat1, double lon1, double lat2, double lon2) {
+  double longitude1 = lon1;
+  double longitude2 = lon2;
+  double latitude1 = lat1 * GRADOS_RADIANES;
+  double latitude2 = lat2 * GRADOS_RADIANES;
+  double longDiff = (longitude2 - longitude1) * GRADOS_RADIANES;
+  double y = sin(longDiff) * cos(latitude2);
+  double x = cos(latitude1) * sin(latitude2) -
+             sin(latitude1) * cos(latitude2) * cos(longDiff);
 
-  const float e = std::sqrt(1 - (b * b) / (a * a));
-  if (lat1 == lat2 && lon1 == lon2) {
-    azimuth = 180.0;
-  } else if (lat1 == lat2 && lon1 > lon2) {
-    azimuth = 270.0;
-  } else if (lat1 == lat2 && lon1 < lon2) {
-    azimuth = 90.0;
-  } else if (lat1 < lat2 && lon1 == lon2) {
-    azimuth = 0.0;
-  } else if (lat1 > lat2 && lon1 == lon2) {
-    azimuth = 180.0;
-  }
-  if (std::fabs(lon2 - lon1) <= 180) {
-    d_lon = lon1 - lon2;
-  } else if (lon2 - lon1 < -180) {
-    d_lon = 360 + lon2 - lon1;
-  } else if (lon2 - lon1 > 180) {
-    d_lon = lon2 - lon1 - 360;
-  }
+  // std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "
 
-  azimuth =
-      (180 / PI) *
-      std::atan(degToRad(d_lon) /
-                (std::log(std::tan((PI / 4) + (degToRad(lat2) / 2)) *
-                          std::pow((double)(1 - e * std::sin(degToRad(lat2))) /
-                                       (1 + e * std::sin(degToRad(lat2))),
-                                   (double)e / 2)) -
-                 std::log(tan((PI / 4) + (degToRad(lat1) / 2)) *
-                          std::pow((double)(1 - e * sin(degToRad(lat1))) /
-                                       (1 + e * sin(degToRad(lat1))),
-                                   (double)e / 2))));
-  if (lat1 > lat2 && azimuth < 0) {
-    azimuth += 180;
-  } else if (lon1 > lon2 && lat1 > lat2) {
-    azimuth += 180;
-  } else if (lon1 < lon2 && (int)azimuth == -90) {
-    azimuth += 180;
-  } else if (lon1 > lon2 && (int)azimuth == 90) {
-    azimuth += 180;
-  }
-  if (azimuth < 0) {
-    azimuth += 360;
-  }
-  return azimuth;
+  return fmod(((RADIANES_GRADOS * (atan2(y, x))) + 360), 360);
 }
 double distanceEarth(double lat1, double lon1, double lat2, double lon2) {
   double lat1r, lon1r, lat2r, lon2r, u, v;
