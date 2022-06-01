@@ -65,6 +65,7 @@ add_service_files(
    FILES
    Service_command.srv
    Load_mission.srv
+   Azimuth.srv
  )
 
 ## Generate actions in the 'action' folder
@@ -146,11 +147,13 @@ include
  add_executable(${PROJECT_NAME}_services_node src/services_handler.cpp)
  #add_executable(${PROJECT_NAME}_mobile_node src/mobile_node.cpp src/mobile_handler.cpp src/abstract_link.cpp src/udp_link.cpp)
  add_executable(${PROJECT_NAME}_measure_wind_service_node src/service_measure_wind_handler.cpp)
+ add_executable(${PROJECT_NAME}_azimuth_node src/service_azimuth_fly.cpp)
  
 
  add_dependencies(${PROJECT_NAME}_services_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
  #add_dependencies(${PROJECT_NAME}_mobile_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
  add_dependencies(${PROJECT_NAME}_measure_wind_service_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+ add_dependencies(${PROJECT_NAME}_azimuth_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 
 ## Rename C++ executable without prefix
@@ -171,6 +174,9 @@ include
  #  ${catkin_LIBRARIES}
  #)
  target_link_libraries(${PROJECT_NAME}_measure_wind_service_node
+ ${catkin_LIBRARIES}
+)
+target_link_libraries(${PROJECT_NAME}_azimuth_node
  ${catkin_LIBRARIES}
 )
 #############

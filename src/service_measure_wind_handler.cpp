@@ -80,11 +80,6 @@ private:
 int main(int argc, char **argv) {
   ros::init(argc, argv, "measure_wind_service");
   ros::NodeHandle n;
-  bool realtime;
-  n.getParam("/realtime", realtime);
-  if (!realtime) {
-    return 0;
-  }
   Service service(&n);
 
   ROS_INFO("Ready to measure wind.");

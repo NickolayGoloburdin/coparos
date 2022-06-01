@@ -13,7 +13,9 @@ public:
   ros::NodeHandle *n;            //Указатель на ноду РОС
   ros::Subscriber ack_processor; // Подписчик на ответы с коптера
   ros::ServiceServer service_arm; //Сервис для снятия коптера с предохранителя
-  ros::ServiceServer service_disarm; //Сервис для выключения двигателей
+  ros::ServiceServer service_disarm;
+  ros::ServiceServer service_set_yaw;
+  ros::ServiceServer service_set_speed; //Сервис для выключения двигателей
   ros::ServiceServer service_takeoff; //Сервис взлета
   ros::ServiceServer service_land;    //Сервис посадки
   ros::ServiceServer service_rtl; //Сервис включения режима Возврат домой
@@ -41,6 +43,12 @@ public:
         "Clear_mission", &ServiceHandler::clear_mission, this);
     service_other_gps = n->advertiseService(
         "Set_gps_mode", &ServiceHandler::set_gps_mode, this);
+    service_set_yaw =
+        n->advertiseService("Set_gps_mode", &ServiceHandler::set_yaw,
+                            this); //Сервис для выключения двигателей
+    service_set_speed =
+        n->advertiseService("Set_speed", &ServiceHandler::set_speed,
+                            this); //Сервис для выключения двигателей
   }
   //Функция обработчик ответа с коптера
   bool arm(coparos::Service_command::Request &req,
@@ -255,6 +263,58 @@ public:
     cmd3.request.custom_mode = "AUTO";
     if (client_continue.call(cmd3)) {
       res.result = cmd3.response.mode_sent;
+      return true;
+    } else {
+      res.status = "Cannot call mavros service";
+      res.result = false;
+      return true;
+    }
+  }
+
+  //   Param (:Label)	Description	Values	Units
+  // 1: Angle	target angle, 0 is north		deg
+  // 2: Angular Speed	angular speed		deg/s
+  // 3: Direction	direction: -1: counter clockwise, 1: clockwise	min: -1
+  // max:1 increment:2
+  // 4: Relative	0: absolute angle, 1: relative offset	min:0 max:1
+  // increment:1 5	Empty 6	Empty 7	Empty
+  bool set_yaw(coparos::Service_command::Request &req,
+               coparos::Service_command::Response &res) {
+    ROS_INFO("Setting yaw:", req.param1);
+    auto client_set_yaw =
+        n->serviceClient<mavros_msgs::CommandLong>("/mavros/cmd/command");
+    mavros_msgs::CommandLong cmd;
+    cmd.request.broadcast = true;
+    cmd.request.command = uint16_t(115);
+    cmd.request.confirmation = 1;
+    cmd.request.param1 = req.param1;
+    cmd.request.param2 = req.param2;
+    cmd.request.param3 = req.param3;
+    cmd.request.param4 = req.param4;
+    if (client_set_yaw.call(cmd)) {
+      res.result = cmd.response.success;
+      return true;
+    } else {
+      res.status = "Cannot call mavros service";
+      res.result = false;
+      return true;
+    }
+  }
+  bool set_speed(coparos::Service_command::Request &req,
+                 coparos::Service_command::Response &res) {
+    ROS_INFO("Setting speed:");
+    auto client_set_yaw =
+        n->serviceClient<mavros_msgs::CommandLong>("/mavros/cmd/command");
+    mavros_msgs::CommandLong cmd;
+    cmd.request.broadcast = true;
+    cmd.request.command = uint16_t(115);
+    cmd.request.confirmation = 1;
+    cmd.request.param1 = req.param1;
+    cmd.request.param2 = req.param2;
+    cmd.request.param3 = req.param3;
+    cmd.request.param4 = req.param4;
+    if (client_set_yaw.call(cmd)) {
+      res.result = cmd.response.success;
       return true;
     } else {
       res.status = "Cannot call mavros service";
