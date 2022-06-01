@@ -1,0 +1,14 @@
+<<<<<<< HEAD
+float64 param1
+float64 param2
+float64 param3
+float64 param4
+=======
+float32 param1
+float32 param2
+float32 param3
+float32 param4
+>>>>>>> e8898893dc3da77b0b61bbabb0970a78f6ab1e46
+---
+string status
+bool result

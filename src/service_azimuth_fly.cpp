@@ -80,7 +80,7 @@ private:
     // cmd.request.base_mode = 1;
     // cmd.request.custom_mode = "Guided_NoGPS";
     // client_set_mode.call(cmd);
-    auto delta = degToRad(req.heading - azimuth);
+    auto delta = degToRad(azimuth - req.heading);
     // tf2::Quaternion q;
     //  q.setRPY(0, 0, degToRad(delta));
     //  geometry_msgs::Quaternion quat_msg;
