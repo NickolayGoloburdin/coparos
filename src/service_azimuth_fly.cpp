@@ -72,15 +72,17 @@ private:
   void callback_compass(const std_msgs::Float64 &msg) { heading_ = msg.data; }
   bool fly(coparos::Azimuth::Request &req, coparos::Azimuth::Response &res) {
     mavros_msgs::AttitudeTarget control;
-    auto azimuth = calculateBearing(req.lat1, req.lon1, req.lat2, req.lon2);
-    auto distance = distanceEarth(req.lat1, req.lon1, req.lat2, req.lon2);
-    // auto client_set_mode =
-    //     n->serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
-    // mavros_msgs::SetMode cmd;
-    // cmd.request.base_mode = 1;
-    // cmd.request.custom_mode = "Guided_NoGPS";
-    // client_set_mode.call(cmd);
-    auto delta = degToRad(azimuth - req.heading);
+    auto azimuth =
+        calculateBearing(current_lat_, current_lon_, req.lat2, req.lon2);
+    auto distance =
+        distanceEarth(current_lat_, current_lon_, req.lat2, req.lon2);
+    auto client_set_mode =
+        n->serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
+    mavros_msgs::SetMode cmd;
+    cmd.request.base_mode = 1;
+    cmd.request.custom_mode = "Guided_NoGPS";
+    client_set_mode.call(cmd);
+    auto delta = degToRad(heading_ - azimuth);
     // tf2::Quaternion q;
     //  q.setRPY(0, 0, degToRad(delta));
     //  geometry_msgs::Quaternion quat_msg;
@@ -89,6 +91,32 @@ private:
     //  control.orientation = quat_msg;
     control.body_rate.z = delta;
     control_pub_.publish(control);
+    double T1, T3 = req.vmax / req.amax;
+    double T2 = distance / req.vmax - T1;
+    // auto time = ros::Time::now().toSec();
+    // tf2::Quaternion q;
+    // q.setRPY(req.amax, 0, 0);
+    // geometry_msgs::Quaternion quat_msg;
+    // quat_msg = tf2::toMsg(q);
+    // control_pub_.publish(quat_msg);
+    // while ((time - ros::Time::now().toSec()) < T1) {
+    //   tf2::Quaternion q;
+    //   q.setRPY(req.amax, 0, 0);
+    //   geometry_msgs::Quaternion quat_msg;
+    //   quat_msg = tf2::toMsg(q);
+    //   control_pub_.publish(quat_msg);
+    // }
+    // while ((time - ros::Time::now().toSec()) < T1 + T2) {
+    //   ros::Duration(0.1).sleep();
+    // }
+    // while ((time - ros::Time::now().toSec()) < T1 + T1 + T2) {
+    //   tf2::Quaternion q;
+    //   q.setRPY(-req.amax, 0, 0);
+    //   geometry_msgs::Quaternion quat_msg;
+    //   quat_msg = tf2::toMsg(q);
+    //   control_pub_.publish(quat_msg);
+    //   ros::Duration(0.1).sleep();
+    // }
   }
 };
 int main(int argc, char **argv) {

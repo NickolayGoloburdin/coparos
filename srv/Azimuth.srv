@@ -1,9 +1,7 @@
-float64 lat1
-float64 lon1
 float64 lat2
 float64 lon2
 float32 amax
 float32 vmax
-float32 heading
+
 ---
 bool result
