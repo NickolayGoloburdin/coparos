@@ -6,7 +6,7 @@ import numpy as np
 from coparos.msg import MissionPoint as MissionPointMsg
 from coparos.srv import Service_command, Load_mission, Service_commandResponse, Load_missionResponse
 from std_msgs.msg import Int16
-from std_srvs.srv import Trigger, TriggerResponce
+from std_srvs.srv import Trigger
 from mavros_msgs.srv import WaypointPush
 from mavros_msgs.msg import Waypoint
 # Структура точки полетного задания
@@ -131,7 +131,7 @@ class MissionHandler:
             self.points.append(MissionPoint(i))
 
 
-if __name__ == 'main':
+if __name__ == '__main__':
     rospy.init_node('Mission_handler')
-    MissionHandler()
+    a = MissionHandler()
     rospy.spin()

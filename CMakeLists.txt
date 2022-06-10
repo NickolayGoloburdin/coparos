@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   message_generation
   tf2
+  std_srvs
   copa_msgs
   actionlib
   mavros_msgs
