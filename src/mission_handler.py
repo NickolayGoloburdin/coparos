@@ -113,7 +113,7 @@ class MissionHandler:
         return res
 
     def load_mission_from_file(self, req):
-        file_name = "/home/jetson/copa5/missions/{}.BIN".format(req.number)
+        file_name = "/home/rodion/missions/{}.BIN".format(req.number)
         dtype = np.dtype([('lat', np.float64), ('lon', np.float64), ('alt', np.float32), ('r', np.float32), ('time', np.int32), ('hs', np.float32),
                           ('vs', np.float32), ('plat', np.float64), ('plon', np.float64), (
                               'ph', np.float32), ('pa', np.float32), ('flags', np.uint32),
