@@ -12,8 +12,8 @@ from mavros_msgs.msg import Waypoint
 # Структура точки полетного задания
 
 
-class MissionPoint:
-    def init(self, pList=None):
+class MissionPointStruct:
+    def __init__(self, pList=None):
         if pList == None:
             self.targetLat = 0
             self.targetLon = 0
@@ -126,7 +126,7 @@ class MissionHandler:
     def fill_mission_handler(self, pointList):
         self.points.clear()
         for i in pointList:
-            self.points.append(MissionPoint(i))
+            self.points.append(MissionPointStruct(i))
 
 
 if __name__ == '__main__':
