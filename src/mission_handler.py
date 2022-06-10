@@ -6,7 +6,7 @@ import numpy as np
 from coparos.msg import MissionPoint as MissionPointMsg
 from coparos.srv import Service_command, Load_mission, Service_commandResponse, Load_missionResponse
 from std_msgs.msg import Int16
-from std_srvs.srv import Trigger
+from std_srvs.srv import Trigger, TriggerResponse
 from mavros_msgs.srv import WaypointPush
 from mavros_msgs.msg import Waypoint
 # Структура точки полетного задания
@@ -57,13 +57,11 @@ class MissionPoint:
 
 
 class MissionHandler:
-    def init(self):
+    def __init__(self):
         self.counter = 0
         # Инициализация издателя для отправки точки в коптер
-        self.load_mission_service = rospy.Service(
-            "/LoadMissionFromFile", Load_mission, self.load_mission_from_file)  # Сервис загрузки миссии из JSON
-        self.reset_service = rospy.Service(
-            "/SendMission", Trigger, self.send_mission)  # Сервис отправки миссии
+        self.load_mission_service = rospy.Service("/LoadMissionFromFile", Load_mission, self.load_mission_from_file)  # Сервис загрузки миссии из JSON
+        self.reset_service = rospy.Service("/SendMission", Trigger, self.send_mission)  # Сервис отправки миссии
         self.points = []
 
         # Метод начала загрузки полетного задания в коптер
@@ -94,7 +92,7 @@ class MissionHandler:
         return waypoints
 
     def send_mission(self, req):
-        res = TriggerResponce()
+        res = TriggerResponse()
         wps = self.prepare_waypoints()
         if len(self.points) == 0:
             rospy.logerr("Mission is empty")
@@ -132,6 +130,6 @@ class MissionHandler:
 
 
 if __name__ == '__main__':
-    rospy.init_node('Mission_handler')
-    a = MissionHandler()
+    rospy.init_node('Mission_handler_')
+    MissionHandler()
     rospy.spin()
