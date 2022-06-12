@@ -7,12 +7,17 @@
 #include <copa_msgs/WindSpeedGoal.h>
 #include <copa_msgs/WindSpeedResult.h>
 #include <std_msgs/String.h>
+#include <coparos/DroneInfo.h>
+#define PI 3.14159265358979323846
+#define radToDeg(angleInRadians) ((angleInRadians)*180.0 / PI)
 class Service {
 public:
   ros::NodeHandle *n;
   ros::ServiceClient client_stop;
   ros::ServiceClient client_start;
   ros::Publisher log_pub_;
+  ros::Subscriber compass_sub_;
+  float heading_;
   std_msgs::String log;
   actionlib::SimpleActionClient<copa_msgs::WindSpeedAction> ac;
   Service(ros::NodeHandle *nh) : n(nh), ac("mes_wind", true) {
@@ -20,6 +25,7 @@ public:
     client_stop = n->serviceClient<coparos::Service_command>("STOP");
     client_start = n->serviceClient<coparos::Service_command>("Continue");
     ac.waitForServer();
+    compass_sub_ = n->subscribe("/droneInfo", 1, &Service::callback_heading, this);
     ros::ServiceServer service_measure_wind =
         n->advertiseService("MeasureWind", &Service::measure_wind, this);
   }
@@ -59,7 +65,7 @@ private:
     }
     auto action_result = ac.getResult();
     float speed = action_result->speed;
-    float angle = action_result->angle;
+    float angle = 90.0 - radToDeg(action_result->angle) + heading_;
     n->setParam("/wind_speed", speed);
     n->setParam("/wind_angle", angle);
 
@@ -84,15 +90,16 @@ private:
     res.result = true;
     return true;
   }
+  void callback_heading(const coparos::DroneInfo & msg){
+    heading_ = msg.ABSOLUTE_HEADING;
+
+  }
 };
 int main(int argc, char **argv) {
   ros::init(argc, argv, "measure_wind_service");
   ros::NodeHandle n;
   bool realtime;
-  n.getParam("/realtime", realtime);
-  if (!realtime) {
-    return 0;
-  }
+  
   Service service(&n);
 
   ROS_INFO("Ready to measure wind.");
