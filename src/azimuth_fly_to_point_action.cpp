@@ -106,9 +106,9 @@ public:
 };
 
 int main(int argc, char **argv) {
-  ros::init(argc, argv, "fibonacci");
+  ros::init(argc, argv, "azimuth");
 
-  AzimuthFlyActionServer azimuth("fibonacci");
+  AzimuthFlyActionServer azimuth("azimuth");
   ros::spin();
 
   return 0;
