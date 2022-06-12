@@ -69,26 +69,28 @@ class MissionHandler:
     def prepare_waypoints(self):
         waypoints = []
         pt = Waypoint()
-        pt.frame = 0
+        pt.frame = 3
         pt.is_current = False
         pt.autocontinue = True
         pt.z_alt = self.points[0].targetAlt
-        pt.command = 22
+        pt.command = 16
         waypoints.append(pt)
         for i in self.points:
-            pt.frame = 0
-            pt.is_current = False
-            pt.autocontinue = True
-            pt.x_lat = i.targetLat
-            pt.y_long = i.targetLon
-            pt.z_alt = i.targetAlt
-            pt.command = 16
-            waypoints.append(pt)
-        pt.frame = 0
-        pt.is_current = False
-        pt.autocontinue = True
-        pt.command = 20
-        waypoints.append(pt)
+            pt2 = Waypoint()
+            pt2.frame = 3
+            pt2.is_current = False
+            pt2.autocontinue = True
+            pt2.x_lat = i.targetLat
+            pt2.y_long = i.targetLon
+            pt2.z_alt = i.targetAlt
+            pt2.command = 16
+            waypoints.append(pt2)
+        pt3 = Waypoint()
+        pt3.frame = 0
+        pt3.is_current = False
+        pt3.autocontinue = True
+        pt3.command = 20
+        waypoints.append(pt3)
         return waypoints
 
     def send_mission(self, req):

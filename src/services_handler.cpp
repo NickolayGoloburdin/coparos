@@ -55,12 +55,24 @@ public:
            coparos::Service_command::Response &res) {
 
     ROS_INFO("ARMING");
+    auto client_guided =
+        n->serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
+    mavros_msgs::SetMode cmd;
+    cmd.request.base_mode = 1;
+    cmd.request.custom_mode = "GUIDED";
+    if (client_guided.call(cmd)) {
+      res.result = cmd.response.mode_sent;
+    } else {
+      res.status = "Cannot call mavros service";
+      res.result = false;
+      return true;
+    }
     auto client_arm =
         n->serviceClient<mavros_msgs::CommandBool>("/mavros/cmd/arming");
-    mavros_msgs::CommandBool cmd;
-    cmd.request.value = true;
-    if (client_arm.call(cmd)) {
-      res.result = cmd.response.success;
+    mavros_msgs::CommandBool cmd2;
+    cmd2.request.value = true;
+    if (client_arm.call(cmd2)) {
+      res.result = cmd2.response.success;
       return true;
 
     } else {
@@ -256,6 +268,7 @@ public:
       res.result = false;
       return true;
     }
+    ros::Duration(1).sleep();
     auto client_continue =
         n->serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
     mavros_msgs::SetMode cmd3;
