@@ -24,7 +24,7 @@
 
 /***************************задать начальные параметры при первой
  * загрузке****************************/
-COPA::COPA(AbstractLink *link, ros::NodeHandle *nh) : link_(link) {
+COPA::COPA(AbstractLink *link, ros::NodeHandle *nh) : link_(link), nh_(nh) {
   uint16_t tmp = 0x0001;
   BigEndian = 1 - *((uint8_t *)&tmp);
   FC_ID = 0x0fff;
@@ -32,19 +32,19 @@ COPA::COPA(AbstractLink *link, ros::NodeHandle *nh) : link_(link) {
   NewTarget = 0;
   /*****************Инициализация издателей для отправки данных в топики
    * РОС*******/
-  ack_pub_ = nh->advertise<coparos::Ack>("/ack", 10);
+  ack_pub_ = nh_->advertise<coparos::Ack>("/ack", 10);
   // byteArray_pub_ = nh->advertise<std_msgs::ByteMultiArray>("/rowBytes",
   // 1000);
-  status_pub_ = nh->advertise<std_msgs::String>("/status", 10);
-  drone_info_pub_ = nh->advertise<coparos::DroneInfo>("/droneInfo", 10);
+  status_pub_ = nh_->advertise<std_msgs::String>("/status", 10);
+  drone_info_pub_ = nh_->advertise<coparos::DroneInfo>("/droneInfo", 10);
   mission_point_request_pub_ =
       nh->advertise<std_msgs::Int16>("/missionRequest", 10);
-  command_sub_ = nh->subscribe("/command", 10, &COPA::callback_command, this);
+  command_sub_ = nh_->subscribe("/command", 10, &COPA::callback_command, this);
   mission_point_sub_ =
-      nh->subscribe("/missionPoint", 10, &COPA::callback_mission_point, this);
+      nh_->subscribe("/missionPoint", 10, &COPA::callback_mission_point, this);
   angles_sub_ =
-      nh->subscribe("/manualAngles", 10, &COPA::callback_angles, this);
-  nh->getParam("/takeoff_height", takeoff_height);
+      nh_->subscribe("/manualAngles", 10, &COPA::callback_angles, this);
+  nh_->getParam("/takeoff_height", takeoff_height);
 }
 COPA::~COPA() {}
 //Метод обработчик входящих данных из топика команд
@@ -229,6 +229,10 @@ void COPA::PacketReceived(sCoptHdr *header, void *body) {
 
       break;
     }
+    case CMD_GNSS_USE:
+    nh_->setParam("/use_gps_from_video", *(static_cast<bool*>(body)));
+    break;
+
     case CMD_TELEM_ENABLE: //команда включить телеметрию выполнена
       presetStatSet++;
       if (presetStatSet >= 5)

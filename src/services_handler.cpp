@@ -272,19 +272,19 @@ public:
         res.status = "Success";
         res.result = true;
         useFakeGps = true;
-        ROS_INFO("Use fake gps:", useFakeGps);
-        n->setParam("/use_gps_from_video", useFakeGps);
+        // ROS_INFO("Use fake gps:", useFakeGps);
+        // n->setParam("/use_gps_from_video", useFakeGps);
         return true;
       } else {
         res.status = ack_.status;
         res.result = false;
-        ROS_INFO("Use fake gps:", useFakeGps);
+        // ROS_INFO("Use fake gps:", useFakeGps);
         return true;
       }
     } else {
       res.status = "Controller does not response";
       res.result = false;
-      ROS_INFO("Use fake gps:", useFakeGps);
+      // ROS_INFO("Use fake gps:", useFakeGps);
       return true;
     }
   }
@@ -302,19 +302,19 @@ public:
         res.status = "Success";
         res.result = true;
         useFakeGps = false;
-        ROS_INFO("Use fake gps:", useFakeGps);
-        n->setParam("/use_gps_from_video", useFakeGps);
+        // ROS_INFO("Use fake gps:", useFakeGps);
+        // n->setParam("/use_gps_from_video", useFakeGps);
         return true;
       } else {
         res.status = ack_.status;
         res.result = false;
-        ROS_INFO("Use fake gps:", useFakeGps);
+        // ROS_INFO("Use fake gps:", useFakeGps);
         return true;
       }
     } else {
       res.status = "Controller does not response";
       res.result = false;
-      ROS_INFO("Use fake gps:", useFakeGps);
+      // ROS_INFO("Use fake gps:", useFakeGps);
       return true;
     }
   }

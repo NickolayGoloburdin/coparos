@@ -34,6 +34,7 @@ class COPA {
   ros::Subscriber command_sub_;
   ros::Subscriber mission_point_sub_;
   ros::Subscriber angles_sub_;
+  ros::NodeHandle *nh_;
 
   float takeoff_height;
   /*############# types ###########*/
