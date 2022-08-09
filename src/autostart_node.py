@@ -4,9 +4,11 @@ import rospy
 from std_msgs.msg import Float64, String
 class Start:
     def __init__(self,baseAltitude, path):
+        print(baseAltitude)
         self.baseAltitude = baseAltitude
         self.status = False
         self.cb_status = False
+        self.started = False
         self.uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
         roslaunch.configure_logging(self.uuid)
         self.launch = roslaunch.parent.ROSLaunchParent(self.uuid, [path])
@@ -17,9 +19,10 @@ class Start:
         msg = Float64()
         msg.data = data.data - self.baseAltitude
         self.baro_relative_pub.publish(msg)
-        if abs(data.data - self.baseAltitude) > 20:
+        if abs(data.data - self.baseAltitude) > 20 and self.started is False:
             self.setStatus(True)
-        elif abs(data.data - self.baseAltitude) <= 10:
+            self.started = True
+        elif abs(data.data - self.baseAltitude) <= 10 and self.started is True:
             self.setStatus(False)
     def systemStart(self):
         self.launch.start()
