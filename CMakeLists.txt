@@ -66,6 +66,7 @@ add_service_files(
    FILES
    Service_command.srv
    Load_mission.srv
+   Download_mission.srv
  )
 
 ## Generate actions in the 'action' folder

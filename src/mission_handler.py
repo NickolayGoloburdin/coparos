@@ -2,7 +2,7 @@
 import rospy
 import numpy as np
 from coparos.msg import MissionPoint as MissionPointMsg
-from coparos.srv import Service_command, Load_mission, Service_commandResponse, Load_missionResponse
+from coparos.srv import Service_command, Load_mission, Service_commandResponse, Load_missionResponse, Download_mission, Download_missionResponce
 from std_msgs.msg import Int16
 from std_srvs.srv import Empty, EmptyResponse, Trigger, TriggerResponse
 # Структура точки полетного задания
@@ -60,12 +60,38 @@ class MissionHandler:
             "/MissionPoint", MissionPointMsg, queue_size=10)
         # Подписчик на топик запрашиваемой коптером точки
         self.mission_request_handler = rospy.Subscriber(
-            "/missionRequest", Int16, self.handle_request)
+            "/missionRequest", Int16, self.handle_request)# Топик ответа на запрос точек от дрона
+        self.mission_responce_handler = rospy.Subscriber(
+            "/missionResponce", MissionPointMsg, self.handle_responce) # Топик ответа на точки от дрона
         self.load_mission_service = rospy.Service(
             "/LoadMissionFromFile", Load_mission, self.load_mission_from_file)  # Сервис загрузки миссии из JSON
         self.reset_service = rospy.Service(
             "/SendMission", Trigger, self.send_mission)  # Сервис отправки миссии
+        self.download_service = rospy.Service(
+            "/LoadMissionFromDrone", Download_mission, self.give_points) # ервис загрузки миссии из дрона
+        
         self.points = []
+    def handle_responce(self, msg):
+        point = MissionPoint()
+        point.targetLat = msg.targetLat 
+        point.targetLon = msg.targetLon
+        point.targetAlt = msg.targetAlt 
+        point.targetRadius = msg.targetRadius 
+        point.loiterTime = msg.loiterTime
+        point.maxHorizSpeed = msg.maxHorizSpeed
+        point.maxVertSpeed = msg.maxVertSpeed
+        point.poiLat = msg.poiLat 
+        point.poiLon = msg.poiLon 
+        point.poiHeading = msg.poiHeading 
+        point.poiAltitude = msg.poiAltitude
+        point.flags = msg.flags
+        point.photo = msg.photo
+        point.panoSectorsCount = msg.panoSectorsCount
+        point.panoDeltaAngle = msg.panoDeltaAngle 
+        point.poiPitch = msg.poiPitch
+        point.poiRoll = msg.poiRoll
+        point.type = msg.type 
+        self.points.append(point)
 
     def handle_request(self, msg):  # Метод обработчки сообщения запрашиваемой точки
         i = msg.data

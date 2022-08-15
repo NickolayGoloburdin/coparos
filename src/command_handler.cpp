@@ -8,6 +8,7 @@
 #include "abstract_link.h"
 #include <coparos/Ack.h>
 #include <coparos/DroneInfo.h>
+#include <coparos/MissionPoint.h>
 #include <cstddef>
 #include <cstdint>
 #include <exception>
@@ -39,12 +40,13 @@ COPA::COPA(AbstractLink *link, ros::NodeHandle *nh) : link_(link), nh_(nh) {
   drone_info_pub_ = nh_->advertise<coparos::DroneInfo>("/droneInfo", 10);
   mission_point_request_pub_ =
       nh->advertise<std_msgs::Int16>("/missionRequest", 10);
+  mission_point_responce_pub_ =
+      nh->advertise<coparos::MissionPoint>("/missionResponce", 10);
   command_sub_ = nh_->subscribe("/command", 10, &COPA::callback_command, this);
   mission_point_sub_ =
       nh_->subscribe("/missionPoint", 10, &COPA::callback_mission_point, this);
   angles_sub_ =
       nh_->subscribe("/manualAngles", 10, &COPA::callback_angles, this);
-  nh_->getParam("/takeoff_height", takeoff_height);
 }
 COPA::~COPA() {}
 //Метод обработчик входящих данных из топика команд
@@ -57,7 +59,7 @@ void COPA::callback_command(const coparos::Command &msg) {
     Copa_Motors_Off();
     break;
   case CMD_NAV_TAKE_OFF:
-    Copa_Take_Off(takeoff_height);
+    Copa_Take_Off(msg.data1);
     break;
   case CMD_NAV_TO_LAND: {
     landBody_t body = {0, 15, 4, 8};
@@ -423,25 +425,31 @@ void COPA::PacketReceived(sCoptHdr *header, void *body) {
       Mission_Dn();
     }
     break;
-  case CMD_NAV_POINT_INFO: // Получена информация о точки полетного задания
-                           // Copa_Cmd_Ack(header);
-                           // Point_info_t Point_info;
-                           // memcpy(&Point_info, body, sizeof(Point_info_t));
-                           // Mission_Ndn++; //Прочитана очередная точка
-
-    // if (Mission_compare_p(&Point_info) == 1) {
-    //   Mission_Ndn++; //Прочитана очередная точка
-
-    //   if (Mission_Ndn ==
-    //       sizeof(Target_Mission)) { // если миссия полностью
-    //                                 // прочитана то запускаю коптер
-    //     Mission_stat = MISS_START;
-    //   }
-    // } else {
-    //   Mission_stat = MISS_DEF;
-    // }
-
-    // break;
+  case CMD_NAV_POINT_INFO: { // Получена информация о точки полетного задания
+    // Copa_Cmd_Ack(header);
+    Point_info_t Point_info;
+    memcpy(&Point_info, body, sizeof(Point_info_t));
+    coparos::MissionPoint msg;
+    msg.targetLat = Point_info.MP.targetLat;
+    msg.targetLon = Point_info.MP.targetLon;
+    msg.targetAlt = Point_info.MP.targetAlt;
+    msg.targetRadius = Point_info.MP.targetRadius;
+    msg.loiterTime = Point_info.MP.loiterTime;
+    msg.maxHorizSpeed = Point_info.MP.maxHorizSpeed;
+    msg.maxVertSpeed = Point_info.MP.maxVertSpeed;
+    msg.poiLat = Point_info.MP.poiLat;
+    msg.poiLon = Point_info.MP.poiLon;
+    msg.poiHeading = Point_info.MP.poiHeading;
+    msg.poiAltitude = Point_info.MP.poiAltitude;
+    msg.flags = Point_info.MP.flags;
+    msg.photo = Point_info.MP.photo;
+    msg.panoSectorsCount = Point_info.MP.panoSectorsCount;
+    msg.panoDeltaAngle = Point_info.MP.panoDeltaAngle;
+    msg.poiPitch = Point_info.MP.poiPitch;
+    msg.poiRoll = Point_info.MP.poiRoll;
+    msg.type = Point_info.MP.type;
+    mission_point_responce_pub_.publish(msg);
+  }
   default:
     break;
   }

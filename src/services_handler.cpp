@@ -158,6 +158,7 @@ public:
     log_pub_.publish(log);
     coparos::Command msg;
     msg.command = CMD_NAV_TAKE_OFF;
+    msg.data1 = req.param1;
     cmd_pub_.publish(msg);
     ros::Duration(0.1).sleep();
     ros::spinOnce();

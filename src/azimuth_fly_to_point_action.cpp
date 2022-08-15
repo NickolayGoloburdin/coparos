@@ -62,7 +62,11 @@ public:
   void executeCB(const coparos::AzimuthFlyGoalConstPtr &goal) {
     // helper variables
     //     ros::Rate r(1);
+    // client_start =
+    //     nh_.serviceClient<coparos::Service_command>("Set_flight_mode");
     //     bool success = true;
+    // client_start =
+    //     n->serviceClient<coparos::Service_command>("Set_flight_mode");
 
     //     // push_back the seeds for the fibonacci sequence
     //     feedback_.sequence.clear();

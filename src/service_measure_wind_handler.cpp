@@ -8,6 +8,7 @@
 #include <copa_msgs/WindSpeedResult.h>
 #include <coparos/DroneInfo.h>
 #include <std_msgs/String.h>
+#include <string>
 #define PI 3.14159265358979323846
 #define radToDeg(angleInRadians) ((angleInRadians)*180.0 / PI)
 class Service {
@@ -75,7 +76,7 @@ private:
     n->serviceClient<coparos::Service_command>("Continue");
     if (client_start.call(cmd)) {
       if (cmd.response.result) {
-        log.data = "Wind is measured Continue fly";
+        log.data = "Wind is measured, wind speed =" + std::to_string(speed) + " wind course = " + std::to_string(angle) + "Continue fly";
         log_pub_.publish(log);
       } else {
         log.data = "Cannot start drone";
