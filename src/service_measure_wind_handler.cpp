@@ -37,7 +37,7 @@ private:
                     coparos::Service_command::Response &res) {
 
     coparos::Service_command cmd;
-    cmd.param1 = 1;
+    cmd.request.param1 = 1;
     if (client_stop.call(cmd)) {
       if (cmd.response.result) {
         log.data = "Drone is stopped, start measuring wind";
@@ -71,7 +71,7 @@ private:
     float angle = 90.0 - radToDeg(action_result->angle) + heading_;
     n->setParam("/wind_speed", speed);
     n->setParam("/wind_angle", angle);
-    cmd.param1 = 2;
+    cmd.request.param1 = 2;
     n->serviceClient<coparos::Service_command>("Continue");
     if (client_start.call(cmd)) {
       if (cmd.response.result) {
