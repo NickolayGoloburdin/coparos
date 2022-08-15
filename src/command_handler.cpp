@@ -230,8 +230,8 @@ void COPA::PacketReceived(sCoptHdr *header, void *body) {
       break;
     }
     case CMD_GNSS_USE:
-    nh_->setParam("/use_gps_from_video", *(static_cast<bool*>(body)));
-    break;
+      nh_->setParam("/use_gps_from_video", *(static_cast<bool *>(body)));
+      break;
 
     case CMD_TELEM_ENABLE: //команда включить телеметрию выполнена
       presetStatSet++;
@@ -404,7 +404,7 @@ void COPA::PacketReceived(sCoptHdr *header, void *body) {
       droneinfo_msg.GPS_SATELLITES_FIX = TelemData.GPS_SATELLITES_FIX;
       droneinfo_msg.GPS_NUMBER_OF_SATELLITES =
           TelemData.GPS_NUMBER_OF_SATELLITES;
-
+      droneinfo_msg.rc11_channel = TelemData.rc11_channel;
       drone_info_pub_.publish(droneinfo_msg);
     }
 
@@ -552,14 +552,14 @@ void COPA::SetParamPreset() {
   preset_bit_set(TELEM_ABSOLUTE_HEADING, 0); // 38
   preset_bit_set(TELEM_ALTITUDE, 0);         // 47
   preset_bit_set(TELEM_ALTITUDE_HOLD_SPEED, 0);
-  preset_bit_set(TELEM_GPS_ALT, 0); // 67
-                                    // 51
+  preset_bit_set(TELEM_GPS_ALT, 0); // 67    // 51
   preset_bit_set(TELEM_GPS_LAT, 0); // 67
   preset_bit_set(TELEM_GPS_LON, 0); // 68
   preset_bit_set(TELEM_GPS_HACC, 0); // 70 точность определения
   preset_bit_set(TELEM_GPS_HDOP, 0); // 75
   preset_bit_set(TELEM_GPS_SATELLITES_FIX, 0); // 92  смотреть качество РТК
   preset_bit_set(TELEM_GPS_NUMBER_OF_SATELLITES, 0); // 93
+  preset_bit_set(TELEM_RC11, 0);                     // 183
 
   presetParam[0].presetN = 0; // Номер пресета.
   presetParam[0].rate = e_uint16(50); //Значение, определяющее как часто

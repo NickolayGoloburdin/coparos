@@ -137,6 +137,7 @@ typedef struct {
   float GPS_HDOP;
   uint8_t GPS_SATELLITES_FIX;
   uint8_t GPS_NUMBER_OF_SATELLITES; //количество спутников 42
+  int16_t rc11_channel;
 
 } LowSpeedTelemetry;
 
