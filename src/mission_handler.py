@@ -60,37 +60,39 @@ class MissionHandler:
             "/MissionPoint", MissionPointMsg, queue_size=10)
         # Подписчик на топик запрашиваемой коптером точки
         self.mission_request_handler = rospy.Subscriber(
-            "/missionRequest", Int16, self.handle_request)# Топик ответа на запрос точек от дрона
+            "/missionRequest", Int16, self.handle_request)  # Топик ответа на запрос точек от дрона
         self.mission_responce_handler = rospy.Subscriber(
-            "/missionResponce", MissionPointMsg, self.handle_responce) # Топик ответа на точки от дрона
+            "/missionResponce", MissionPointMsg, self.handle_responce)  # Топик ответа на точки от дрона
         self.load_mission_service = rospy.Service(
             "/LoadMissionFromFile", Load_mission, self.load_mission_from_file)  # Сервис загрузки миссии из JSON
         self.reset_service = rospy.Service(
             "/SendMission", Trigger, self.send_mission)  # Сервис отправки миссии
+        self.clear_service = rospy.Service(
+            "/ClearMission_on_jetson", Trigger, self.clear_mission)  # Сервис отправки миссии
         self.download_service = rospy.Service(
-            "/LoadMissionFromDrone", Download_mission, self.give_points) # ервис загрузки миссии из дрона
-        
+            "/GetMissionPointsList", Download_mission, self.get_points)  # ервис загрузки миссии из дрона
         self.points = []
+
     def handle_responce(self, msg):
         point = MissionPoint()
-        point.targetLat = msg.targetLat 
+        point.targetLat = msg.targetLat
         point.targetLon = msg.targetLon
-        point.targetAlt = msg.targetAlt 
-        point.targetRadius = msg.targetRadius 
+        point.targetAlt = msg.targetAlt
+        point.targetRadius = msg.targetRadius
         point.loiterTime = msg.loiterTime
         point.maxHorizSpeed = msg.maxHorizSpeed
         point.maxVertSpeed = msg.maxVertSpeed
-        point.poiLat = msg.poiLat 
-        point.poiLon = msg.poiLon 
-        point.poiHeading = msg.poiHeading 
+        point.poiLat = msg.poiLat
+        point.poiLon = msg.poiLon
+        point.poiHeading = msg.poiHeading
         point.poiAltitude = msg.poiAltitude
         point.flags = msg.flags
         point.photo = msg.photo
         point.panoSectorsCount = msg.panoSectorsCount
-        point.panoDeltaAngle = msg.panoDeltaAngle 
+        point.panoDeltaAngle = msg.panoDeltaAngle
         point.poiPitch = msg.poiPitch
         point.poiRoll = msg.poiRoll
-        point.type = msg.type 
+        point.type = msg.type
         self.points.append(point)
 
     def handle_request(self, msg):  # Метод обработчки сообщения запрашиваемой точки
@@ -136,6 +138,10 @@ class MissionHandler:
         self.pub.publish(msg)
         return TriggerResponse(True)
 
+    def clear_mission(self, req):
+        self.points = []
+        return TriggerResponse(True)
+
     def load_mission_from_file(self, req):
         file_name = "/home/jetson/copa5/missions/{}.BIN".format(req.number)
         dtype = np.dtype([('lat', np.float64), ('lon', np.float64), ('alt', np.float32), ('r', np.float32), ('time', np.int32), ('hs', np.float32),
@@ -148,6 +154,12 @@ class MissionHandler:
         list_num_data = num_data.tolist()
         self.fill_mission_handler(list_num_data)
         return Load_missionResponse(len(self.points))
+
+    def get_points(self, req):
+        res = Download_missionResponce()
+        for i in range(len(self.points)):
+            res.append(self.create_msg_point(i))
+        return res
 
     def fill_mission_handler(self, pointList):
         self.points.clear()

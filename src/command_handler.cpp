@@ -95,6 +95,9 @@ void COPA::callback_command(const coparos::Command &msg) {
   case CMD_NAV_SET_TARGET_ABS:
     Copa_Go_To(msg.data1, msg.data2, msg.data3, 10.0, 10.0);
     break;
+  case CMD_NAV_LOAD_POINT:
+    Mission_Dn();
+    break;
   }
 }
 void COPA::callback_angles(const geometry_msgs::Vector3 &msg) {
@@ -1351,15 +1354,12 @@ void COPA::Mission_Up(sMissionPoint *Point) {
 }
 
 void COPA::Mission_Dn() {
-  if (Mission_stat == MISS_DOWNLOAD_P) {
-    TZP_t TZP;
-    TZP.pointStartN =
-        e_uint16(Mission_Ndn); //	Номер точки, с которой начать считывание
-    TZP.pointStopN = e_uint16(
-        Mission_Ndn); //	Номер точки, которой закончить считывание
-    CopaPacketMake(CMD_NAV_LOAD_POINT, &TZP, sizeof(TZP));
-    CopaPacketSend();
-  }
+
+  TZP_t TZP;
+  TZP.pointStartN = e_uint16(0); //	Номер точки, с которой начать считывание
+  TZP.pointStopN = 0xFFFF; //	Номер точки, которой закончить считывание
+  CopaPacketMake(CMD_NAV_LOAD_POINT, &TZP, sizeof(TZP));
+  CopaPacketSend();
 }
 /************запросить количество загруженных точек
  * миссии********************/
