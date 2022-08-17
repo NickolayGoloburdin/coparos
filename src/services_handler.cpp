@@ -427,96 +427,95 @@ public:
     }
   }
 
-} bool set_pry(coparos::Service_command::Request &req,
+  bool set_pry(coparos::Service_command::Request &req,
                coparos::Service_command::Response &res) {
-  log.data = "Set Pitch Roll Yaw:" + std::to_string(req.param1) +
-             std::to_string(req.param2) + std::to_string(req.param3) +
-             std::to_string(req.param4);
-  log_pub_.publish(log);
-  coparos::Command msg;
-  msg.command = CMD_SET_MAN_TARGET_ANGLES;
-  msg.data1 = req.param1; // pitch
-  msg.data2 = req.param2; // roll
-  cmd_pub_.publish(msg);
-  ros::Duration(0.1).sleep();
-  ros::spinOnce();
+    log.data = "Set Pitch Roll Yaw:" + std::to_string(req.param1) +
+               std::to_string(req.param2) + std::to_string(req.param3) +
+               std::to_string(req.param4);
+    log_pub_.publish(log);
+    coparos::Command msg;
+    msg.command = CMD_SET_MAN_TARGET_ANGLES;
+    msg.data1 = req.param1; // pitch
+    msg.data2 = req.param2; // roll
+    cmd_pub_.publish(msg);
+    ros::Duration(0.1).sleep();
+    ros::spinOnce();
 
-  if (ack_.command == uint16_t(CMD_SET_MAN_TARGET_ANGLES)) {
-    if (ack_.result) {
-      res.status = "Success";
-      res.result = true;
-      return true;
+    if (ack_.command == uint16_t(CMD_SET_MAN_TARGET_ANGLES)) {
+      if (ack_.result) {
+        res.status = "Success";
+        res.result = true;
+        return true;
+      } else {
+        res.status = ack_.status;
+        res.result = false;
+        return true;
+      }
     } else {
-      res.status = ack_.status;
+      res.status = "Controller does not response";
       res.result = false;
       return true;
     }
-  } else {
-    res.status = "Controller does not response";
-    res.result = false;
-    return true;
   }
-}
-bool set_mode(coparos::Service_command::Request &req,
+  bool set_mode(coparos::Service_command::Request &req,
+                coparos::Service_command::Response &res) {
+    log.data = "Set mode: " + std::to_string(req.param1);
+    log_pub_.publish(log);
+    coparos::Command msg;
+    msg.command = CMD_SET_NAV_MODE;
+    msg.data1 = req.param1; // mode
+    cmd_pub_.publish(msg);
+    ros::Duration(0.1).sleep();
+    ros::spinOnce();
+
+    if (ack_.command == uint16_t(CMD_SET_NAV_MODE)) {
+      if (ack_.result) {
+        res.status = "Success";
+        res.result = true;
+        return true;
+      } else {
+        res.status = ack_.status;
+        res.result = false;
+        return true;
+      }
+    } else {
+      res.status = "Controller does not response";
+      res.result = false;
+      return true;
+    }
+  }
+  bool fly_to(coparos::Service_command::Request &req,
               coparos::Service_command::Response &res) {
-  log.data = "Set mode: " + std::to_string(req.param1);
-  log_pub_.publish(log);
-  coparos::Command msg;
-  msg.command = CMD_SET_NAV_MODE;
-  msg.data1 = req.param1; // mode
-  cmd_pub_.publish(msg);
-  ros::Duration(0.1).sleep();
-  ros::spinOnce();
+    log.data = "Fly to point: " + std::to_string(req.param1) + " ; " +
+               std::to_string(req.param1);
+    log_pub_.publish(log);
+    coparos::Command msg;
+    msg.command = CMD_NAV_SET_TARGET_ABS;
+    msg.data1 = req.param1;
+    msg.data2 = req.param2;
+    msg.data3 = req.param3;
+    msg.data4 = req.param4;
+    cmd_pub_.publish(msg);
+    ros::Duration(0.1).sleep();
+    ros::spinOnce();
 
-  if (ack_.command == uint16_t(CMD_SET_NAV_MODE)) {
-    if (ack_.result) {
-      res.status = "Success";
-      res.result = true;
-      return true;
+    if (ack_.command == uint16_t(CMD_NAV_SET_TARGET_ABS)) {
+      if (ack_.result) {
+        res.status = "Success";
+        res.result = true;
+        return true;
+      } else {
+        res.status = ack_.status;
+        res.result = false;
+        return true;
+      }
     } else {
-      res.status = ack_.status;
+      res.status = "Controller does not response";
       res.result = false;
       return true;
     }
-  } else {
-    res.status = "Controller does not response";
-    res.result = false;
-    return true;
   }
-}
-bool fly_to(coparos::Service_command::Request &req,
-            coparos::Service_command::Response &res) {
-  log.data = "Fly to point: " + std::to_string(req.param1) + " ; " +
-             std::to_string(req.param1);
-  log_pub_.publish(log);
-  coparos::Command msg;
-  msg.command = CMD_NAV_SET_TARGET_ABS;
-  msg.data1 = req.param1;
-  msg.data2 = req.param2;
-  msg.data3 = req.param3;
-  msg.data4 = req.param4;
-  cmd_pub_.publish(msg);
-  ros::Duration(0.1).sleep();
-  ros::spinOnce();
-
-  if (ack_.command == uint16_t(CMD_NAV_SET_TARGET_ABS)) {
-    if (ack_.result) {
-      res.status = "Success";
-      res.result = true;
-      return true;
-    } else {
-      res.status = ack_.status;
-      res.result = false;
-      return true;
-    }
-  } else {
-    res.status = "Controller does not response";
-    res.result = false;
-    return true;
-  }
-}
-}
-;
+};
 int main(int argc, char **argv) {
   ros::init(argc, argv, "services_server");
   ros::NodeHandle n;
