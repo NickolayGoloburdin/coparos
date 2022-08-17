@@ -109,13 +109,40 @@ public:
     double set_additional_roll = wind_speed * wind_roll * 1.4;
     double set_roll =
         (14 + set_additional_roll) > 15 ? 15 : 14 + set_additional_roll;
-    double time = distance / 10.0;
+    double stop_time = 5;
+    double time = distance / 10.0 - stop_time;
     geometry_msgs::Vector3 angles;
-
-    //     // push_back the seeds for the fibonacci sequence
-    //     feedback_.sequence.clear();
-    //     feedback_.sequence.push_back(0);
-    //     feedback_.sequence.push_back(1);
+    angles.x = set_pitch;
+    angles.y = 25;
+    angles_pub_.publish(angles);
+    log.data = "Setting pitch = " + std::to_string(angles.x) +
+               ", roll = " + std::to_string(angles.y);
+    log_pub_.publish(log);
+    angles.x = set_pitch;
+    angles.y = set_roll;
+    angles_pub_.publish(angles);
+    ros::Timer timer =
+        nh_.createTimer(ros::Duration(time), [&](const ros::TimerEvent &event) {
+          angles.x = set_pitch;
+          angles.y = -set_roll;
+          angles_pub_.publish(angles);
+          log.data = "Setting pitch = " + std::to_string(angles.x) +
+                     ", roll = " + std::to_string(angles.y);
+          log_pub_.publish(log);
+        });
+    ros::Timer timer2 = nh_.createTimer(
+        ros::Duration(stop_time), [&](const ros::TimerEvent &event) {
+          angles.x = 0;
+          angles.y = 0;
+          angles_pub_.publish(angles);
+          log.data = "Setting pitch = " + std::to_string(angles.x) +
+                     ", roll = " + std::to_string(angles.y);
+          log_pub_.publish(log);
+        });
+    //      // push_back the seeds for the fibonacci sequence
+    //      feedback_.sequence.clear();
+    //      feedback_.sequence.push_back(0);
+    //      feedback_.sequence.push_back(1);
 
     //     // publish info to the console for the user
     //     ROS_INFO("%s: Executing, creating fibonacci sequence of order %i
