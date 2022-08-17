@@ -2,7 +2,7 @@
 <arg name="takeoff_height" default="10"/>
 <arg name="high_speed_port" default="/dev/ttyUSB0" />
 <param name="use_gps_from_video" value="false" />
-  <node name="coparos_autostart_node" pkg="coparos" type="autostart_node.py" />
+  <node name="coparos_autostart_node" pkg="image_processing" type="autostart_node.py" />
   <node name="coparos_telemetry_handler" pkg="coparos" type="coparos_telemetry_node"/>
   <node name="coparos_command_handler" pkg="coparos" type="coparos_command_node"  />
   <node name="coparos_services_handler" pkg="coparos" type="coparos_services_node" />

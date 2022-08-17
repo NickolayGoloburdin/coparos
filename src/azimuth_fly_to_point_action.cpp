@@ -64,6 +64,8 @@ public:
     //     ros::Rate r(1);
     // client_start =
     //     nh_.serviceClient<coparos::Service_command>("Set_flight_mode");
+    // client_yaw =
+    //     nh_.serviceClient<coparos::Service_command>("Set_flight_mode");
     //     bool success = true;
     // client_start =
     //     n->serviceClient<coparos::Service_command>("Set_flight_mode");
