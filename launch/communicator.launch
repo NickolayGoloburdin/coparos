@@ -6,7 +6,7 @@
   <node name="coparos_telemetry_handler" pkg="coparos" type="coparos_telemetry_node"/>
   <node name="coparos_command_handler" pkg="coparos" type="coparos_command_node"  />
   <!-- <node name="coparos_services_handler" pkg="coparos" type="coparos_services_node" /> -->
-  <node name="coparos_mission_handler" pkg="coparos" type="mission_handler.py" />
+  <!-- <node name="coparos_mission_handler" pkg="coparos" type="mission_handler.py" /> -->
   <node name="coparos_measure_wind_service_node" pkg="coparos" type="coparos_measure_wind_service_node" />
   <!-- <node name="coparos_aircraft_node" pkg="coparos" type="coparos_aircraft_node" /> -->
   <node pkg="image_processing" type="logger_plata.py" name="logger_plata"/>
