@@ -1,8 +1,13 @@
 #include <actionlib/server/simple_action_server.h>
 #include <cmath>
 #include <coparos/AzimuthFlyAction.h>
+#include <coparos/GPS.h>
+#include <coparos/Service_command.h>
+#include <geometry_msgs/Vector3.h>
 #include <math.h>
 #include <ros/ros.h>
+#include <std_msgs/String.h>
+#include <string>
 #define PI 3.14159265358979323846
 #define RADIO_TERRESTRE 6372797.56085
 #define GRADOS_RADIANES PI / 180
@@ -48,14 +53,18 @@ protected:
   // create messages that are used to published feedback/result
   coparos::AzimuthFlyFeedback feedback_;
   coparos::AzimuthFlyResult result_;
-  ros::Publisher log_pub_;
 
 public:
+  ros::Publisher log_pub_;
+  ros::Publisher angles_pub_;
+
   AzimuthFlyActionServer(std::string name)
       : as_(nh_, name,
             boost::bind(&AzimuthFlyActionServer::executeCB, this, _1), false),
         action_name_(name) {
     as_.start();
+    log_pub_ = nh_.advertise<std_msgs::String>("/logging_topic", 1000);
+    angles_pub_ = nh_.advertise<geometry_msgs::Vector3>("/manualAngles", 1000);
   }
 
   ~AzimuthFlyActionServer(void) {}
@@ -63,13 +72,45 @@ public:
   void executeCB(const coparos::AzimuthFlyGoalConstPtr &goal) {
     // helper variables
     //     ros::Rate r(1);
-    // client_start =
-    //     nh_.serviceClient<coparos::Service_command>("Set_flight_mode");
-    // client_yaw =
-    //     nh_.serviceClient<coparos::Service_command>("Set_flight_mode");
-    //     bool success = true;
-    // client_start =
-    //     n->serviceClient<coparos::Service_command>("Set_flight_mode");
+    std_msgs::String log;
+    double lat1, lon1, lat2, lon2, wind_angle, wind_speed;
+    nh_.getParam("/wind_speed", wind_speed);
+    nh_.getParam("/wind_angle", wind_angle);
+    coparos::GPS gps;
+    coparos::Service_command cmd;
+    ros::ServiceClient client_gps, client_yaw, client_flight_mode;
+    client_gps = nh_.serviceClient<coparos::GPS>("Get_gps");
+    client_yaw = nh_.serviceClient<coparos::Service_command>("Set_yaw");
+    if (client_gps.call(gps)) {
+      log.data = "Current coordinates, lat = " + std::to_string(lat1) +
+                 ", lon = " + std::to_string(lon1);
+      lat1 = gps.response.lat;
+      lon1 = gps.response.lon;
+      log_pub_.publish(log);
+    }
+    lat2 = goal->target.targetLat;
+    lon2 = goal->target.targetLon;
+    double azimuth = calculateBearing(lat1, lon1, lat2, lon2);
+    double distance = distanceEarth(lat1, lon1, lat2, lon2);
+    log.data = "Distance and course are calculated: course = " +
+               std::to_string(azimuth) +
+               ", distance = " + std::to_string(distance);
+    log_pub_.publish(log);
+    cmd.request.param1 = azimuth;
+    if (client_yaw.call(cmd)) {
+      log.data = "Setting course...";
+      log_pub_.publish(log);
+    }
+    double diff_angle = degToRad(wind_angle - azimuth);
+    double wind_pitch = std::sin(diff_angle);
+    double wind_roll = std::cos(diff_angle);
+    double set_pitch =
+        wind_speed * wind_pitch * 1.4 > 15 ? 15 : wind_speed * wind_pitch * 1.4;
+    double set_additional_roll = wind_speed * wind_roll * 1.4;
+    double set_roll =
+        (14 + set_additional_roll) > 15 ? 15 : 14 + set_additional_roll;
+    double time = distance / 10.0;
+    geometry_msgs::Vector3 angles;
 
     //     // push_back the seeds for the fibonacci sequence
     //     feedback_.sequence.clear();
