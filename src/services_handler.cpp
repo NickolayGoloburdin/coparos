@@ -410,7 +410,7 @@ public:
     ros::Duration(0.1).sleep();
     ros::spinOnce();
 
-    if (ack_.command == uint16_t(CMD_NAV_CLEAR_WP)) {
+    if (ack_.command == uint16_t(CMD_NAV_LOAD_POINT)) {
       if (ack_.result) {
         res.status = "Success";
         res.result = true;
