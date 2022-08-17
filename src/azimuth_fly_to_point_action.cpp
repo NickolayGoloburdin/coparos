@@ -48,6 +48,7 @@ protected:
   // create messages that are used to published feedback/result
   coparos::AzimuthFlyFeedback feedback_;
   coparos::AzimuthFlyResult result_;
+  ros::Publisher log_pub_;
 
 public:
   AzimuthFlyActionServer(std::string name)
