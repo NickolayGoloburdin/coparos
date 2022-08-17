@@ -2,7 +2,7 @@
 import rospy
 import numpy as np
 from coparos.msg import MissionPoint as MissionPointMsg
-from coparos.srv import Service_command, Load_mission, Service_commandResponse, Load_missionResponse, Download_mission, Download_missionResponce
+from coparos.srv import Service_command, Load_mission, Service_commandResponse, Load_missionResponse, Download_mission, Download_missionResponse
 from std_msgs.msg import Int16
 from std_srvs.srv import Empty, EmptyResponse, Trigger, TriggerResponse
 # Структура точки полетного задания
@@ -156,7 +156,7 @@ class MissionHandler:
         return Load_missionResponse(len(self.points))
 
     def get_points(self, req):
-        res = Download_missionResponce()
+        res = Download_missionResponse()
         for i in range(len(self.points)):
             res.append(self.create_msg_point(i))
         return res
