@@ -8,7 +8,8 @@
   <node name="coparos_services_handler" pkg="coparos" type="coparos_services_node" />
   <node name="coparos_mission_handler" pkg="coparos" type="mission_handler.py" />
   <node name="coparos_measure_wind_service_node" pkg="coparos" type="coparos_measure_wind_service_node" />
-   <node name="coparos__azimuth_fly_action" pkg="coparos" type="coparos_azimuth_fly_action" />
+   <node name="coparos_azimuth_fly_action" pkg="coparos" type="coparos_azimuth_fly_action" />
+  <node name="coparos_state_machine" pkg="coparos" type="coparos_state_machine" />   
   <!-- <node name="coparos_aircraft_node" pkg="coparos" type="coparos_aircraft_node" /> -->
   <node pkg="image_processing" type="logger_plata.py" name="logger_plata"/>
   <node pkg="image_processing" type="command_logger.py" name="command_logger"/>

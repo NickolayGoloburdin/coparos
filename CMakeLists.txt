@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf2
   copa_msgs
   actionlib
+  actionlib_msgs
   
 )
 

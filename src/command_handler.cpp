@@ -418,6 +418,8 @@ void COPA::PacketReceived(sCoptHdr *header, void *body) {
           TelemData.GPS_NUMBER_OF_SATELLITES;
       droneinfo_msg.DRONE_MODE = TelemData.DRONE_MODE;
       droneinfo_msg.rc11_channel = TelemData.rc11_channel;
+      droneinfo_msg.current_wp = TelemData.CURRENT_WP;
+
       drone_info_pub_.publish(droneinfo_msg);
     }
 
@@ -580,6 +582,7 @@ void COPA::SetParamPreset() {
   preset_bit_set(TELEM_GPS_NUMBER_OF_SATELLITES, 0); // 93
   preset_bit_set(TELEM_NAV_MODE, 0);                 // 94
   preset_bit_set(TELEM_RC11, 0);                     // 183
+  preset_bit_set(TELEM_NAV_ACTIVE_WP, 0);            // 238
 
   presetParam[0].presetN = 0; // Номер пресета.
   presetParam[0].rate = e_uint16(50); //Значение, определяющее как часто

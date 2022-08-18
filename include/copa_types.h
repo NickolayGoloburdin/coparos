@@ -140,6 +140,7 @@ typedef struct {
   uint8_t GPS_NUMBER_OF_SATELLITES; //количество спутников 42
   uint8_t DRONE_MODE;
   int16_t rc11_channel;
+  uint16_t CURRENT_WP;
 
 } LowSpeedTelemetry;
 
