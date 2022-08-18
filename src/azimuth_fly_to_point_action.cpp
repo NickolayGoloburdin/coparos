@@ -71,7 +71,7 @@ public:
 
   void executeCB(const coparos::AzimuthFlyGoalConstPtr &goal) {
     // helper variables
-    //     ros::Rate r(1);
+    ros::Rate r(5);
     std_msgs::String log;
     double lat1, lon1, lat2, lon2, wind_angle, wind_speed;
     nh_.getParam("/wind_speed", wind_speed);
@@ -121,6 +121,7 @@ public:
     angles.x = set_pitch;
     angles.y = set_roll;
     angles_pub_.publish(angles);
+    bool success = false;
     ros::Timer timer =
         nh_.createTimer(ros::Duration(time), [&](const ros::TimerEvent &event) {
           angles.x = set_pitch;
@@ -129,7 +130,19 @@ public:
           log.data = "Setting pitch = " + std::to_string(angles.x) +
                      ", roll = " + std::to_string(angles.y);
           log_pub_.publish(log);
+          success = true;
         });
+    while (ros::ok() && !success) {
+      if (as_.isPreemptRequested()) {
+        as_.setPreempted();
+        return;
+      }
+      // feedback_.way_completed = timer
+      // as_.publishFeedback(feedback_);
+      r.sleep();
+    }
+    success = false;
+
     ros::Timer timer2 = nh_.createTimer(
         ros::Duration(stop_time), [&](const ros::TimerEvent &event) {
           angles.x = 0;
@@ -138,7 +151,20 @@ public:
           log.data = "Setting pitch = " + std::to_string(angles.x) +
                      ", roll = " + std::to_string(angles.y);
           log_pub_.publish(log);
+          success = true;
         });
+    while (ros::ok() && !success) {
+      if (as_.isPreemptRequested()) {
+        as_.setPreempted();
+        return;
+      }
+      r.sleep();
+    }
+    log.data = "Drone has reached the point";
+    log_pub_.publish(log);
+    result_.target_reached = true;
+    ROS_INFO("%s: Succeeded", action_name_.c_str());
+    as_.setSucceeded(result_);
     //      // push_back the seeds for the fibonacci sequence
     //      feedback_.sequence.clear();
     //      feedback_.sequence.push_back(0);
