@@ -31,13 +31,13 @@ class COPA {
   ros::Publisher drone_info_pub_;
   ros::Publisher mission_point_request_pub_;
   ros::Publisher mission_point_responce_pub_;
-
+  ros::Publisher gnss_use_pub_;
   ros::Publisher byteArray_pub_;
   ros::Subscriber command_sub_;
   ros::Subscriber mission_point_sub_;
   ros::Subscriber angles_sub_;
   ros::NodeHandle *nh_;
-
+  bool gnss_use_ = true;
   /*############# types ###########*/
   uint16_t rPN; //порядковый номер получаемого пакета
   uint16_t sPN; //порядковый номер отправляемого пакета

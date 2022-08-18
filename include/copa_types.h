@@ -8,6 +8,7 @@
 #ifndef COPA_TYPES_H_
 #define COPA_TYPES_H_
 
+#include <cstdint>
 #include <stdint.h>
 /*############# ROS defines ###########*/
 
@@ -137,6 +138,7 @@ typedef struct {
   float GPS_HDOP;
   uint8_t GPS_SATELLITES_FIX;
   uint8_t GPS_NUMBER_OF_SATELLITES; //количество спутников 42
+  uint8_t DRONE_MODE;
   int16_t rc11_channel;
 
 } LowSpeedTelemetry;
