@@ -40,7 +40,7 @@ private:
     channel11_ = msg.rc11_channel;
     drone_mode_ = msg.DRONE_MODE;
     current_wp_ = msg.current_wp;
-    gnss_status = msg.rc6_channel > 200 ? false : true;
+    gnss_status = msg.rc6_channel > 200 ? true : false;
   }
   // void callback_gnss(const std_msgs::Bool &msg) { gnss_status = msg.data; }
 
