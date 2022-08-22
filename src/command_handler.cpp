@@ -209,6 +209,7 @@ void COPA::CopaParseByte(uint8_t b_) {
           // stat_rx = 1;
           InSize = ParseInSize;
           PacketReceived((sCoptHdr *)InBuff, &(InBuff[19]));
+          successPacket_ = true;
         };
         ParseInSize = 0;
       }
@@ -1440,3 +1441,4 @@ void COPA::CopaActual_flag_off(uint16_t fl) {
 uint8_t COPA::CopaActual_flag_get(uint16_t fl) {
   return Actual_Status_Flags & fl;
 }
+void COPA::changeLink(AbstractLink *link) { link_ = link; }

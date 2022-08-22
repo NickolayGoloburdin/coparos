@@ -30,6 +30,7 @@ int main(int argc, char *argv[]) {
   //   return 0;
   // }
   std::string port = "/dev/ttyUSB0";
+  // std::string reserved_port = "/dev/ttyUSB0";
   if (argc > 1)
     port = argv[1];
 
@@ -43,6 +44,11 @@ int main(int argc, char *argv[]) {
   link_hs->up();
   //Команда включить отправку телеметрии
   handler->ACOTelemOnOff(1);
+  // ros::Duration(0.1).sleep();
+  // handler->parseFunc();
+  // if (!handler->successPacket_){
+  // link_hs->changeAddress("/dev/ttyUSB1");
+  // }
   //Выставление частоты работы ноды
   ros::Rate loop_rate(100);
   while (ros::ok()) {

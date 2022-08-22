@@ -40,6 +40,11 @@ int main(int argc, char **argv) {
   link_ls->up();
   //Выставление пресетов для получения параметров с коптера
   copa->Preset_Set_Param();
+  // ros::Duration(0.1).sleep();
+  // copa->parseFunc();
+  // if (!copa->successPacket_) {
+  //   link_ls->changeAddress("/dev/ttyUSB1");
+  // }
   //Выставление частоты обработки команд с коптера
   ros::Rate loop_rate(100);
   while (ros::ok()) {

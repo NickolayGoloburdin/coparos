@@ -18,6 +18,7 @@ public:
   bool isUp() const override;
   std::string address() override;
   void up() override;
+  void changeAddress(std::string address) override;
   void down() override;
   void sendData(const unsigned char *data, int size) override;
   std::shared_ptr<std::list<unsigned char>> getData() override;

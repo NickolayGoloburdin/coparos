@@ -280,6 +280,7 @@ public:
   ~COPA();
 
   //пакет телеметрии
+  void changeLink(AbstractLink *link);
   void callback_command(const coparos::Command &msg);
   void callback_mission_point(const coparos::MissionPoint &msg);
   void callback_angles(const geometry_msgs::Vector3 &msg);
@@ -290,7 +291,7 @@ public:
   uint8_t OutBuff[CMD_CONTROL_MAX_PACKET_SIZE]; //буфер исходящего пакета
   uint16_t OutSize; //количество байт исходящего пакета
   uint8_t InBuff[CMD_CONTROL_MAX_PACKET_SIZE];
-  uint16_t InSize; //количество байт входящего пакета
+  uint16_t InSize = 0; //количество байт входящего пакета
 
   uint8_t Mission_stat = 0; //статус отправляемого пакета
 
@@ -307,7 +308,7 @@ public:
                            // UART или получена телеметрия
   uint32_t
       Mission_timer; //таймер для повторения загрузки или выгрузки точек задания
-
+  bool successPacket_ = false;
   COPA(AbstractLink *link,
        ros::NodeHandle *nh); //задать начальные параметры при первой загрузке
   void parseFunc();

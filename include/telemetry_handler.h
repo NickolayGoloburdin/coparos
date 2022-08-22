@@ -67,10 +67,10 @@ typedef struct {
 #pragma pack(pop)
 enum HandlerType { RECIEVER, TRANSMITTER, DUPLEX };
 class TelemetryHandler_ACO {
-protected:          //номер байта входящего пакета
-  uint8_t CRC_A;    //для подсчёта контрольной суммы
-  uint8_t CRC_B;    //для подсчёта контрольной суммы
-  uint8_t PackLen_; //длина пакета при приёме
+protected:       //номер байта входящего пакета
+  uint8_t CRC_A; //для подсчёта контрольной суммы
+  uint8_t CRC_B; //для подсчёта контрольной суммы
+  uint8_t PackLen_ = 0; //длина пакета при приёме
 
 private:
   /****************заголовок пакета *****************/
@@ -99,7 +99,8 @@ public:
       OutBuff[ACO_BUF_MAX_LENGTH]; //буфер для формирования исходящего пакета
   uint8_t OutSize; //количество байт исходящего пакета
   uint16_t packetNumber = 0; //Номера исходящего пакета
-
+  bool successPacket_ = false;
+  void changeLink(AbstractLink *link);
   void sendPacket(); //Отправить пакет
   void ACOParseBUF(std::shared_ptr<std::list<unsigned char>> list_ptr);
   void SetLatLon_NoGPS(double lat, double lon,

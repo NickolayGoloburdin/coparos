@@ -110,7 +110,7 @@ void TelemetryHandler_ACO::ACO_Parse_Byte(uint8_t byte_, uint16_t &InSize,
 
         if ((InBuff[InSize - 2] == CRC_A) && (InBuff[InSize - 1] == CRC_B)) {
           PackRec((Header_t *)InBuff, &(InBuff[7]));
-
+          successPacket_ = true;
           InSize = 0; //сброс счетчика
         };
       }
@@ -243,3 +243,4 @@ void TelemetryHandler_ACO::SetLatLon_NoGPS(double lat, double lon,
   sendPacket();
 }
 void TelemetryHandler_ACO::sendPacket() { link_->sendData(OutBuff, OutSize); }
+void TelemetryHandler_ACO::changeLink(AbstractLink *link) { link_ = link; }

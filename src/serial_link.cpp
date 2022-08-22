@@ -18,6 +18,11 @@ void SerialLink::up() {
 }
 std::string SerialLink::address() { return address_; }
 void SerialLink::down() { ser_.close(); }
+void SerialLink::changeAddress(std::string address) {
+  ser_.close();
+  address_ = address;
+  up();
+}
 void SerialLink::sendData(const unsigned char *data, int size) {
   try {
     ser_.write(data, size);
