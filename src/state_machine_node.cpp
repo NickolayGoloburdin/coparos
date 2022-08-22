@@ -132,6 +132,7 @@ int main(int argc, char *argv[]) {
   while (ros::ok()) {
     smach.mes_wind();
     smach.check_mission();
+    smach.set_target_mode();
 
     ros::spinOnce();
 
