@@ -13,5 +13,6 @@ float32 GPS_HDOP
 uint8 DRONE_MODE
 uint8 GPS_SATELLITES_FIX
 uint8 GPS_NUMBER_OF_SATELLITES
+int16 rc6_channel
 int16 rc11_channel
 uint16 current_wp

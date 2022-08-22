@@ -43,7 +43,7 @@ COPA::COPA(AbstractLink *link, ros::NodeHandle *nh) : link_(link), nh_(nh) {
       nh->advertise<std_msgs::Int16>("/missionRequest", 10);
   mission_point_responce_pub_ =
       nh->advertise<coparos::MissionPoint>("/missionResponce", 10);
-  gnss_use_pub_ = nh->advertise<std_msgs::Bool>("/gnss_use_status", 10);
+  // gnss_use_pub_ = nh->advertise<std_msgs::Bool>("/gnss_use_status", 10);
   command_sub_ = nh_->subscribe("/command", 10, &COPA::callback_command, this);
   mission_point_sub_ =
       nh_->subscribe("/missionPoint", 10, &COPA::callback_mission_point, this);
@@ -238,10 +238,10 @@ void COPA::PacketReceived(sCoptHdr *header, void *body) {
     }
     case CMD_GNSS_USE: {
       nh_->setParam("/use_gps_from_video", *(static_cast<bool *>(body)));
-      std_msgs::Bool msg;
-      gnss_use_ = !gnss_use_;
-      msg.data = gnss_use_;
-      gnss_use_pub_.publish(msg);
+      // std_msgs::Bool msg;
+      // gnss_use_ = !gnss_use_;
+      // msg.data = gnss_use_;
+      // gnss_use_pub_.publish(msg);
       break;
     }
 
@@ -417,6 +417,7 @@ void COPA::PacketReceived(sCoptHdr *header, void *body) {
       droneinfo_msg.GPS_NUMBER_OF_SATELLITES =
           TelemData.GPS_NUMBER_OF_SATELLITES;
       droneinfo_msg.DRONE_MODE = TelemData.DRONE_MODE;
+      droneinfo_msg.rc6_channel = TelemData.rc6_channel;
       droneinfo_msg.rc11_channel = TelemData.rc11_channel;
       droneinfo_msg.current_wp = TelemData.CURRENT_WP;
 
@@ -581,6 +582,7 @@ void COPA::SetParamPreset() {
   preset_bit_set(TELEM_GPS_SATELLITES_FIX, 0); // 92  смотреть качество РТК
   preset_bit_set(TELEM_GPS_NUMBER_OF_SATELLITES, 0); // 93
   preset_bit_set(TELEM_NAV_MODE, 0);                 // 94
+  preset_bit_set(TELEM_RC6, 0);                      // 178
   preset_bit_set(TELEM_RC11, 0);                     // 183
   preset_bit_set(TELEM_NAV_ACTIVE_WP, 0);            // 238
 

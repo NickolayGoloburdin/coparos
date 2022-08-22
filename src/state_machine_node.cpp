@@ -26,7 +26,7 @@ private:
   bool gnss_status = true;
   int channel11_;
   unsigned int drone_mode_, drone_prev_mode_, current_wp_;
-  ros::Subscriber gnss_use_status_sub_;
+  // ros::Subscriber gnss_use_status_sub_;
   ros::Subscriber rc_channel_sub_;
   ros::ServiceClient flight_mode_service_client;
   ros::ServiceClient get_gps_service_client;
@@ -40,12 +40,13 @@ private:
     channel11_ = msg.rc11_channel;
     drone_mode_ = msg.DRONE_MODE;
     current_wp_ = msg.current_wp;
+    gnss_status = msg.rc6_channel > 200 ? false : true;
   }
-  void callback_gnss(const std_msgs::Bool &msg) { gnss_status = msg.data; }
+  // void callback_gnss(const std_msgs::Bool &msg) { gnss_status = msg.data; }
 
 public:
   void mes_wind() {
-    if (channel11_ == 1000) {
+    if (channel11_ > 900) {
       coparos::Service_command cmd;
       measure_wind_service_client.call(cmd);
     }
@@ -59,8 +60,9 @@ public:
   unsigned int current_mode() { return drone_mode_; }
 
   StateMachine(ros::NodeHandle *nh) : nh_(nh) {
-    gnss_use_status_sub_ = nh_->subscribe("/gnss_use_status", 1,
-                                          &StateMachine::callback_gnss, this);
+    // gnss_use_status_sub_ = nh_->subscribe("/gnss_use_status", 1,
+    //                                       &StateMachine::callback_gnss,
+    //                                       this);
     rc_channel_sub_ = nh_->subscribe("/droneInfo", 1,
                                      &StateMachine::callback_drone_info, this);
     flight_mode_service_client =
