@@ -26,11 +26,11 @@ public:
     client_stop = n->serviceClient<coparos::Service_command>("Set_flight_mode");
     client_start =
         n->serviceClient<coparos::Service_command>("Set_flight_mode");
-    ac.waitForServer();
     compass_sub_ =
         n->subscribe("/droneInfo", 1, &Service::callback_heading, this);
     ros::ServiceServer service_measure_wind =
         n->advertiseService("/MeasureWind", &Service::measure_wind, this);
+    ac.waitForServer();
   }
 
 private:
