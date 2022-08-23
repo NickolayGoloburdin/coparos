@@ -57,17 +57,18 @@ private:
     }
     copa_msgs::WindSpeedGoal goal;
     goal.start = true;
-    ac.sendGoal(goal);
-    bool finished_before_timeout = ac.waitForResult(ros::Duration(20.0));
+    // ac.sendGoal(goal);
+    bool finished_before_timeout =
+        true; // ac.waitForResult(ros::Duration(20.0));
     if (finished_before_timeout) {
-      actionlib::SimpleClientGoalState state = ac.getState();
+      // actionlib::SimpleClientGoalState state = ac.getState();
       ROS_INFO("Action finished,starting drone");
     } else {
       res.status = "Action Server doesnt responce";
       res.result = false;
       return false;
     }
-    auto action_result = ac.getResult();
+    auto action_result = 0; // ac.getResult();
     float speed = action_result->speed;
     float angle = 90.0 - radToDeg(action_result->angle) + heading_;
     n->setParam("/wind_speed", speed);
