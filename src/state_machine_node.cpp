@@ -24,7 +24,7 @@ class StateMachine {
 private:
   ros::NodeHandle *nh_;
   bool gnss_status = true;
-  int channel11_;
+  int channel11_, safety = 0;
   unsigned int drone_mode_, drone_prev_mode_, current_wp_;
   bool wind_is_measured = false;
   // ros::Subscriber gnss_use_status_sub_;
@@ -70,22 +70,23 @@ public:
     rc_channel_sub_ = nh_->subscribe("/droneInfo", 1,
                                      &StateMachine::callback_drone_info, this);
     flight_mode_service_client =
-        nh_->serviceClient<coparos::Service_command>("Set_flight_mode");
-    get_gps_service_client = nh_->serviceClient<coparos::GPS>("Get_gps");
+        nh_->serviceClient<coparos::Service_command>("/Set_flight_mode");
+    get_gps_service_client = nh_->serviceClient<coparos::GPS>("/Get_gps");
     req_dwnld_mission_client =
-        nh_->serviceClient<coparos::Service_command>("Download_mission");
+        nh_->serviceClient<coparos::Service_command>("/Download_mission");
     missions_service_client =
-        nh_->serviceClient<coparos::Download_mission>("GetMissionPointsList");
+        nh_->serviceClient<coparos::Download_mission>("/GetMissionPointsList");
     measure_wind_service_client =
-        nh_->serviceClient<coparos::Service_command>("MeasureWind");
+        nh_->serviceClient<coparos::Service_command>("/MeasureWind");
   }
   void set_target_mode() {
     coparos::Service_command cmd;
     unsigned int target = create_target_flight_mode();
-    if (target == 4 && target != current_mode()) {
+    if (target == 4 && target != current_mode() && safety < 20) {
       cmd.request.param1 = 4;
       flight_mode_service_client.call(cmd);
-    } else if (target == 1 && target != current_mode()) {
+      safety++;
+    } else if (target == 1 && target != current_mode() && safety < 20) {
       cmd.request.param1 = 1;
       flight_mode_service_client.call(cmd);
       actionlib::SimpleActionClient<coparos::AzimuthFlyAction> ac("azimuth",
@@ -111,6 +112,7 @@ public:
         // Receive action target status value and display on screen
         actionlib::SimpleClientGoalState state = ac.getState();
         ROS_INFO("Action finished: %s", state.toString().c_str());
+        safety++;
       }
     }
   }

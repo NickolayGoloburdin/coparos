@@ -30,10 +30,8 @@ int main(int argc, char *argv[]) {
   //   return 0;
   // }
   std::string port = "/dev/ttyUSB0";
-  // std::string reserved_port = "/dev/ttyUSB0";
-  if (argc > 1)
-    port = argv[1];
-
+  std::string reserved_port = "/dev/ttyUSB1";
+  nh.setParam("/hs_port", 0);
   // ros::Subscriber write_sub = nh.subscribe("write", 1000, write_callback);
   //Инициализация модуля связи
   SerialLink *link_hs = new SerialLink(port, 921600);
@@ -44,11 +42,12 @@ int main(int argc, char *argv[]) {
   link_hs->up();
   //Команда включить отправку телеметрии
   handler->ACOTelemOnOff(1);
-  // ros::Duration(0.1).sleep();
-  // handler->parseFunc();
-  // if (!handler->successPacket_){
-  // link_hs->changeAddress("/dev/ttyUSB1");
-  // }
+  ros::Duration(0.1).sleep();
+  handler->parseFunc();
+  if (!handler->successPacket_) {
+    link_hs->changeAddress(reserved_port);
+    nh.setParam("/hs_port", 1);
+  }
   //Выставление частоты работы ноды
   ros::Rate loop_rate(100);
   while (ros::ok()) {

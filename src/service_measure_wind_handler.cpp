@@ -21,7 +21,7 @@ public:
   float heading_;
   std_msgs::String log;
   actionlib::SimpleActionClient<copa_msgs::WindSpeedAction> ac;
-  Service(ros::NodeHandle *nh) : n(nh), ac("mes_wind", true) {
+  Service(ros::NodeHandle *nh) : n(nh), ac("/mes_wind", true) {
     log_pub_ = n->advertise<std_msgs::String>("/logging_topic", 1000);
     client_stop = n->serviceClient<coparos::Service_command>("Set_flight_mode");
     client_start =

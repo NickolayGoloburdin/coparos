@@ -29,9 +29,16 @@ int main(int argc, char **argv) {
   // if (!realtime) {
   //   return 0;
   // }
-  std::string port = "/dev/ttyTHS1";
-  if (argc > 1)
-    port = argv[1];
+  ros::Duration(0.8).sleep();
+  int port_num;
+  std::string port;
+  nh.getParam("/hs_port", port_num);
+  if (port_num == 1) {
+    port = "/dev/ttyUSB1";
+  } else {
+    port = "/dev/ttyUSB0";
+  }
+  // std::string port = "/dev/ttyTHS1";
   //Инициализация модуля связи по последовательному порту
   SerialLink *link_ls = new SerialLink(port, 115200);
   //Инициализация модуля коммуникации
