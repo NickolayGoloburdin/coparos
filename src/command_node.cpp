@@ -32,7 +32,9 @@ int main(int argc, char **argv) {
   ros::Duration(3).sleep();
   int port_num;
   std::string port;
-  nh.getParam("/hs_port", port_num);
+  while (!nh.getParam("/hs_port", port_num)) {
+    ros::Duration(0.1).sleep();
+  }
   if (port_num == 1) {
     port = "/dev/ttyUSB1";
   } else {
