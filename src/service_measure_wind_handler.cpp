@@ -71,7 +71,7 @@ private:
     auto action_result = 0; // ac.getResult();
     float speed = 10;
     // action_result->speed;
-    float angle = 90.0 - radToDeg(action_result->angle) + heading_;
+    float angle = 90.0 - radToDeg(1) + heading_; // action_result->angle
     n->setParam("/wind_speed", speed);
     n->setParam("/wind_angle", angle);
     cmd.request.param1 = 4;
