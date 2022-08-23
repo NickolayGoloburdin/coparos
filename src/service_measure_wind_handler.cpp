@@ -20,6 +20,7 @@ public:
   ros::Subscriber compass_sub_;
   float heading_;
   std_msgs::String log;
+  ros::ServiceServer service_measure_wind;
   // actionlib::SimpleActionClient<copa_msgs::WindSpeedAction> ac;
   Service(ros::NodeHandle *nh) : n(nh) {
     log_pub_ = n->advertise<std_msgs::String>("/logging_topic", 1000);
@@ -28,7 +29,7 @@ public:
         n->serviceClient<coparos::Service_command>("Set_flight_mode");
     compass_sub_ =
         n->subscribe("/droneInfo", 1, &Service::callback_heading, this);
-    ros::ServiceServer service_measure_wind =
+    service_measure_wind =
         n->advertiseService("/MeasureWind", &Service::measure_wind, this);
     // ac.waitForServer();
   }
