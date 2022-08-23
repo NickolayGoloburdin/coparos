@@ -37,6 +37,7 @@ int main(int argc, char **argv) {
   //Инициализация модуля коммуникации
   COPA *copa = new COPA(link_ls, &nh);
   //Запуск модуля свзяи
+  // ros::Duration(0.3).sleep();
   link_ls->up();
   //Выставление пресетов для получения параметров с коптера
   copa->Preset_Set_Param();

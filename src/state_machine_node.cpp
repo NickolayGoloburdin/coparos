@@ -26,6 +26,7 @@ private:
   bool gnss_status = true;
   int channel11_;
   unsigned int drone_mode_, drone_prev_mode_, current_wp_;
+  bool wind_is_measured = false;
   // ros::Subscriber gnss_use_status_sub_;
   ros::Subscriber rc_channel_sub_;
   ros::ServiceClient flight_mode_service_client;
@@ -49,11 +50,14 @@ public:
     if (channel11_ > 900) {
       coparos::Service_command cmd;
       measure_wind_service_client.call(cmd);
+      wind_is_measured = true;
     }
   }
   unsigned int create_target_flight_mode() {
     if (gnss_status == false)
       return 1;
+    else if (!wind_is_measured)
+      return 0;
     else
       return 4;
   }
