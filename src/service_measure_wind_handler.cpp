@@ -72,8 +72,8 @@ private:
     float angle = 90.0 - radToDeg(action_result->angle) + heading_;
     n->setParam("/wind_speed", speed);
     n->setParam("/wind_angle", angle);
-    cmd.request.param1 = 2;
-    n->serviceClient<coparos::Service_command>("Continue");
+    cmd.request.param1 = 4;
+
     if (client_start.call(cmd)) {
       if (cmd.response.result) {
         log.data = "Wind is measured, wind speed =" + std::to_string(speed) +
