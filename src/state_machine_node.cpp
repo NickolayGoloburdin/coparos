@@ -120,6 +120,7 @@ public:
       req_dwnld_mission_client.call(srv);
       coparos::Download_mission srvmission;
       missions_service_client.call(srvmission);
+      drone_prev_mode_ = current_mode();
       for (auto i : srvmission.response.points)
         mission_.push_back(i);
     } else {
