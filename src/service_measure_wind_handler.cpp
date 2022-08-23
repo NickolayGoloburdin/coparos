@@ -30,7 +30,7 @@ public:
     compass_sub_ =
         n->subscribe("/droneInfo", 1, &Service::callback_heading, this);
     ros::ServiceServer service_measure_wind =
-        n->advertiseService("MeasureWind", &Service::measure_wind, this);
+        n->advertiseService("/MeasureWind", &Service::measure_wind, this);
   }
 
 private:
@@ -76,7 +76,8 @@ private:
     n->serviceClient<coparos::Service_command>("Continue");
     if (client_start.call(cmd)) {
       if (cmd.response.result) {
-        log.data = "Wind is measured, wind speed =" + std::to_string(speed) + " wind course = " + std::to_string(angle) + "Continue fly";
+        log.data = "Wind is measured, wind speed =" + std::to_string(speed) +
+                   " wind course = " + std::to_string(angle) + "Continue fly";
         log_pub_.publish(log);
       } else {
         log.data = "Cannot start drone";
