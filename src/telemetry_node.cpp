@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
   link_hs->up();
   //Команда включить отправку телеметрии
   handler->ACOTelemOnOff(1);
-  ros::Duration(0.1).sleep();
+  // ros::Duration(0.5).sleep();
   handler->parseFunc();
   if (!handler->successPacket_) {
     link_hs->changeAddress(reserved_port);
