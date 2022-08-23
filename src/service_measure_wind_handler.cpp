@@ -20,8 +20,8 @@ public:
   ros::Subscriber compass_sub_;
   float heading_;
   std_msgs::String log;
-  actionlib::SimpleActionClient<copa_msgs::WindSpeedAction> ac;
-  Service(ros::NodeHandle *nh) : n(nh), ac("/mes_wind", true) {
+  // actionlib::SimpleActionClient<copa_msgs::WindSpeedAction> ac;
+  Service(ros::NodeHandle *nh) : n(nh) {
     log_pub_ = n->advertise<std_msgs::String>("/logging_topic", 1000);
     client_stop = n->serviceClient<coparos::Service_command>("Set_flight_mode");
     client_start =
@@ -101,10 +101,7 @@ public:
 int main(int argc, char **argv) {
   ros::init(argc, argv, "measure_wind_service");
   ros::NodeHandle n;
-  bool realtime;
-
   Service service(&n);
-
   ROS_INFO("Ready to measure wind.");
   ros::spin();
 
