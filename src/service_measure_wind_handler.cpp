@@ -32,8 +32,6 @@ public:
         n->advertiseService("/MeasureWind", &Service::measure_wind, this);
     // ac.waitForServer();
   }
-
-private:
   bool measure_wind(coparos::Service_command::Request &req,
                     coparos::Service_command::Response &res) {
 
