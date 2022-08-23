@@ -57,14 +57,18 @@ public:
     copa_msgs::WindSpeedGoal goal;
     goal.start = true;
     ac.sendGoal(goal);
-    bool finished_before_timeout = ac.waitForResult(ros::Duration(20.0));
+    bool finished_before_timeout = ac.waitForResult(ros::Duration(30.0));
     if (finished_before_timeout) {
       actionlib::SimpleClientGoalState state = ac.getState();
       ROS_INFO("Action finished,starting drone");
+      log.data = "Action finished,starting drone";
+      log_pub_.publish(log);
     } else {
       res.status = "Action Server doesnt responce";
+      log.data = "Action Server doesnt responce";
+      log_pub_.publish(log);
       res.result = false;
-      return false;
+      return true;
     }
     auto action_result = ac.getResult();
     float speed = 10;
