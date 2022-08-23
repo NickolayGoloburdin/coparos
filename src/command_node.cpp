@@ -36,9 +36,9 @@ int main(int argc, char **argv) {
     ros::Duration(0.1).sleep();
   }
   if (port_num == 1) {
-    port = "/dev/ttyUSB1";
-  } else {
     port = "/dev/ttyUSB0";
+  } else {
+    port = "/dev/ttyUSB1";
   }
   // std::string port = "/dev/ttyTHS1";
   //Инициализация модуля связи по последовательному порту
