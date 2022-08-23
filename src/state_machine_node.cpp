@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
   ros::init(argc, argv, "state_machine");
   ros::NodeHandle nh;
   StateMachine smach(&nh);
-  ros::Rate loop_rate(20);
+  ros::Rate loop_rate(5);
   while (ros::ok()) {
     smach.mes_wind();
     smach.check_mission();
