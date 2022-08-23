@@ -30,7 +30,7 @@ public:
         n->subscribe("/droneInfo", 1, &Service::callback_heading, this);
     ros::ServiceServer service_measure_wind =
         n->advertiseService("/MeasureWind", &Service::measure_wind, this);
-    ac.waitForServer();
+    // ac.waitForServer();
   }
 
 private:
