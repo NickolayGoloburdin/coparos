@@ -65,7 +65,7 @@ private:
     } else {
       res.status = "Action Server doesnt responce";
       res.result = false;
-      return true;
+      return false;
     }
     auto action_result = ac.getResult();
     float speed = action_result->speed;
@@ -73,7 +73,6 @@ private:
     n->setParam("/wind_speed", speed);
     n->setParam("/wind_angle", angle);
     cmd.request.param1 = 4;
-
     if (client_start.call(cmd)) {
       if (cmd.response.result) {
         log.data = "Wind is measured, wind speed =" + std::to_string(speed) +
