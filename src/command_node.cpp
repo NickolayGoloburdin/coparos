@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
   // if (!realtime) {
   //   return 0;
   // }
-  ros::Duration(2).sleep();
+  ros::Duration(3).sleep();
   int port_num;
   std::string port;
   nh.getParam("/hs_port", port_num);
