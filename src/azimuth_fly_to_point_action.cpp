@@ -104,11 +104,13 @@ public:
     double diff_angle = degToRad(wind_angle - azimuth);
     double wind_pitch = std::sin(diff_angle);
     double wind_roll = std::cos(diff_angle);
-    double set_pitch =
-        wind_speed * wind_pitch * 1.4 > 15 ? 15 : wind_speed * wind_pitch * 1.4;
+    int sign = (wind_pitch > 0) - (wind_pitch < 0);
+    double set_pitch = std::abs(wind_speed * wind_pitch * 1.4) > 15
+                           ? -sign * 15
+                           : -sign * wind_speed * wind_pitch * 1.4;
     double set_additional_roll = wind_speed * wind_roll * 1.4;
     double set_roll =
-        (14 + set_additional_roll) > 15 ? 15 : 14 + set_additional_roll;
+        (14 - set_additional_roll) > 15 ? 15 : 14 + set_additional_roll;
     double stop_time = 5;
     double time = distance / 10.0 - stop_time;
     geometry_msgs::Vector3 angles;
