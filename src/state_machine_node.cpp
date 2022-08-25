@@ -17,6 +17,7 @@
 #include <cstdint>
 #include <ros/ros.h>
 #include <std_msgs/Bool.h>
+#include <std_msgs/Float64.h>
 #include <std_msgs/String.h>
 #include <string>
 
@@ -32,8 +33,10 @@ private:
   unsigned int drone_mode_, drone_prev_mode_, current_wp_;
   bool wind_is_measured = false;
   uint16_t state_ = 0;
+  double baro_ = 0;
   // ros::Subscriber gnss_use_status_sub_;
   ros::Subscriber rc_channel_sub_;
+  ros::Subscriber baro_sub_;
   ros::ServiceClient flight_mode_service_client;
   ros::ServiceClient get_gps_service_client;
   ros::ServiceClient req_dwnld_mission_client;
@@ -82,6 +85,8 @@ public:
     //                                       this);
     rc_channel_sub_ = nh_->subscribe("/droneInfo", 1,
                                      &StateMachine::callback_drone_info, this);
+    baro_sub_ = nh_->subscribe("/baro_relative", 1,
+                               &StateMachine::callback_baro_, this);
     flight_mode_service_client =
         nh_->serviceClient<coparos::Service_command>("/Set_flight_mode");
     get_gps_service_client = nh_->serviceClient<coparos::GPS>("/Get_gps");
@@ -93,18 +98,22 @@ public:
         nh_->serviceClient<coparos::Service_command>("/MeasureWind");
     log_pub_ = nh_->advertise<std_msgs::String>("/logging_topic", 1000);
   }
+
+  void callback_baro_(const std_msgs::Float64 &msg) { baro_ = msg.data; }
   void set_target_mode() {
+    if (baro_ < 20)
+      return;
+
+    log.data = "set_target_mode check acccepted";
+    log_pub_.publish(log);
     coparos::Service_command cmd;
     unsigned int target = create_target_flight_mode();
-    if (target == 4 && target != current_mode() && safety < 20 &&
-        state_ == systemStateFlags::SYS_STATE_FLAG_FLYING) {
+    if (target == 4 && target != current_mode()) {
       cmd.request.param1 = 4;
       flight_mode_service_client.call(cmd);
-      safety++;
       log.data = "Set mission mode";
       log_pub_.publish(log);
-    } else if (target == 1 && target != current_mode() && safety < 20 &&
-               state_ == systemStateFlags::SYS_STATE_FLAG_FLYING) {
+    } else if (target == 1 && target != current_mode()) {
       cmd.request.param1 = 1;
       flight_mode_service_client.call(cmd);
       log.data = "Set althold mode";
@@ -116,14 +125,24 @@ public:
       log_pub_.publish(log);
       coparos::AzimuthFlyGoal goal;
       if (current_wp_ + 1 <= mission_.size()) {
+        log.data = "c_wp size accepted";
+        log_pub_.publish(log);
         goal.target.targetLat = mission_[current_wp_ + 1].targetLat;
         goal.target.targetLat = mission_[current_wp_ + 1].targetLon;
       } else {
+        log.data = "c_wp size declined";
+        log_pub_.publish(log);
         goal.target.targetLat = mission_[current_wp_ + 1].targetLat;
         goal.target.targetLat = mission_[current_wp_ + 1].targetLon;
       }
+      log.data = "sending goal";
+      log_pub_.publish(log);
       ac.sendGoal(goal);
+      log.data = "waiting result";
+      log_pub_.publish(log);
       bool finished_before_timeout = ac.waitForResult(ros::Duration(30.0));
+      log.data = "result accepted";
+      log_pub_.publish(log);
       ros::Timer timer = nh_->createTimer(
           ros::Duration(20),
           [&](const ros::TimerEvent &event) { ac.cancelGoal(); });
@@ -133,6 +152,8 @@ public:
       if (finished_before_timeout) {
         // Receive action target status value and display on screen
         actionlib::SimpleClientGoalState state = ac.getState();
+        log.data = "Action finished";
+        log_pub_.publish(log);
         ROS_INFO("Action finished: %s", state.toString().c_str());
         safety++;
       }
