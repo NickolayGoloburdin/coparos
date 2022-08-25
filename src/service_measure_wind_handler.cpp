@@ -71,8 +71,10 @@ public:
       return true;
     }
     auto action_result = ac.getResult();
-    float speed = action_result->speed;
-    float angle = 90.0 - action_result->angle + heading_; //
+    double speed = action_result->speed;
+    double angle = 90.0 - action_result->angle;
+    if (angle < 0)
+      angle += 360.0; // + heading_; //
     n->setParam("/wind_speed", speed);
     n->setParam("/wind_angle", angle);
     cmd.request.param1 = 4;
