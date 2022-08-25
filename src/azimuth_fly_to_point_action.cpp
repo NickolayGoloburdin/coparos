@@ -110,7 +110,7 @@ public:
                            : -sign * wind_speed * wind_pitch * 1.4;
     double set_additional_roll = wind_speed * wind_roll * 1.4;
     double set_roll =
-        (14 - set_additional_roll) > 15 ? 15 : 14 + set_additional_roll;
+        (14 - set_additional_roll) > 15 ? 15 : 14 - set_additional_roll;
     double stop_time = 5;
     double time = distance / 10.0 - stop_time;
     geometry_msgs::Vector3 angles;

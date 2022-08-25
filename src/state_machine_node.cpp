@@ -123,9 +123,9 @@ public:
         goal.target.targetLat = mission_[current_wp_ + 1].targetLon;
       }
       ac.sendGoal(goal);
-      bool finished_before_timeout = ac.waitForResult(ros::Duration(10.0));
+      bool finished_before_timeout = ac.waitForResult(ros::Duration(30.0));
       ros::Timer timer = nh_->createTimer(
-          ros::Duration(30),
+          ros::Duration(20),
           [&](const ros::TimerEvent &event) { ac.cancelGoal(); });
 
       // Process when action results are received within the time limit for
