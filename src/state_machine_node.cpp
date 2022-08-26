@@ -70,14 +70,18 @@ public:
     }
   }
   unsigned int create_target_flight_mode() {
-    if (gnss_status == false)
-      return 1;
+    if (gnss_status == true)
+      return 4;
     else if (!wind_is_measured)
       return 0;
     else
-      return 4;
+      return 1;
   }
-  unsigned int current_mode() { return drone_mode_; }
+  unsigned int current_mode() {
+    log.data = "current mode is " + std::to_string(drone_mode_);
+    log_pub_.publish(log);
+    return drone_mode_;
+  }
 
   StateMachine(ros::NodeHandle *nh) : nh_(nh) {
     // gnss_use_status_sub_ = nh_->subscribe("/gnss_use_status", 1,
@@ -106,8 +110,10 @@ public:
 
     log.data = "set_target_mode check acccepted";
     log_pub_.publish(log);
-    coparos::Service_command cmd;
     unsigned int target = create_target_flight_mode();
+    log.data = "target_mode = " + std::to_string(target);
+    log_pub_.publish(log);
+    coparos::Service_command cmd;
     if (target == 4 && target != current_mode()) {
       cmd.request.param1 = 4;
       flight_mode_service_client.call(cmd);
@@ -125,12 +131,14 @@ public:
       log_pub_.publish(log);
       coparos::AzimuthFlyGoal goal;
       if (current_wp_ + 1 <= mission_.size()) {
-        log.data = "c_wp size accepted";
+        log.data = "c_wp size accepted, mission size" +
+                   std::to_string(mission_.size());
         log_pub_.publish(log);
         goal.target.targetLat = mission_[current_wp_ + 1].targetLat;
         goal.target.targetLat = mission_[current_wp_ + 1].targetLon;
       } else {
-        log.data = "c_wp size declined";
+        log.data = "c_wp size declined, mission size" +
+                   std::to_string(mission_.size());
         log_pub_.publish(log);
         goal.target.targetLat = mission_[current_wp_ + 1].targetLat;
         goal.target.targetLat = mission_[current_wp_ + 1].targetLon;
@@ -168,8 +176,12 @@ public:
       coparos::Download_mission srvmission;
       missions_service_client.call(srvmission);
       drone_prev_mode_ = current_mode();
+      log.data = "Downloaded " +
+                 std::to_string(srvmission.response.points.size()) + "points";
+      log_pub_.publish(log);
       for (auto i : srvmission.response.points)
         mission_.push_back(i);
+
     } else {
       drone_prev_mode_ = current_mode();
     }
