@@ -122,6 +122,9 @@ public:
     log_pub_.publish(log);
     angles.x = set_pitch;
     angles.y = set_roll;
+    log.data = "Setting pitch = " + std::to_string(angles.x) +
+               ", roll = " + std::to_string(angles.y);
+    log_pub_.publish(log);
     angles_pub_.publish(angles);
     bool success = false;
     ros::Timer timer =
