@@ -77,11 +77,7 @@ public:
     else
       return 1;
   }
-  unsigned int current_mode() {
-    log.data = "current mode is " + std::to_string(drone_mode_);
-    log_pub_.publish(log);
-    return drone_mode_;
-  }
+  unsigned int current_mode() { return drone_mode_; }
 
   StateMachine(ros::NodeHandle *nh) : nh_(nh) {
     // gnss_use_status_sub_ = nh_->subscribe("/gnss_use_status", 1,
@@ -111,7 +107,8 @@ public:
     log.data = "set_target_mode check acccepted";
     log_pub_.publish(log);
     unsigned int target = create_target_flight_mode();
-    log.data = "target_mode = " + std::to_string(target);
+    log.data = "target_mode = " + std::to_string(target) +
+               "current mode = " + std::to_string(current_mode());
     log_pub_.publish(log);
     coparos::Service_command cmd;
     if (target == 4 && target != current_mode()) {
@@ -126,10 +123,17 @@ public:
       log_pub_.publish(log);
       actionlib::SimpleActionClient<coparos::AzimuthFlyAction> ac("azimuth",
                                                                   true);
+      log.data = "Starting action azimuth client ";
+      log_pub_.publish(log);
       ac.waitForServer();
       log.data = "start azimuth fly";
       log_pub_.publish(log);
       coparos::AzimuthFlyGoal goal;
+      if (mission_.size() == 0) {
+        log.data = "Mission is empty";
+        log_pub_.publish(log);
+        return;
+      }
       if (current_wp_ + 1 <= mission_.size()) {
         log.data = "c_wp size accepted, mission size" +
                    std::to_string(mission_.size());
@@ -148,12 +152,12 @@ public:
       ac.sendGoal(goal);
       log.data = "waiting result";
       log_pub_.publish(log);
-      bool finished_before_timeout = ac.waitForResult(ros::Duration(30.0));
-      log.data = "result accepted";
-      log_pub_.publish(log);
       ros::Timer timer = nh_->createTimer(
           ros::Duration(20),
           [&](const ros::TimerEvent &event) { ac.cancelGoal(); });
+      bool finished_before_timeout = ac.waitForResult(ros::Duration(30.0));
+      log.data = "result accepted";
+      log_pub_.publish(log);
 
       // Process when action results are received within the time limit for
       // achieving the action goal
