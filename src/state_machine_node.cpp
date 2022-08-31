@@ -153,7 +153,7 @@ public:
       log.data = "waiting result";
       log_pub_.publish(log);
       ros::Timer timer = nh_->createTimer(
-          ros::Duration(20),
+          ros::Duration(40),
           [&](const ros::TimerEvent &event) { ac.cancelGoal(); });
       bool finished_before_timeout = ac.waitForResult(ros::Duration(30.0));
       log.data = "result accepted";
