@@ -133,10 +133,10 @@ class MissionHandler:
 
         if len(self.points) == 0:
             rospy.logerr("Mission is empty")
-            return TriggerResponse(False)
+            return TriggerResponse(False, "Mission is empty")
         msg = self.create_msg_point(0)
         self.pub.publish(msg)
-        return TriggerResponse(True)
+        return TriggerResponse(True, "mission is uploaded to drone")
 
     def clear_mission(self, req):
         self.points = []
