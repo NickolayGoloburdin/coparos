@@ -140,7 +140,7 @@ class MissionHandler:
 
     def clear_mission(self, req):
         self.points = []
-        return TriggerResponse(True)
+        return TriggerResponse(True, "Cleaned")
 
     def load_mission_from_file(self, req):
         file_name = "/home/jetson/copa5/missions/{}.BIN".format(req.number)

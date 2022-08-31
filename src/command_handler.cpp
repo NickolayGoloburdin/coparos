@@ -428,17 +428,17 @@ void COPA::PacketReceived(sCoptHdr *header, void *body) {
     break;
   }
   case CMD_NAV_WP_COUNT: //Получен номер точчки полетного задания
-    Copa_Cmd_Ack(header);
-    if (Mission_stat == MISS_GET_POINT_COUNT_P) {
-      memcpy(&Mission_count, body, sizeof(Mission_count));
-      Mission_stat = MISS_DOWNLOAD_P;
-      Mission_Dn();
-    }
-    if (Mission_stat == MISS_GET_POINT_COUNT) {
-      memcpy(&Mission_count, body, sizeof(Mission_count));
-      Mission_stat = MISS_DOWNLOAD;
-      Mission_Dn();
-    }
+    // Copa_Cmd_Ack(header);
+    // if (Mission_stat == MISS_GET_POINT_COUNT_P) {
+    //   memcpy(&Mission_count, body, sizeof(Mission_count));
+    //   Mission_stat = MISS_DOWNLOAD_P;
+    //   Mission_Dn();
+    // }
+    // if (Mission_stat == MISS_GET_POINT_COUNT) {
+    //   memcpy(&Mission_count, body, sizeof(Mission_count));
+    //   Mission_stat = MISS_DOWNLOAD;
+    //   Mission_Dn();
+    // }
     break;
   case CMD_NAV_POINT_INFO: { // Получена информация о точки полетного задания
     // Copa_Cmd_Ack(header);
@@ -1373,7 +1373,7 @@ void COPA::Mission_Up(sMissionPoint *Point) {
 void COPA::Mission_Dn() {
 
   TZP_t TZP;
-  TZP.pointStartN = e_uint16(0); //	Номер точки, с которой начать считывание
+  TZP.pointStartN = 0; //	Номер точки, с которой начать считывание
   TZP.pointStopN = 0xFFFF; //	Номер точки, которой закончить считывание
   CopaPacketMake(CMD_NAV_LOAD_POINT, &TZP, sizeof(TZP));
   CopaPacketSend();
