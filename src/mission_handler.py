@@ -158,7 +158,7 @@ class MissionHandler:
     def get_points(self, req):
         res = Download_missionResponse()
         for i in range(len(self.points)):
-            res.append(self.create_msg_point(i))
+            res.points.append(self.create_msg_point(i))
         return res
 
     def fill_mission_handler(self, pointList):
