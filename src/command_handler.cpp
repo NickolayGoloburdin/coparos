@@ -1373,8 +1373,10 @@ void COPA::Mission_Up(sMissionPoint *Point) {
 void COPA::Mission_Dn() {
 
   TZP_t TZP;
-  TZP.pointStartN = 0; //	Номер точки, с которой начать считывание
-  TZP.pointStopN = 0xFFFF; //	Номер точки, которой закончить считывание
+  TZP.pointStartN = e_uint16(0);
+  ; //	Номер точки, с которой начать считывание
+  TZP.pointStopN =
+      e_uint16(0xFFFF); //	Номер точки, которой закончить считывание
   CopaPacketMake(CMD_NAV_LOAD_POINT, &TZP, sizeof(TZP));
   CopaPacketSend();
 }
