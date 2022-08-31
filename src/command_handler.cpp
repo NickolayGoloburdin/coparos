@@ -46,7 +46,7 @@ COPA::COPA(AbstractLink *link, ros::NodeHandle *nh) : link_(link), nh_(nh) {
   // gnss_use_pub_ = nh->advertise<std_msgs::Bool>("/gnss_use_status", 10);
   command_sub_ = nh_->subscribe("/command", 10, &COPA::callback_command, this);
   mission_point_sub_ =
-      nh_->subscribe("/missionPoint", 10, &COPA::callback_mission_point, this);
+      nh_->subscribe("/MissionPoint", 10, &COPA::callback_mission_point, this);
   angles_sub_ =
       nh_->subscribe("/manualAngles", 10, &COPA::callback_angles, this);
 }
@@ -1364,7 +1364,7 @@ void COPA::Mission_Up(sMissionPoint *Point) {
   TPM->PointNum = e_uint16(Mission_Nup);
   TPM->PointsCount = e_uint16(1);
   memcpy(&TPM->pointData, Point, sizeof(sMissionPoint));
-  uint8_t Body[CMD_CONTROL_MAX_PACKET_SIZE];
+
   CopaPacketSend();
 }
 
