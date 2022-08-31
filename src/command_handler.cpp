@@ -1360,7 +1360,7 @@ void COPA::Miss_Clear() { //очистить миссию в коптере
 
 void COPA::Mission_Up(sMissionPoint *Point) {
   // //
-  TTPM_t TPM;
+  TPM_t TPM;
   TPM.PointNum = e_uint16(Mission_Nup);
   TPM.PointsCount = e_uint16(1);
   TPM.pointData = *Point;
