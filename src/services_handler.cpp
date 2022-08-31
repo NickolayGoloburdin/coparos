@@ -5,6 +5,7 @@
 #include <coparos/Command.h>
 #include <coparos/GPS.h>
 #include <sensor_msgs/NavSatFix.h>
+#include <std_msgs/Int16.h>
 #include <std_msgs/String.h>
 #include <string>
 // Класс для работы сервисов передачи команд и миссий в коптер
@@ -27,6 +28,7 @@ public:
   ros::ServiceServer service_start_mission; //Сервис запуска миссии
   ros::ServiceServer service_clear_mission; //Сервис очистки миссии
   ros::ServiceServer service_download_mission; //Сервис загрузки миссии с дрона
+  ros::ServiceServer service_mission_count;
   ros::ServiceServer
       service_enable_gps; //Сервис включения подмены gps координат
   ros::ServiceServer
@@ -77,6 +79,8 @@ public:
         n->advertiseService("Set_yaw", &ServiceHandler::set_yaw, this);
     service_get_gps =
         n->advertiseService("Get_gps", &ServiceHandler::get_gps, this);
+    service_mission_count = n->advertiseService(
+        "Get_mission_count", &ServiceHandler::get_mission_count, this);
   }
   void callback_ack(const coparos::Ack &msg) { ack_ = msg; }
   void callback_save_gps(const sensor_msgs::NavSatFix &msg) {
@@ -422,6 +426,7 @@ public:
     log_pub_.publish(log);
     coparos::Command msg;
     msg.command = CMD_NAV_LOAD_POINT;
+    msg.data1 = req.param1;
     cmd_pub_.publish(msg);
     ros::Duration(0.1).sleep();
     ros::spinOnce();
@@ -442,7 +447,33 @@ public:
       return true;
     }
   }
+  bool get_mission_count(coparos::Service_command::Request &req,
+                         coparos::Service_command::Response &res) {
+    log.data = "Geting points count";
+    log_pub_.publish(log);
+    coparos::Command msg;
+    msg.command = CMD_NAV_GET_WP_COUNT;
+    cmd_pub_.publish(msg);
+    ros::Duration(0.1).sleep();
+    ros::spinOnce();
 
+    if (ack_.command == uint16_t(CMD_NAV_WP_COUNT)) {
+      if (ack_.result) {
+        res.status = "Success";
+        res.data = ack_.data;
+        res.result = true;
+        return true;
+      } else {
+        res.status = ack_.status;
+        res.result = false;
+        return true;
+      }
+    } else {
+      res.status = "Controller does not response";
+      res.result = false;
+      return true;
+    }
+  }
   bool set_pry(coparos::Service_command::Request &req,
                coparos::Service_command::Response &res) {
     log.data = "Set Pitch Roll Yaw:" + std::to_string(req.param1) +

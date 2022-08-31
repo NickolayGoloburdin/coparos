@@ -98,7 +98,7 @@ void COPA::callback_command(const coparos::Command &msg) {
     Copa_Go_To(msg.data1, msg.data2, msg.data3, 10.0, 10.0);
     break;
   case CMD_NAV_LOAD_POINT:
-    Mission_Dn();
+    Mission_Dn(uint16_t(msg.data1));
     break;
   }
 }
@@ -1370,13 +1370,13 @@ void COPA::Mission_Up(sMissionPoint *Point) {
   CopaPacketSend();
 }
 
-void COPA::Mission_Dn() {
+void COPA::Mission_Dn(uint16_t last) {
 
   TZP_t TZP;
   TZP.pointStartN = e_uint16(0);
   ; //	Номер точки, с которой начать считывание
   TZP.pointStopN =
-      e_uint16(0xFFFF); //	Номер точки, которой закончить считывание
+      e_uint16(last); //	Номер точки, которой закончить считывание
   CopaPacketMake(CMD_NAV_LOAD_POINT, &TZP, sizeof(TZP));
   CopaPacketSend();
 }

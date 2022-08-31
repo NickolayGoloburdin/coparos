@@ -324,7 +324,7 @@ public:
   uint8_t CopaActual_flag_get(uint16_t fl); //прочитать
   void Miss_Clear(); //очистить миссию в коптере
   void Mission_Up(sMissionPoint *Point); // загрузка очередной точки в коптер
-  void Mission_Dn(); // Выгрузка очередной точки из коптера
+  void Mission_Dn(uint16_t last); // Выгрузка очередной точки из коптера
   void MissGetPointCount(); //запросить количество загруженных точек миссии
   uint8_t Mission_compare_p(Point_info_t *infoP); //сравнивает загруженную точку
   void CopaExecSwitch_N(uint8_t count); //выполнить миссию номер
