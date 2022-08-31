@@ -1042,6 +1042,10 @@ typedef struct {
   uint8_t TELEM_TYPE; //
 } telemetryFields_t;
 typedef struct {
+  uint16_t navWPTotalCount; //
+  uint32_t navMemAvailable; //
+} MC_t;
+typedef struct {
   float groundAlt; //
   float speedDecAltitude;
   float altVel;
@@ -1054,6 +1058,7 @@ typedef struct {
   float hspeed;
   float vspeed; //
 } pointGoTo_t;
+
 #pragma pack(pop)
 
 #ifdef telFld

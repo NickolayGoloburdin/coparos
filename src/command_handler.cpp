@@ -100,6 +100,11 @@ void COPA::callback_command(const coparos::Command &msg) {
   case CMD_NAV_LOAD_POINT:
     Mission_Dn(uint16_t(msg.data1));
     break;
+  case CMD_NAV_GET_WP_COUNT:
+    CopaPacketMake(CMD_NAV_GET_WP_COUNT, 0, 0);
+    CopaPacketSend();
+
+    break;
   }
 }
 void COPA::callback_angles(const geometry_msgs::Vector3 &msg) {
@@ -427,19 +432,28 @@ void COPA::PacketReceived(sCoptHdr *header, void *body) {
 
     break;
   }
-  case CMD_NAV_WP_COUNT: //Получен номер точчки полетного задания
-    // Copa_Cmd_Ack(header);
-    // if (Mission_stat == MISS_GET_POINT_COUNT_P) {
-    //   memcpy(&Mission_count, body, sizeof(Mission_count));
-    //   Mission_stat = MISS_DOWNLOAD_P;
-    //   Mission_Dn();
-    // }
-    // if (Mission_stat == MISS_GET_POINT_COUNT) {
-    //   memcpy(&Mission_count, body, sizeof(Mission_count));
-    //   Mission_stat = MISS_DOWNLOAD;
-    //   Mission_Dn();
-    // }
-    break;
+  case CMD_NAV_WP_COUNT: { //Получен номер точчки полетного задания
+    coparos::Ack msg;
+    MC_t count;
+    memcpy(&count, body, sizeof(count));
+    msg.command = CMD_NAV_WP_COUNT;
+    msg.result = true;
+    msg.data = count.navWPTotalCount;
+    ack_pub_.publish(msg);
+  }
+
+  // Copa_Cmd_Ack(header);
+  // if (Mission_stat == MISS_GET_POINT_COUNT_P) {
+  //   memcpy(&Mission_count, body, sizeof(Mission_count));
+  //   Mission_stat = MISS_DOWNLOAD_P;
+  //   Mission_Dn();
+  // }
+  // if (Mission_stat == MISS_GET_POINT_COUNT) {
+  //   memcpy(&Mission_count, body, sizeof(Mission_count));
+  //   Mission_stat = MISS_DOWNLOAD;
+  //   Mission_Dn();
+  // }
+  break;
   case CMD_NAV_POINT_INFO: { // Получена информация о точки полетного задания
     // Copa_Cmd_Ack(header);
     Point_info_t Point_info;
@@ -590,8 +604,8 @@ void COPA::SetParamPreset() {
   presetParam[0].presetN = 0; // Номер пресета.
   presetParam[0].rate = e_uint16(50); //Значение, определяющее как часто
                                       //отправлять телеметрию этого пресета.
-  presetParam[0].offset = 0; //Значение, определяющее с каким сдвигом отправлять
-                             //телеметрию этого пресета.
+  presetParam[0].offset = 0; //Значение, определяющее с каким сдвигом
+                             //отправлять телеметрию этого пресета.
 
   for (uint16_t i = 0; i < TELEMETRY_PRESET_BITMASK_LENGTH; i++) {
     presetParam[0].bitmask[i] = preset_param_key[0][i];
@@ -1408,7 +1422,8 @@ uint8_t COPA::Mission_compare_p(Point_info_t *infoP) {
   //   return 0;
   // if (Target_Mission[infoP->pointN - 1].photo != infoP->MP.photo)
   //   return 0;
-  // if (Target_Mission[infoP->pointN - 1].poiAltitude != infoP->MP.poiAltitude)
+  // if (Target_Mission[infoP->pointN - 1].poiAltitude !=
+  // infoP->MP.poiAltitude)
   //   return 0;
   // if (Target_Mission[infoP->pointN - 1].poiHeading != infoP->MP.poiHeading)
   //   return 0;

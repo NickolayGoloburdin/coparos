@@ -424,9 +424,14 @@ public:
                         coparos::Service_command::Response &res) {
     log.data = "Downloading mission from drone";
     log_pub_.publish(log);
+    coparos::Service_command cmd;
+    ros::ServiceClient client_count =
+        n->serviceClient<coparos::Service_command>("Get_mission_count");
+    client_count.call(cmd);
+
     coparos::Command msg;
     msg.command = CMD_NAV_LOAD_POINT;
-    msg.data1 = req.param1;
+    msg.data1 = cmd.response.data;
     cmd_pub_.publish(msg);
     ros::Duration(0.1).sleep();
     ros::spinOnce();
