@@ -427,8 +427,8 @@ public:
     log.data = "Geting points count";
     log_pub_.publish(log);
     coparos::Command msg_count;
-    msg.command = CMD_NAV_GET_WP_COUNT;
-    cmd_pub_.publish(msg);
+    msg_count.command = CMD_NAV_GET_WP_COUNT;
+    cmd_pub_.publish(msg_count);
     ros::Duration(0.1).sleep();
     ros::spinOnce();
     double count;
