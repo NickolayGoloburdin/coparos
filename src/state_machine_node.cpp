@@ -101,7 +101,7 @@ public:
 
   void callback_baro_(const std_msgs::Float64 &msg) { baro_ = msg.data; }
   void set_target_mode() {
-    if (baro_ < 20)
+    if (baro_ < 10)
       return;
 
     log.data = "set_target_mode check acccepted";

@@ -7,10 +7,12 @@
 #include <copa_msgs/WindSpeedGoal.h>
 #include <copa_msgs/WindSpeedResult.h>
 #include <coparos/DroneInfo.h>
+#include <geometry_msgs/Vector3.h>
 #include <std_msgs/String.h>
 #include <string>
 #define PI 3.14159265358979323846
 #define radToDeg(angleInRadians) ((angleInRadians)*180.0 / PI)
+#define degToRad(angleInDegrees) ((angleInDegrees)*PI / 180.0)
 class Service {
 public:
   ros::NodeHandle *n;
@@ -18,6 +20,7 @@ public:
   ros::ServiceClient client_start;
   ros::Publisher log_pub_;
   ros::Subscriber compass_sub_;
+  ros::Publisher angles_pub_;
   float heading_;
   std_msgs::String log;
   ros::ServiceServer service_measure_wind;
@@ -32,6 +35,7 @@ public:
     service_measure_wind =
         n->advertiseService("/MeasureWind", &Service::measure_wind, this);
     ac.waitForServer();
+    angles_pub_ = n->advertise<geometry_msgs::Vector3>("/manualAngles", 1000);
   }
   bool measure_wind(coparos::Service_command::Request &req,
                     coparos::Service_command::Response &res) {
@@ -77,12 +81,24 @@ public:
       angle += 360.0; // + heading_; //
     n->setParam("/wind_speed", speed);
     n->setParam("/wind_angle", angle);
+    log.data = "Wind is measured, wind speed =" + std::to_string(speed) +
+               " wind course = " + std::to_string(angle) +
+               "Setting stop mode for 5 sec";
+    log_pub_.publish(log);
+
+    geometry_msgs::Vector3 angles;
+    angles.x = -speed * 1.4 * std::cos(degToRad(heading_ - angle));
+    angles.y = -speed * 1.4 * std::sin(degToRad(heading_ - angle));
+    log.data = "Setting pitch = " + std::to_string(angles.x) +
+               ", roll = " + std::to_string(angles.y);
+    log_pub_.publish(log);
+    angles_pub_.publish(angles);
+    ros::Duration(5).sleep();
+    ros::spinOnce();
     cmd.request.param1 = 4;
     if (client_start.call(cmd)) {
       if (cmd.response.result) {
-        log.data = "Wind is measured, wind speed =" + std::to_string(speed) +
-                   " wind course = " + std::to_string(angle) + "Continue fly";
-        log_pub_.publish(log);
+
       } else {
         log.data = "Cannot start drone";
         log_pub_.publish(log);
