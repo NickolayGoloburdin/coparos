@@ -21,7 +21,7 @@ public:
   ros::Publisher log_pub_;
   ros::Subscriber compass_sub_;
   ros::Publisher angles_pub_;
-  float heading_;
+  double heading_;
   std_msgs::String log;
   ros::ServiceServer service_measure_wind;
   actionlib::SimpleActionClient<copa_msgs::WindSpeedAction> ac;
@@ -82,13 +82,14 @@ public:
     n->setParam("/wind_speed", speed);
     n->setParam("/wind_angle", angle);
     log.data = "Wind is measured, wind speed =" + std::to_string(speed) +
-               " wind course = " + std::to_string(angle) +
-               "Setting stop mode for 5 sec";
+               " wind course = " + std::to_string(angle);
+    log_pub_.publish(log);
+    log.data = "Setting stop mode for 5 sec";
     log_pub_.publish(log);
 
     geometry_msgs::Vector3 angles;
-    angles.x = -speed * 1.4 * std::cos(degToRad(heading_ - angle));
-    angles.y = -speed * 1.4 * std::sin(degToRad(heading_ - angle));
+    angles.x = -speed * 1.4 * std::sin(degToRad(heading_ - angle));
+    angles.y = -speed * 1.4 * std::cos(degToRad(heading_ - angle));
     log.data = "Setting pitch = " + std::to_string(angles.x) +
                ", roll = " + std::to_string(angles.y);
     log_pub_.publish(log);
@@ -116,7 +117,7 @@ public:
     return true;
   }
   void callback_heading(const coparos::DroneInfo &msg) {
-    heading_ = msg.ABSOLUTE_HEADING;
+    heading_ = double(msg.ABSOLUTE_HEADING);
   }
 };
 int main(int argc, char **argv) {

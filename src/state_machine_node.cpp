@@ -34,6 +34,7 @@ private:
   bool wind_is_measured = false;
   uint16_t state_ = 0;
   double baro_ = 0;
+  bool mission_downloaded_ = false;
   // ros::Subscriber gnss_use_status_sub_;
   ros::Subscriber rc_channel_sub_;
   ros::Subscriber baro_sub_;
@@ -101,7 +102,7 @@ public:
 
   void callback_baro_(const std_msgs::Float64 &msg) { baro_ = msg.data; }
   void set_target_mode() {
-    if (baro_ < 10)
+    if (baro_ < 10 || current_mode() == 3)
       return;
 
     log.data = "set_target_mode check acccepted";
@@ -172,22 +173,23 @@ public:
     }
   }
   void check_mission() {
-    if (current_mode() == 4 && current_mode() != drone_prev_mode_) {
+    if (mission_downloaded_)
+      return;
+    if (current_mode() == 4) {
       log.data = "Download mission from drone";
       log_pub_.publish(log);
       coparos::Service_command srv;
       req_dwnld_mission_client.call(srv);
       coparos::Download_mission srvmission;
       missions_service_client.call(srvmission);
-      drone_prev_mode_ = current_mode();
+
       log.data = "Downloaded " +
                  std::to_string(srvmission.response.points.size()) + "points";
       log_pub_.publish(log);
+      if (srvmission.response.points.size() > 1)
+        mission_downloaded_ = true;
       for (auto i : srvmission.response.points)
         mission_.push_back(i);
-
-    } else {
-      drone_prev_mode_ = current_mode();
     }
   }
 };

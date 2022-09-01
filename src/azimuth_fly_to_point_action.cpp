@@ -82,14 +82,17 @@ public:
     client_gps = nh_.serviceClient<coparos::GPS>("Get_gps");
     client_yaw = nh_.serviceClient<coparos::Service_command>("Set_yaw");
     if (client_gps.call(gps)) {
-      log.data = "Current coordinates, lat = " + std::to_string(lat1) +
-                 ", lon = " + std::to_string(lon1);
       lat1 = gps.response.lat;
       lon1 = gps.response.lon;
-      log_pub_.publish(log);
     }
     lat2 = goal->target.targetLat;
     lon2 = goal->target.targetLon;
+    log.data = "Current coordinates, lat = " + std::to_string(lat1) +
+               ", lon = " + std::to_string(lon1);
+    log_pub_.publish(log);
+    log.data = "Target coordinates, lat = " + std::to_string(lat2) +
+               ", lon = " + std::to_string(lon2);
+    log_pub_.publish(log);
     double azimuth = calculateBearing(lat1, lon1, lat2, lon2);
     double distance = distanceEarth(lat1, lon1, lat2, lon2);
     log.data = "Distance and course are calculated: course = " +

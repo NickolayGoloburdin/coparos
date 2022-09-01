@@ -85,7 +85,8 @@ public:
   }
   void callback_ack(const coparos::Ack &msg) { ack_ = msg; }
   void callback_save_gps(const sensor_msgs::NavSatFix &msg) {
-    saved_gps_ = msg;
+    if (msg.latitude != 0 && msg.longitude != 0)
+      saved_gps_ = msg;
   }
 
   bool arm(coparos::Service_command::Request &req,
