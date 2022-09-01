@@ -4,5 +4,5 @@ float64 param3
 float64 param4
 ---
 string status
-uint16 data
+float64 data
 bool result

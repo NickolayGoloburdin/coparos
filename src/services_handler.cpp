@@ -4,6 +4,7 @@
 #include <coparos/Ack.h>
 #include <coparos/Command.h>
 #include <coparos/GPS.h>
+#include <cstdint>
 #include <sensor_msgs/NavSatFix.h>
 #include <std_msgs/Int16.h>
 #include <std_msgs/String.h>
@@ -422,16 +423,26 @@ public:
   }
   bool download_mission(coparos::Service_command::Request &req,
                         coparos::Service_command::Response &res) {
+
+    log.data = "Geting points count";
+    log_pub_.publish(log);
+    coparos::Command msg_count;
+    msg.command = CMD_NAV_GET_WP_COUNT;
+    cmd_pub_.publish(msg);
+    ros::Duration(0.1).sleep();
+    ros::spinOnce();
+    double count;
+    if (ack_.command == uint16_t(CMD_NAV_WP_COUNT)) {
+      if (ack_.result)
+        count = ack_.data;
+    }
+
     log.data = "Downloading mission from drone";
     log_pub_.publish(log);
-    coparos::Service_command cmd;
-    ros::ServiceClient client_count =
-        n->serviceClient<coparos::Service_command>("Get_mission_count");
-    client_count.call(cmd);
 
     coparos::Command msg;
     msg.command = CMD_NAV_LOAD_POINT;
-    msg.data1 = cmd.response.data;
+    msg.data1 = count;
     cmd_pub_.publish(msg);
     ros::Duration(0.1).sleep();
     ros::spinOnce();
