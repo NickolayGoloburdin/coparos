@@ -438,7 +438,7 @@ void COPA::PacketReceived(sCoptHdr *header, void *body) {
     memcpy(&count, body, sizeof(count));
     msg.command = CMD_NAV_WP_COUNT;
     msg.result = true;
-    msg.data = count.navWPTotalCount;
+    msg.data = static_cast<double>(count.navWPTotalCount);
     ack_pub_.publish(msg);
   }
 

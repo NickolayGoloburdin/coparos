@@ -1,4 +1,4 @@
 uint16 command
-uint16 data
+float64 data
 bool result
 string status
