@@ -44,7 +44,7 @@ public:
     service_other_gps = n->advertiseService(
         "Set_gps_mode", &ServiceHandler::set_gps_mode, this);
     service_set_yaw =
-        n->advertiseService("Set_gps_mode", &ServiceHandler::set_yaw,
+        n->advertiseService("Set_yaw", &ServiceHandler::set_yaw,
                             this); //Сервис для выключения двигателей
     service_set_speed =
         n->advertiseService("Set_speed", &ServiceHandler::set_speed,

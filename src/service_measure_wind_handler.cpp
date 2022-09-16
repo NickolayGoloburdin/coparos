@@ -11,13 +11,15 @@ public:
   ros::NodeHandle *n;
   ros::ServiceClient client_stop;
   ros::ServiceClient client_start;
+  ros::ServiceServer service_measure_wind;
   actionlib::SimpleActionClient<copa_msgs::WindSpeedAction> ac;
   Service(ros::NodeHandle *nh) : n(nh), ac("mes_wind", true) {
+    service_measure_wind =
+        n->advertiseService("MeasureWind", &Service::measure_wind, this);
     client_stop = n->serviceClient<coparos::Service_command>("STOP");
     client_start = n->serviceClient<coparos::Service_command>("Continue");
+
     ac.waitForServer();
-    ros::ServiceServer service_measure_wind =
-        n->advertiseService("MeasureWind", &Service::measure_wind, this);
   }
 
 private:
@@ -52,8 +54,10 @@ private:
       return true;
     }
     auto action_result = ac.getResult();
-    float speed = action_result->speed;
-    float angle = action_result->angle;
+    double speed = action_result->speed;
+    double angle = 90.0 - action_result->angle;
+    if (angle < 0)
+      angle += 360.0; // + heading_; //
     n->setParam("/wind_speed", speed);
     n->setParam("/wind_angle", angle);
 

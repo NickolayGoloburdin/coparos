@@ -5,6 +5,7 @@
 #include <mavros_msgs/SetMode.h>
 #include <sensor_msgs/NavSatFix.h>
 #include <std_msgs/Float64.h>
+#include <string>
 #include <tf2/LinearMath/Matrix3x3.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
@@ -14,7 +15,7 @@
 #define RADIANES_GRADOS 180 / PI
 #define degToRad(angleInDegrees) ((angleInDegrees)*PI / 180.0)
 #define radToDeg(angleInRadians) ((angleInRadians)*180.0 / PI)
-
+const double koeff_speed_angle = 1.0;
 const float a = 6378137.0;
 const float b = 6371000.0;
 
@@ -71,7 +72,12 @@ private:
   }
   void callback_compass(const std_msgs::Float64 &msg) { heading_ = msg.data; }
   bool fly(coparos::Azimuth::Request &req, coparos::Azimuth::Response &res) {
+    ros::Rate r(5);
+    double wind_angle, wind_speed = 0;
+    n->getParam("/wind_speed", wind_speed);
+    n->getParam("/wind_angle", wind_angle);
     mavros_msgs::AttitudeTarget control;
+    control.thrust = 100;
     auto azimuth =
         calculateBearing(current_lat_, current_lon_, req.lat2, req.lon2);
     auto distance =
@@ -82,41 +88,82 @@ private:
     cmd.request.base_mode = 1;
     cmd.request.custom_mode = "Guided_NoGPS";
     client_set_mode.call(cmd);
+
     auto delta = degToRad(heading_ - azimuth);
-    // tf2::Quaternion q;
-    //  q.setRPY(0, 0, degToRad(delta));
-    //  geometry_msgs::Quaternion quat_msg;
-    //  quat_msg = tf2::toMsg(q);
-    //  control.type_mask = 64;
-    //  control.orientation = quat_msg;
     control.body_rate.z = delta;
     control_pub_.publish(control);
-    double T1, T3 = req.vmax / req.amax;
-    double T2 = distance / req.vmax - T1;
+    control.body_rate.z = 0;
+    ros::Duration(4).sleep();
+    double diff_angle = degToRad(wind_angle - azimuth);
+    double wind_pitch = std::sin(diff_angle);
+    double wind_roll = std::cos(diff_angle);
+    int sign = (wind_pitch > 0) - (wind_pitch < 0);
+    double set_pitch =
+        std::abs(wind_speed * wind_pitch * koeff_speed_angle) > 15
+            ? -sign * 15
+            : -sign * wind_speed * wind_pitch * koeff_speed_angle;
+    double set_additional_roll = wind_speed * wind_roll * koeff_speed_angle;
+    double set_roll = (10 * koeff_speed_angle - set_additional_roll) > 15
+                          ? 15
+                          : 10 * koeff_speed_angle - set_additional_roll;
+    double stop_time = 5;
+    double time = distance / 10.0 - stop_time;
+    ROS_INFO("Distance and course are calculated: course = %f", azimuth);
+    ROS_INFO(", distance = %f", distance);
+    ROS_INFO("Setting pitch = %f", set_pitch);
+    ROS_INFO(", roll = %f", set_roll);
+    ROS_INFO("Time of flight = %f", time);
+    tf2::Quaternion q;
+    q.setRPY(degToRad(set_pitch), degToRad(25), 0);
+    geometry_msgs::Quaternion quat_msg;
+    quat_msg = tf2::toMsg(q);
+    // control.type_mask = 64;
+    // control.orientation = quat_msg;
+    control.orientation = quat_msg;
+    control_pub_.publish(control);
+
+    bool success = false;
+    ros::Time start_time = ros::Time::now();
+    ros::Duration timeout(time); // Timeout of 2 seconds
+    while (ros::Time::now() - start_time < timeout) {
+
+      q.setRPY(degToRad(set_pitch), degToRad(set_roll), 0);
+      geometry_msgs::Quaternion quat_msg;
+      quat_msg = tf2::toMsg(q);
+      ROS_INFO("Setting pitch = %f", set_pitch);
+      ROS_INFO("Setting roll = %f", set_roll);
+      // control.type_mask = 64;
+      // control.orientation = quat_msg;
+      control.orientation = quat_msg;
+      control_pub_.publish(control);
+      r.sleep();
+    }
+    success = false;
+    ROS_INFO("STOPPING");
+    start_time = ros::Time::now();
+    timeout = ros::Duration(stop_time);
+    while (ros::Time::now() - start_time < timeout) {
+      q.setRPY(degToRad(set_pitch), -degToRad(set_roll), 0);
+      geometry_msgs::Quaternion quat_msg;
+      quat_msg = tf2::toMsg(q);
+      ROS_INFO("Setting pitch = %f", set_pitch);
+      ROS_INFO("Setting roll = %f", -set_roll);
+      // control.type_mask = 64;
+      // control.orientation = quat_msg;
+      control.orientation = quat_msg;
+      control_pub_.publish(control);
+      r.sleep();
+    }
+    cmd.request.base_mode = 1;
+    cmd.request.custom_mode = "GUIDED";
+    client_set_mode.call(cmd);
     // auto time = ros::Time::now().toSec();
     // tf2::Quaternion q;
     // q.setRPY(req.amax, 0, 0);
     // geometry_msgs::Quaternion quat_msg;
     // quat_msg = tf2::toMsg(q);
     // control_pub_.publish(quat_msg);
-    // while ((time - ros::Time::now().toSec()) < T1) {
-    //   tf2::Quaternion q;
-    //   q.setRPY(req.amax, 0, 0);
-    //   geometry_msgs::Quaternion quat_msg;
-    //   quat_msg = tf2::toMsg(q);
-    //   control_pub_.publish(quat_msg);
-    // }
-    // while ((time - ros::Time::now().toSec()) < T1 + T2) {
-    //   ros::Duration(0.1).sleep();
-    // }
-    // while ((time - ros::Time::now().toSec()) < T1 + T1 + T2) {
-    //   tf2::Quaternion q;
-    //   q.setRPY(-req.amax, 0, 0);
-    //   geometry_msgs::Quaternion quat_msg;
-    //   quat_msg = tf2::toMsg(q);
-    //   control_pub_.publish(quat_msg);
-    //   ros::Duration(0.1).sleep();
-    // }
+    return true;
   }
 };
 int main(int argc, char **argv) {
