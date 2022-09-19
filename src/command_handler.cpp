@@ -411,7 +411,9 @@ void COPA::PacketReceived(sCoptHdr *header, void *body) {
       droneinfo_msg.VBAT = TelemData.VBAT;
       droneinfo_msg.STATE = TelemData.STATE;
       droneinfo_msg.FLAGS = TelemData.FLAGS;
-      droneinfo_msg.ABSOLUTE_HEADING = TelemData.ABSOLUTE_HEADING;
+      droneinfo_msg.ABSOLUTE_HEADING = TelemData.ABSOLUTE_HEADING > 180
+                                           ? TelemData.ABSOLUTE_HEADING - 360.0
+                                           : TelemData.ABSOLUTE_HEADING;
       droneinfo_msg.ALTITUDE = TelemData.ALTITUDE;
       droneinfo_msg.ALTITUDE_HOLD_SPEED = TelemData.ALTITUDE_HOLD_SPEED;
       droneinfo_msg.GPS_ALT = TelemData.GPS_ALT;

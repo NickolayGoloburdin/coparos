@@ -95,17 +95,20 @@ public:
                ", lon = " + std::to_string(lon2);
     log_pub_.publish(log);
     double azimuth = calculateBearing(lat1, lon1, lat2, lon2);
+    azimuth = azimuth > 180.0 ? azimuth - 360.0 : azimuth;
     double distance = distanceEarth(lat1, lon1, lat2, lon2);
     log.data = "Distance and course are calculated: course = " +
                std::to_string(azimuth) +
                ", distance = " + std::to_string(distance);
     log_pub_.publish(log);
     cmd.request.param1 = azimuth;
+    cmd.request.param2 = 45;
     if (client_yaw.call(cmd)) {
       log.data = "Setting course...";
       log_pub_.publish(log);
     }
-    double diff_angle = degToRad(wind_angle - azimuth);
+    ros::Duration(1).sleep();
+    double diff_angle = degToRad(azimuth - wind_angle);
     double wind_pitch = std::sin(diff_angle);
     double wind_roll = std::cos(diff_angle);
     int sign = (wind_pitch > 0) - (wind_pitch < 0);

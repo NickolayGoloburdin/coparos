@@ -13,6 +13,7 @@
 #define PI 3.14159265358979323846
 #define radToDeg(angleInRadians) ((angleInRadians)*180.0 / PI)
 #define degToRad(angleInDegrees) ((angleInDegrees)*PI / 180.0)
+const double koeff_speed_angle = 1.4;
 class Service {
 public:
   ros::NodeHandle *n;
@@ -77,8 +78,6 @@ public:
     auto action_result = ac.getResult();
     double speed = action_result->speed;
     double angle = 90.0 - action_result->angle;
-    if (angle < 0)
-      angle += 360.0; // + heading_; //
     n->setParam("/wind_speed", speed);
     n->setParam("/wind_angle", angle);
     log.data = "Wind is measured, wind speed =" + std::to_string(speed) +
@@ -88,8 +87,10 @@ public:
     log_pub_.publish(log);
 
     geometry_msgs::Vector3 angles;
-    angles.x = -speed * 1.4 * std::sin(degToRad(heading_ - angle));
-    angles.y = -speed * 1.4 * std::cos(degToRad(heading_ - angle));
+    angles.x =
+        -speed * koeff_speed_angle * std::sin(degToRad(heading_ - angle));
+    angles.y =
+        -speed * koeff_speed_angle * std::cos(degToRad(heading_ - angle));
     log.data = "Setting pitch = " + std::to_string(angles.x) +
                ", roll = " + std::to_string(angles.y);
     log_pub_.publish(log);
