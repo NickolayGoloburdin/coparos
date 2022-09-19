@@ -16,6 +16,7 @@
 #define radToDeg(angleInRadians) ((angleInRadians)*180.0 / PI)
 const float a = 6378137.0;
 const float b = 6371000.0;
+const double koeff_speed_angle = 1.4;
 double calculateBearing(double lat1, double lon1, double lat2, double lon2) {
   double longitude1 = lon1;
   double longitude2 = lon2;
@@ -71,7 +72,7 @@ public:
 
   void executeCB(const coparos::AzimuthFlyGoalConstPtr &goal) {
     // helper variables
-    ros::Rate r(5);
+    ros::Rate r(3);
     std_msgs::String log;
     double lat1, lon1, lat2, lon2, wind_angle, wind_speed;
     nh_.getParam("/wind_speed", wind_speed);
@@ -108,12 +109,14 @@ public:
     double wind_pitch = std::sin(diff_angle);
     double wind_roll = std::cos(diff_angle);
     int sign = (wind_pitch > 0) - (wind_pitch < 0);
-    double set_pitch = std::abs(wind_speed * wind_pitch * 1.4) > 15
-                           ? -sign * 15
-                           : -sign * wind_speed * wind_pitch * 1.4;
-    double set_additional_roll = wind_speed * wind_roll * 1.4;
-    double set_roll =
-        (14 - set_additional_roll) > 15 ? 15 : 14 - set_additional_roll;
+    double set_pitch =
+        std::abs(wind_speed * wind_pitch * koeff_speed_angle) > 15
+            ? -sign * 15
+            : -sign * wind_speed * wind_pitch * koeff_speed_angle;
+    double set_additional_roll = wind_speed * wind_roll * koeff_speed_angle;
+    double set_roll = (koeff_speed_angle * 10 - set_additional_roll) > 15
+                          ? 15
+                          : koeff_speed_angle * 10 - set_additional_roll;
     double stop_time = 5;
     double time = distance / 10.0 - stop_time;
     geometry_msgs::Vector3 angles;
@@ -129,44 +132,48 @@ public:
                ", roll = " + std::to_string(angles.y);
     log_pub_.publish(log);
     angles_pub_.publish(angles);
-    bool success = false;
-    ros::Timer timer =
-        nh_.createTimer(ros::Duration(time), [&](const ros::TimerEvent &event) {
-          angles.x = set_pitch;
-          angles.y = -set_roll;
-          angles_pub_.publish(angles);
-          log.data = "Setting pitch = " + std::to_string(angles.x) +
-                     ", roll = " + std::to_string(angles.y);
-          log_pub_.publish(log);
-          success = true;
-        });
-    while (ros::ok() && !success) {
+    ros::Time start_time = ros::Time::now();
+    ros::Duration timeout(time); // Timeout of 2 seconds
+    while (ros::Time::now() - start_time < timeout) {
+      angles.x = set_pitch;
+      angles.y = set_roll;
+      angles_pub_.publish(angles);
+      log.data = "Setting pitch = " + std::to_string(angles.x) +
+                 ", roll = " + std::to_string(angles.y);
+      log_pub_.publish(log);
       if (as_.isPreemptRequested()) {
         as_.setPreempted();
         return;
       }
-      // feedback_.way_completed = timer
-      // as_.publishFeedback(feedback_);
       r.sleep();
     }
-    success = false;
+    start_time = ros::Time::now();
+    timeout = ros::Duration(stop_time);
+    while (ros::Time::now() - start_time < timeout) {
 
-    ros::Timer timer2 = nh_.createTimer(
-        ros::Duration(stop_time), [&](const ros::TimerEvent &event) {
-          angles.x = 0;
-          angles.y = 0;
-          angles_pub_.publish(angles);
-          log.data = "Setting pitch = " + std::to_string(angles.x) +
-                     ", roll = " + std::to_string(angles.y);
-          log_pub_.publish(log);
-          success = true;
-        });
-    while (ros::ok() && !success) {
+      angles.x = set_pitch;
+      angles.y = -set_roll;
+      angles_pub_.publish(angles);
+      log.data = "Setting pitch = " + std::to_string(angles.x) +
+                 ", roll = " + std::to_string(angles.y);
+      log_pub_.publish(log);
       if (as_.isPreemptRequested()) {
         as_.setPreempted();
         return;
       }
       r.sleep();
+    }
+
+    angles.x = 0;
+    angles.y = 0;
+    angles_pub_.publish(angles);
+    log.data = "Setting pitch = " + std::to_string(angles.x) +
+               ", roll = " + std::to_string(angles.y);
+    log_pub_.publish(log);
+
+    if (as_.isPreemptRequested()) {
+      as_.setPreempted();
+      return;
     }
     log.data = "Drone has reached the point";
     log_pub_.publish(log);
