@@ -77,7 +77,7 @@ public:
     }
     auto action_result = ac.getResult();
     double speed = action_result->speed;
-    double angle = 90.0 - action_result->angle;
+    double angle = 90.0 - action_result->angle + heading_;
     n->setParam("/wind_speed", speed);
     n->setParam("/wind_angle", angle);
     log.data = "Wind is measured, wind speed =" + std::to_string(speed) +
