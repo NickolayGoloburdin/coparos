@@ -15,7 +15,7 @@
 #define RADIANES_GRADOS 180 / PI
 #define degToRad(angleInDegrees) ((angleInDegrees)*PI / 180.0)
 #define radToDeg(angleInRadians) ((angleInRadians)*180.0 / PI)
-const double koeff_speed_angle = 1.0;
+const double koeff_speed_angle = 1;
 const float a = 6378137.0;
 const float b = 6371000.0;
 
@@ -94,14 +94,14 @@ private:
     control_pub_.publish(control);
     control.body_rate.z = 0;
     ros::Duration(4).sleep();
-    double diff_angle = degToRad(wind_angle - azimuth);
+    double diff_angle = degToRad(azimuth - wind_angle);
     double wind_pitch = std::sin(diff_angle);
     double wind_roll = std::cos(diff_angle);
     int sign = (wind_pitch > 0) - (wind_pitch < 0);
     double set_pitch =
         std::abs(wind_speed * wind_pitch * koeff_speed_angle) > 15
-            ? -sign * 15
-            : -sign * wind_speed * wind_pitch * koeff_speed_angle;
+            ? sign * 15
+            : wind_speed * wind_pitch * koeff_speed_angle;
     double set_additional_roll = wind_speed * wind_roll * koeff_speed_angle;
     double set_roll = (10 * koeff_speed_angle - set_additional_roll) > 15
                           ? 15
