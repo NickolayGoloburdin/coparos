@@ -107,7 +107,7 @@ public:
       log.data = "Setting course...";
       log_pub_.publish(log);
     }
-    ros::Duration(1).sleep();
+    ros::Duration(4).sleep();
     double diff_angle = degToRad(azimuth - wind_angle);
     double wind_pitch = std::sin(diff_angle);
     double wind_roll = std::cos(diff_angle);

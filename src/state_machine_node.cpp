@@ -105,12 +105,12 @@ public:
     if (baro_ < 10 || current_mode() == 3)
       return;
 
-    log.data = "set_target_mode check acccepted";
-    log_pub_.publish(log);
+    // log.data = "set_target_mode check acccepted";
+    // log_pub_.publish(log);
     unsigned int target = create_target_flight_mode();
-    log.data = "target_mode = " + std::to_string(target) +
-               "current mode = " + std::to_string(current_mode());
-    log_pub_.publish(log);
+    // log.data = "target_mode = " + std::to_string(target) +
+    //            "current mode = " + std::to_string(current_mode());
+    // log_pub_.publish(log);
     coparos::Service_command cmd;
     if (target == 4 && target != current_mode()) {
       cmd.request.param1 = 4;
@@ -153,9 +153,9 @@ public:
       ac.sendGoal(goal);
       log.data = "waiting result";
       log_pub_.publish(log);
-      ros::Timer timer = nh_->createTimer(
-          ros::Duration(40),
-          [&](const ros::TimerEvent &event) { ac.cancelGoal(); });
+      // ros::Timer timer = nh_->createTimer(
+      //     ros::Duration(40),
+      //     [&](const ros::TimerEvent &event) { ac.cancelGoal(); });
       bool finished_before_timeout = ac.waitForResult(ros::Duration(30.0));
       log.data = "result accepted";
       log_pub_.publish(log);
