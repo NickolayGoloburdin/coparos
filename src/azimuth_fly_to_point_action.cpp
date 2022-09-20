@@ -117,9 +117,11 @@ public:
             ? -sign * 15
             : -sign * wind_speed * wind_pitch * koeff_speed_angle;
     double set_additional_roll = wind_speed * wind_roll * koeff_speed_angle;
-    double set_roll = (koeff_speed_angle * 10 - set_additional_roll) > 15
-                          ? 15
-                          : koeff_speed_angle * 10 - set_additional_roll;
+    int roll_sign = (wind_roll > 0) - (wind_roll < 0);
+    double set_roll =
+        std::abs(koeff_speed_angle * 10 - set_additional_roll) > 15
+            ? -roll_sign * 15
+            : koeff_speed_angle * 10 - set_additional_roll;
     double stop_time = 5;
     double time = distance / 10.0 - stop_time;
     geometry_msgs::Vector3 angles;
@@ -162,6 +164,12 @@ public:
       log_pub_.publish(log);
       if (as_.isPreemptRequested()) {
         as_.setPreempted();
+        angles.x = 0;
+        angles.y = 0;
+        angles_pub_.publish(angles);
+        log.data = "Setting pitch = " + std::to_string(angles.x) +
+                   ", roll = " + std::to_string(angles.y);
+        log_pub_.publish(log);
         return;
       }
       r.sleep();
@@ -176,6 +184,12 @@ public:
 
     if (as_.isPreemptRequested()) {
       as_.setPreempted();
+      angles.x = 0;
+      angles.y = 0;
+      angles_pub_.publish(angles);
+      log.data = "Setting pitch = " + std::to_string(angles.x) +
+                 ", roll = " + std::to_string(angles.y);
+      log_pub_.publish(log);
       return;
     }
     log.data = "Drone has reached the point";
