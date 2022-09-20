@@ -114,8 +114,8 @@ public:
     int sign = (wind_pitch > 0) - (wind_pitch < 0);
     double set_pitch =
         std::abs(wind_speed * wind_pitch * koeff_speed_angle) > 15
-            ? -sign * 15
-            : -sign * wind_speed * wind_pitch * koeff_speed_angle;
+            ? sign * 15
+            : wind_speed * wind_pitch * koeff_speed_angle;
     double set_additional_roll = wind_speed * wind_roll * koeff_speed_angle;
     int roll_sign = (wind_roll > 0) - (wind_roll < 0);
     double set_roll =
