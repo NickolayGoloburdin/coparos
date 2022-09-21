@@ -109,24 +109,23 @@ public:
     }
     ros::Duration(4).sleep();
     double diff_angle = degToRad(azimuth - wind_angle);
-    double wind_pitch = std::sin(diff_angle);
-    double wind_roll = std::cos(diff_angle);
-    int sign = (wind_pitch > 0) - (wind_pitch < 0);
+    double wind_roll = std::sin(diff_angle);
+    double wind_pitch = std::cos(diff_angle);
+    int sign = (wind_roll > 0) - (wind_roll < 0);
+    double set_roll = std::abs(wind_speed * wind_roll * koeff_speed_angle) > 15
+                          ? sign * 15
+                          : wind_speed * wind_roll * koeff_speed_angle;
+    double set_additional_pitch = wind_speed * wind_pitch * koeff_speed_angle;
+    int pitch_sign = (wind_pitch > 0) - (wind_pitch < 0);
     double set_pitch =
-        std::abs(wind_speed * wind_pitch * koeff_speed_angle) > 15
-            ? sign * 15
-            : wind_speed * wind_pitch * koeff_speed_angle;
-    double set_additional_roll = wind_speed * wind_roll * koeff_speed_angle;
-    int roll_sign = (wind_roll > 0) - (wind_roll < 0);
-    double set_roll =
-        std::abs(koeff_speed_angle * 10 - set_additional_roll) > 15
-            ? -roll_sign * 15
-            : koeff_speed_angle * 10 - set_additional_roll;
+        std::abs(koeff_speed_angle * 10 - set_additional_pitch) > 15
+            ? -pitch_sign * 15
+            : koeff_speed_angle * 10 - set_additional_pitch;
     double stop_time = 5;
     double time = distance / 10.0 - stop_time;
     geometry_msgs::Vector3 angles;
-    angles.x = set_pitch;
-    angles.y = 25;
+    angles.x = 25;
+    angles.y = set_roll;
     angles_pub_.publish(angles);
     log.data = "Setting pitch = " + std::to_string(angles.x) +
                ", roll = " + std::to_string(angles.y);
@@ -156,8 +155,8 @@ public:
     timeout = ros::Duration(stop_time);
     while (ros::Time::now() - start_time < timeout) {
 
-      angles.x = set_pitch;
-      angles.y = -set_roll;
+      angles.x = -set_pitch;
+      angles.y = set_roll;
       angles_pub_.publish(angles);
       log.data = "Setting pitch = " + std::to_string(angles.x) +
                  ", roll = " + std::to_string(angles.y);

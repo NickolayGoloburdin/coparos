@@ -146,7 +146,7 @@ public:
                    std::to_string(mission_.size());
         log_pub_.publish(log);
         goal.target.targetLat = mission_[current_wp_ + 1].targetLat;
-        goal.target.targetLat = mission_[current_wp_ + 1].targetLon;
+        goal.target.targetLon = mission_[current_wp_ + 1].targetLon;
       }
       log.data = "sending goal";
       log_pub_.publish(log);

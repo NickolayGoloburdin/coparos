@@ -22,6 +22,7 @@ public:
   ros::Publisher log_pub_;
   ros::Subscriber compass_sub_;
   ros::Publisher angles_pub_;
+  ros::ServiceClient client_yaw;
   double heading_;
   std_msgs::String log;
   ros::ServiceServer service_measure_wind;
@@ -31,6 +32,7 @@ public:
     client_stop = n->serviceClient<coparos::Service_command>("Set_flight_mode");
     client_start =
         n->serviceClient<coparos::Service_command>("Set_flight_mode");
+    client_yaw = n->serviceClient<coparos::Service_command>("Set_yaw");
     compass_sub_ =
         n->subscribe("/droneInfo", 1, &Service::callback_heading, this);
     service_measure_wind =
@@ -77,7 +79,7 @@ public:
     }
     auto action_result = ac.getResult();
     double speed = action_result->speed;
-    double angle = 90.0 - action_result->angle + heading_;
+    double angle = action_result->angle;
     n->setParam("/wind_speed", speed);
     n->setParam("/wind_angle", angle);
     log.data = "Wind is measured, wind speed =" + std::to_string(speed) +
@@ -87,12 +89,18 @@ public:
     log_pub_.publish(log);
 
     geometry_msgs::Vector3 angles;
-    angles.x =
-        -speed * koeff_speed_angle * std::sin(degToRad(heading_ - angle));
-    angles.y =
-        -speed * koeff_speed_angle * std::cos(degToRad(heading_ - angle));
+    cmd.request.param1 = angle < 0.0 ? angle + 180.0 : angle - 180.0;
+    cmd.request.param2 = 45;
+    if (client_yaw.call(cmd)) {
+      log.data = "Setting course...";
+      log_pub_.publish(log);
+    }
+    ros::Duration(3).sleep();
+    angles.x = speed * koeff_speed_angle;
     log.data = "Setting pitch = " + std::to_string(angles.x) +
                ", roll = " + std::to_string(angles.y);
+    log_pub_.publish(log);
+    log.data = "Stopping drone for 5 seconds";
     log_pub_.publish(log);
     angles_pub_.publish(angles);
     ros::Duration(5).sleep();
