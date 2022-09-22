@@ -102,12 +102,11 @@ public:
   }
 
   void callback_baro_(const std_msgs::Float64 &msg) { baro_ = msg.data; }
-  void set_target_mode() {
+  void set_target_mode(
+      actionlib::SimpleActionClient<coparos::AzimuthFlyAction> &ac) {
     if (baro_ < 10 || current_mode() == 3)
       return;
-    actionlib::SimpleActionClient<coparos::AzimuthFlyAction> ac("azimuth",
-                                                                true);
-    ac.waitForServer();
+
     // log.data = "set_target_mode check acccepted";
     // log_pub_.publish(log);
     unsigned int target = create_target_flight_mode();
@@ -215,11 +214,13 @@ int main(int argc, char *argv[]) {
   ros::init(argc, argv, "state_machine");
   ros::NodeHandle nh;
   StateMachine smach(&nh);
+  actionlib::SimpleActionClient<coparos::AzimuthFlyAction> ac("azimuth", true);
+  ac.waitForServer();
   ros::Rate loop_rate(5);
   while (ros::ok()) {
     smach.mes_wind();
     smach.check_mission();
-    smach.set_target_mode();
+    smach.set_target_mode(ac);
 
     ros::spinOnce();
 
