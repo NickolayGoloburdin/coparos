@@ -104,8 +104,8 @@ public:
   void callback_baro_(const std_msgs::Float64 &msg) { baro_ = msg.data; }
   void set_target_mode(
       actionlib::SimpleActionClient<coparos::AzimuthFlyAction> &ac) {
-    if (baro_ < 10 || current_mode() == 3)
-      return;
+    // if (baro_ < 10 || current_mode() == 3)
+    //   return;
 
     // log.data = "set_target_mode check acccepted";
     // log_pub_.publish(log);
@@ -115,9 +115,15 @@ public:
     // log_pub_.publish(log);
     if (ac.getState() == actionlib::SimpleClientGoalState::PENDING) {
       azimuth_fly = true;
+      log.data = "Action server is pending";
+      log_pub_.publish(log);
     } else if (ac.getState() == actionlib::SimpleClientGoalState::ACTIVE) {
       azimuth_fly = true;
+      log.data = "Action server is active";
+      log_pub_.publish(log);
     } else {
+      log.data = "Action server is inactive";
+      log_pub_.publish(log);
       azimuth_fly = false;
     }
 
