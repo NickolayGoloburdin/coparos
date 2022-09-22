@@ -46,6 +46,7 @@ private:
   std::vector<coparos::MissionPoint> mission_;
   ros::Publisher log_pub_;
   std_msgs::String log;
+  bool azimuth_fly = false;
   // actionlib::SimpleActionClient<coparos::AzimuthFlyAction> ac;
 
   void callback_drone_info(const coparos::DroneInfo &msg) {
@@ -104,26 +105,41 @@ public:
   void set_target_mode() {
     if (baro_ < 10 || current_mode() == 3)
       return;
-
+    actionlib::SimpleActionClient<coparos::AzimuthFlyAction> ac("azimuth",
+                                                                true);
     // log.data = "set_target_mode check acccepted";
     // log_pub_.publish(log);
     unsigned int target = create_target_flight_mode();
     // log.data = "target_mode = " + std::to_string(target) +
     //            "current mode = " + std::to_string(current_mode());
     // log_pub_.publish(log);
+    if (ac.getState() == actionlib::SimpleClientGoalState::PENDING) {
+      azimuth_fly = true;
+    } else if (ac.getState() == actionlib::SimpleClientGoalState::ACTIVE) {
+      azimuth_fly = true;
+    } else {
+      azimuth_fly = false;
+    }
+
     coparos::Service_command cmd;
     if (target == 4 && target != current_mode()) {
+      if (azimuth_fly) {
+        ac.cancelGoal();
+        log.data = "Cancelling from action";
+        log_pub_.publish(log);
+        azimuth_fly = false;
+      }
+
       cmd.request.param1 = 4;
       flight_mode_service_client.call(cmd);
       log.data = "Set mission mode";
       log_pub_.publish(log);
-    } else if (target == 1 && target != current_mode()) {
+    } else if (target == 1 && target != current_mode() && !azimuth_fly) {
       cmd.request.param1 = 1;
       flight_mode_service_client.call(cmd);
       log.data = "Set althold mode";
       log_pub_.publish(log);
-      actionlib::SimpleActionClient<coparos::AzimuthFlyAction> ac("azimuth",
-                                                                  true);
+
       log.data = "Starting action azimuth client ";
       log_pub_.publish(log);
       ac.waitForServer();
@@ -156,20 +172,20 @@ public:
       // ros::Timer timer = nh_->createTimer(
       //     ros::Duration(40),
       //     [&](const ros::TimerEvent &event) { ac.cancelGoal(); });
-      bool finished_before_timeout = ac.waitForResult(ros::Duration(30.0));
-      log.data = "result accepted";
-      log_pub_.publish(log);
+      // bool finished_before_timeout = ac.waitForResult(ros::Duration(30.0));
 
+      // log.data = "result accepted";
+      // log_pub_.publish(log);
       // Process when action results are received within the time limit for
       // achieving the action goal
-      if (finished_before_timeout) {
-        // Receive action target status value and display on screen
-        actionlib::SimpleClientGoalState state = ac.getState();
-        log.data = "Action finished";
-        log_pub_.publish(log);
-        ROS_INFO("Action finished: %s", state.toString().c_str());
-        safety++;
-      }
+
+      // if (finished_before_timeout) {
+      //   // Receive action target status value and display on screen
+      //   actionlib::SimpleClientGoalState state = ac.getState();
+      //   log.data = "Action finished";
+      //   log_pub_.publish(log);
+      //   ROS_INFO("Action finished: %s", state.toString().c_str());
+      // }
     }
   }
   void check_mission() {

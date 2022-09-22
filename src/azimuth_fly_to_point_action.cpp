@@ -147,6 +147,14 @@ public:
       log_pub_.publish(log);
       if (as_.isPreemptRequested()) {
         as_.setPreempted();
+        angles.x = 0;
+        angles.y = 0;
+        angles_pub_.publish(angles);
+        log.data = "Setting pitch = " + std::to_string(angles.x) +
+                   ", roll = " + std::to_string(angles.y);
+        log_pub_.publish(log);
+        log.data = "Action stopped from client";
+        log_pub_.publish(log);
         return;
       }
       r.sleep();
@@ -169,6 +177,8 @@ public:
         log.data = "Setting pitch = " + std::to_string(angles.x) +
                    ", roll = " + std::to_string(angles.y);
         log_pub_.publish(log);
+        log.data = "Action stopped from client";
+        log_pub_.publish(log);
         return;
       }
       r.sleep();
@@ -188,6 +198,8 @@ public:
       angles_pub_.publish(angles);
       log.data = "Setting pitch = " + std::to_string(angles.x) +
                  ", roll = " + std::to_string(angles.y);
+      log_pub_.publish(log);
+      log.data = "Action stopped from client";
       log_pub_.publish(log);
       return;
     }
