@@ -107,6 +107,7 @@ public:
       return;
     actionlib::SimpleActionClient<coparos::AzimuthFlyAction> ac("azimuth",
                                                                 true);
+    ac.waitForServer();
     // log.data = "set_target_mode check acccepted";
     // log_pub_.publish(log);
     unsigned int target = create_target_flight_mode();
@@ -142,7 +143,7 @@ public:
 
       log.data = "Starting action azimuth client ";
       log_pub_.publish(log);
-      ac.waitForServer();
+
       log.data = "start azimuth fly";
       log_pub_.publish(log);
       coparos::AzimuthFlyGoal goal;
