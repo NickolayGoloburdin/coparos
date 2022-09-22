@@ -110,8 +110,8 @@ public:
     // log.data = "set_target_mode check acccepted";
     // log_pub_.publish(log);
     unsigned int target = create_target_flight_mode();
-    log.data = "Target mode" + std::to_string(target);
-    log_pub_.publish(log);
+    // log.data = "Target mode" + std::to_string(target);
+    // log_pub_.publish(log);
     // log.data = "target_mode = " + std::to_string(target) +
     //            "current mode = " + std::to_string(current_mode());
     // log_pub_.publish(log);
