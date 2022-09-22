@@ -14,6 +14,7 @@
 #include <coparos/GPS.h>
 #include <coparos/MissionPoint.h>
 #include <coparos/Service_command.h>
+#include <cstddef>
 #include <cstdint>
 #include <ros/ros.h>
 #include <std_msgs/Bool.h>
@@ -164,7 +165,7 @@ public:
                    std::to_string(mission_.size());
         log_pub_.publish(log);
         goal.target.targetLat = mission_[current_wp_ + 1].targetLat;
-        goal.target.targetLat = mission_[current_wp_ + 1].targetLon;
+        goal.target.targetLon = mission_[current_wp_ + 1].targetLon;
       } else {
         log.data = "c_wp size declined, mission size" +
                    std::to_string(mission_.size());
@@ -208,12 +209,18 @@ public:
       missions_service_client.call(srvmission);
 
       log.data = "Downloaded " +
-                 std::to_string(srvmission.response.points.size()) + "points";
+                 std::to_string(srvmission.response.points.size()) + " points";
       log_pub_.publish(log);
       if (srvmission.response.points.size() > 1)
         mission_downloaded_ = true;
       for (auto i : srvmission.response.points)
         mission_.push_back(i);
+      for (size_t i = 0; i < mission_.size(); i++) {
+        log.data = "Point number " + std::to_string(i) +
+                   "lat = " + std::to_string(mission_[i].targetLat) +
+                   " lon = " + std::to_string(mission_[i].targetLon) + "\n";
+        log_pub_.publish(log);
+      }
     }
   }
 };

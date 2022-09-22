@@ -95,8 +95,8 @@ public:
       log.data = "Setting course...";
       log_pub_.publish(log);
     }
-    ros::Duration(3).sleep();
-    angles.x = speed * koeff_speed_angle;
+    ros::Duration(4).sleep();
+    angles.x = -speed * koeff_speed_angle;
     log.data = "Setting pitch = " + std::to_string(angles.x) +
                ", roll = " + std::to_string(angles.y);
     log_pub_.publish(log);

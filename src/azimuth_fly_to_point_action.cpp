@@ -72,7 +72,7 @@ public:
 
   void executeCB(const coparos::AzimuthFlyGoalConstPtr &goal) {
     // helper variables
-    ros::Rate r(3);
+    ros::Rate r(1);
     std_msgs::String log;
     double lat1, lon1, lat2, lon2, wind_angle, wind_speed;
     nh_.getParam("/wind_speed", wind_speed);
@@ -124,13 +124,14 @@ public:
     double stop_time = 5;
     double time = distance / 10.0 - stop_time;
     geometry_msgs::Vector3 angles;
-    angles.x = 25;
+    angles.x = -25;
     angles.y = set_roll;
     angles_pub_.publish(angles);
     log.data = "Setting pitch = " + std::to_string(angles.x) +
                ", roll = " + std::to_string(angles.y);
     log_pub_.publish(log);
-    angles.x = set_pitch;
+    ros::Duration(2).sleep();
+    angles.x = -set_pitch;
     angles.y = set_roll;
     log.data = "Setting pitch = " + std::to_string(angles.x) +
                ", roll = " + std::to_string(angles.y);
@@ -139,7 +140,7 @@ public:
     ros::Time start_time = ros::Time::now();
     ros::Duration timeout(time); // Timeout of 2 seconds
     while (ros::Time::now() - start_time < timeout) {
-      angles.x = set_pitch;
+      angles.x = -set_pitch;
       angles.y = set_roll;
       angles_pub_.publish(angles);
       log.data = "Setting pitch = " + std::to_string(angles.x) +
@@ -163,7 +164,7 @@ public:
     timeout = ros::Duration(stop_time);
     while (ros::Time::now() - start_time < timeout) {
 
-      angles.x = -set_pitch;
+      angles.x = set_pitch;
       angles.y = set_roll;
       angles_pub_.publish(angles);
       log.data = "Setting pitch = " + std::to_string(angles.x) +
