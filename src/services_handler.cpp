@@ -523,7 +523,7 @@ public:
   }
   bool set_mode(coparos::Service_command::Request &req,
                 coparos::Service_command::Response &res) {
-    log.data = "Set mode: " + std::to_string(req.param1);
+    log.data = "Set mode: " + std::to_string(int(req.param1));
     log_pub_.publish(log);
     coparos::Command msg;
     msg.command = CMD_SET_NAV_MODE;

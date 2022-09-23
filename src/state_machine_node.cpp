@@ -53,7 +53,8 @@ private:
   void callback_drone_info(const coparos::DroneInfo &msg) {
     channel11_ = msg.rc11_channel;
     drone_mode_ = msg.DRONE_MODE;
-    current_wp_ = msg.current_wp;
+    if (gnss_status == true)
+      current_wp_ = msg.current_wp;
     gnss_status = msg.rc6_channel > 200 ? true : false;
     state_ = msg.STATE;
   }
@@ -124,6 +125,7 @@ public:
       azimuth_fly = true;
       // log.data = "Action server is active";
       // log_pub_.publish(log);
+
     } else {
       log.data = "Action server is inactive";
       // log_pub_.publish(log);
@@ -176,6 +178,7 @@ public:
       log.data = "sending goal";
       log_pub_.publish(log);
       ac.sendGoal(goal);
+      current_wp_++;
       log.data = "waiting result";
       log_pub_.publish(log);
       // ros::Timer timer = nh_->createTimer(
@@ -216,7 +219,7 @@ public:
       for (auto i : srvmission.response.points)
         mission_.push_back(i);
       for (size_t i = 0; i < mission_.size(); i++) {
-        log.data = "Point number " + std::to_string(i) +
+        log.data = "Point " + std::to_string(i) +
                    "lat = " + std::to_string(mission_[i].targetLat) +
                    " lon = " + std::to_string(mission_[i].targetLon) + "\n";
         log_pub_.publish(log);

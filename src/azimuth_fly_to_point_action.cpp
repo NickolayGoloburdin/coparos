@@ -17,6 +17,8 @@
 const float a = 6378137.0;
 const float b = 6371000.0;
 const double koeff_speed_angle = 1.4;
+const double start_way = 16;
+const double stop_way = 20;
 double calculateBearing(double lat1, double lon1, double lat2, double lon2) {
   double longitude1 = lon1;
   double longitude2 = lon2;
@@ -112,17 +114,29 @@ public:
     double wind_roll = std::sin(diff_angle);
     double wind_pitch = std::cos(diff_angle);
     int sign = (wind_roll > 0) - (wind_roll < 0);
-    double set_roll = std::abs(wind_speed * wind_roll * koeff_speed_angle) > 15
-                          ? sign * 15
-                          : wind_speed * wind_roll * koeff_speed_angle;
+    double stop_pitch = wind_pitch * koeff_speed_angle * wind_speed;
+    double stop_roll =
+        wind_roll * koeff_speed_angle * wind_speed; // for stopping drone
+    double set_roll = std::abs(stop_roll) > 15 ? sign * 15 : stop_roll;
     double set_additional_pitch = wind_speed * wind_pitch * koeff_speed_angle;
     int pitch_sign = (wind_pitch > 0) - (wind_pitch < 0);
     double set_pitch =
         std::abs(koeff_speed_angle * 10 - set_additional_pitch) > 15
             ? -pitch_sign * 15
             : koeff_speed_angle * 10 - set_additional_pitch;
-    double stop_time = 5;
-    double time = distance / 10.0 - stop_time;
+    double stop_time = 2;
+    double time = distance - start_way - stop_way;
+    log.data = "Stop pitch = " + std::to_string(set_additional_pitch) +
+               ", Stop roll = " +
+               std::to_string(wind_pitch * koeff_speed_angle * wind_speed) +
+               "\n" + "Flight pitch = " + std::to_string(-set_pitch) +
+               ", Fligh roll = " + std::to_string(set_roll);
+    std::to_string(wind_pitch * koeff_speed_angle * wind_speed);
+    log_pub_.publish(log);
+    log.data = "Start time = " + std::to_string(2) +
+               ", Const time = " + std::to_string(int(time)) +
+               ", Stop time = " + std::to_string(int(stop_time));
+    log_pub_.publish(log);
     geometry_msgs::Vector3 angles;
     angles.x = -25;
     angles.y = set_roll;
@@ -138,6 +152,7 @@ public:
     log_pub_.publish(log);
     angles_pub_.publish(angles);
     ros::Time start_time = ros::Time::now();
+
     ros::Duration timeout(time); // Timeout of 2 seconds
     while (ros::Time::now() - start_time < timeout) {
       angles.x = -set_pitch;
@@ -163,7 +178,6 @@ public:
     start_time = ros::Time::now();
     timeout = ros::Duration(stop_time);
     while (ros::Time::now() - start_time < timeout) {
-
       angles.x = set_pitch;
       angles.y = set_roll;
       angles_pub_.publish(angles);
@@ -184,14 +198,13 @@ public:
       }
       r.sleep();
     }
-
-    angles.x = 0;
-    angles.y = 0;
+    angles.x = stop_pitch;
+    angles.y = stop_roll;
     angles_pub_.publish(angles);
     log.data = "Setting pitch = " + std::to_string(angles.x) +
                ", roll = " + std::to_string(angles.y);
     log_pub_.publish(log);
-
+    ros::Duration(2).sleep();
     if (as_.isPreemptRequested()) {
       as_.setPreempted();
       angles.x = 0;
