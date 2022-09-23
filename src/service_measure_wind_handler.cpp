@@ -82,14 +82,14 @@ public:
     double angle = action_result->angle;
     n->setParam("/wind_speed", speed);
     n->setParam("/wind_angle", angle);
-    log.data = "Wind is measured, wind speed =" + std::to_string(speed) +
+    log.data = "wind speed =" + std::to_string(speed) +
                " wind course = " + std::to_string(angle);
     log_pub_.publish(log);
     log.data = "Setting stop mode for 5 sec";
     log_pub_.publish(log);
 
     geometry_msgs::Vector3 angles;
-    cmd.request.param1 = angle < 0.0 ? angle + 180.0 : angle - 180.0;
+    cmd.request.param1 = angle;
     cmd.request.param2 = 45;
     if (client_yaw.call(cmd)) {
       log.data = "Setting course...";
