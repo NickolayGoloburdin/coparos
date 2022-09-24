@@ -128,9 +128,9 @@ public:
       // log_pub_.publish(log);
 
     } else {
-      log.data = "Action server is inactive";
-      // log_pub_.publish(log);
-      // azimuth_fly = false;
+      // log.data = "Action server is inactive";
+      //  log_pub_.publish(log);
+      azimuth_fly = false;
     }
 
     coparos::Service_command cmd;
