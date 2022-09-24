@@ -8,6 +8,7 @@
 #include <ros/ros.h>
 #include <std_msgs/String.h>
 #include <string>
+#include <tuple>
 #define PI 3.14159265358979323846
 #define RADIO_TERRESTRE 6372797.56085
 #define GRADOS_RADIANES PI / 180
@@ -19,6 +20,7 @@ const float b = 6371000.0;
 const double koeff_speed_angle = 1.4;
 const double start_way = 16;
 const double stop_way = 20;
+double one_symbol(double a) { return (int)(a * 10) / 10.0; }
 double calculateBearing(double lat1, double lon1, double lat2, double lon2) {
   double longitude1 = lon1;
   double longitude2 = lon2;
@@ -60,6 +62,8 @@ protected:
 public:
   ros::Publisher log_pub_;
   ros::Publisher angles_pub_;
+  geometry_msgs::Vector3 angles;
+  std_msgs::String log;
 
   AzimuthFlyActionServer(std::string name)
       : as_(nh_, name,
@@ -71,23 +75,83 @@ public:
   }
 
   ~AzimuthFlyActionServer(void) {}
+  void set_pitch_roll(double pitch, double roll) {
+    angles.x = pitch;
+    angles.y = roll;
+    angles_pub_.publish(angles);
+    log.data = "Setting pitch = " + std::to_string(one_symbol(angles.x)) +
+               ", roll = " + std::to_string(one_symbol(angles.y));
+    log_pub_.publish(log);
+  }
+  void set_course(double course, double speed) {
+    ros::ServiceClient client_yaw =
+        nh_.serviceClient<coparos::Service_command>("Set_yaw");
+    coparos::Service_command cmd;
+    cmd.request.param1 = course;
+    cmd.request.param2 = speed;
+    client_yaw.call(cmd);
+    log.data = "Setting course " + std::to_string(course);
+    log_pub_.publish(log);
+  }
+  std::tuple<double, double> get_gps() {
+    ros::ServiceClient client_gps = nh_.serviceClient<coparos::GPS>("Get_gps");
+    coparos::GPS gps;
 
+    client_gps.call(gps);
+    return std::make_tuple(gps.response.lat, gps.response.lon);
+  }
+  double calculate_target_pitch(double azimuth, double wind_angle,
+                                double wind_speed, double k_speed,
+                                double max_const_angle) {
+    double diff_angle = degToRad(azimuth - wind_angle);
+    double wind_pitch = std::cos(diff_angle);
+    double set_additional_pitch = wind_speed * wind_pitch * k_speed;
+    int pitch_sign = (wind_pitch > 0) - (wind_pitch < 0);
+    return std::abs(max_const_angle - set_additional_pitch) > 15
+               ? pitch_sign * max_const_angle
+               : -max_const_angle + set_additional_pitch;
+  }
+  // double calculate_stop_pitch(double azimuth, double distance, double
+  // start_way,
+  //                             double stop_way, double wind_angle,
+  //                             double wind_speed double k_speed,
+  //                             double max_const_angle) {}
+  double calculate_target_roll(double azimuth, double wind_angle,
+                               double wind_speed, double k_speed,
+                               double max_const_angle) {
+    double diff_angle = degToRad(azimuth - wind_angle);
+    double wind_roll = std::sin(diff_angle);
+    int sign = (wind_roll > 0) - (wind_roll < 0);
+    double stop_roll =
+        wind_roll * koeff_speed_angle * wind_speed; // for stopping drone
+    return std::abs(stop_roll) > 15 ? sign * 15 : stop_roll;
+  }
+  double calculate_stop_pitch(double azimuth, double wind_angle,
+                              double wind_speed, double k_speed,
+                              double max_const_angle) {
+    double diff_angle = degToRad(azimuth - wind_angle);
+    double wind_pitch = std::cos(diff_angle);
+    return wind_speed * wind_pitch * k_speed;
+  }
+  double calculate_stop_roll(double azimuth, double wind_angle,
+                             double wind_speed, double k_speed,
+                             double max_const_angle) {
+    double diff_angle = degToRad(azimuth - wind_angle);
+    double wind_roll = std::sin(diff_angle);
+    int sign = (wind_roll > 0) - (wind_roll < 0);
+    return wind_roll * koeff_speed_angle * wind_speed; // for stopping drone
+  }
   void executeCB(const coparos::AzimuthFlyGoalConstPtr &goal) {
     // helper variables
     ros::Rate r(1);
-    std_msgs::String log;
+
     double lat1, lon1, lat2, lon2, wind_angle, wind_speed;
     nh_.getParam("/wind_speed", wind_speed);
     nh_.getParam("/wind_angle", wind_angle);
-    coparos::GPS gps;
-    coparos::Service_command cmd;
-    ros::ServiceClient client_gps, client_yaw, client_flight_mode;
-    client_gps = nh_.serviceClient<coparos::GPS>("Get_gps");
-    client_yaw = nh_.serviceClient<coparos::Service_command>("Set_yaw");
-    if (client_gps.call(gps)) {
-      lat1 = gps.response.lat;
-      lon1 = gps.response.lon;
-    }
+
+    ros::ServiceClient client_flight_mode;
+
+    std::tie(lat1, lon1) = get_gps();
     lat2 = goal->target.targetLat;
     lon2 = goal->target.targetLon;
     log.data = "Current coordinates, lat = " + std::to_string(lat1) +
@@ -103,72 +167,42 @@ public:
                std::to_string(azimuth) +
                ", distance = " + std::to_string(distance);
     log_pub_.publish(log);
-    cmd.request.param1 = azimuth;
-    cmd.request.param2 = 45;
-    if (client_yaw.call(cmd)) {
-      log.data = "Setting course...";
-      log_pub_.publish(log);
-    }
+    set_course(azimuth, 45);
     ros::Duration(4).sleep();
-    double diff_angle = degToRad(azimuth - wind_angle);
-    double wind_roll = std::sin(diff_angle);
-    double wind_pitch = std::cos(diff_angle);
-    int sign = (wind_roll > 0) - (wind_roll < 0);
-    double stop_pitch = wind_pitch * koeff_speed_angle * wind_speed;
-    double stop_roll =
-        wind_roll * koeff_speed_angle * wind_speed; // for stopping drone
-    double set_roll = std::abs(stop_roll) > 15 ? sign * 15 : stop_roll;
-    double set_additional_pitch = wind_speed * wind_pitch * koeff_speed_angle;
-    int pitch_sign = (wind_pitch > 0) - (wind_pitch < 0);
-    double set_pitch =
-        std::abs(koeff_speed_angle * 10 - set_additional_pitch) > 15
-            ? -pitch_sign * 15
-            : koeff_speed_angle * 10 - set_additional_pitch;
-    double stop_time = 2;
-    double time = distance - start_way - stop_way;
-    log.data = "Stop pitch = " + std::to_string(set_additional_pitch) +
-               ", Stop roll = " +
-               std::to_string(wind_pitch * koeff_speed_angle * wind_speed) +
-               "\n" + "Flight pitch = " + std::to_string(-set_pitch) +
+    double set_pitch = calculate_target_pitch(azimuth, wind_angle, wind_speed,
+                                              koeff_speed_angle, 15);
+    double set_roll = calculate_target_roll(azimuth, wind_angle, wind_speed,
+                                            koeff_speed_angle, 15);
+    double stop_pitch = calculate_stop_pitch(azimuth, wind_angle, wind_speed,
+                                             koeff_speed_angle, 15);
+    double stop_roll = calculate_stop_roll(azimuth, wind_angle, wind_speed,
+                                           koeff_speed_angle, 15);
+
+    double stop_time = 3;
+
+    double time = (distance - start_way - stop_way) / 10.0;
+    log.data = "Stop pitch = " + std::to_string(stop_pitch) +
+               ", Stop roll = " + std::to_string(stop_roll) + "\n" +
+               "Flight pitch = " + std::to_string(set_pitch) +
                ", Fligh roll = " + std::to_string(set_roll);
-    std::to_string(wind_pitch * koeff_speed_angle * wind_speed);
+
     log_pub_.publish(log);
     log.data = "Start time = " + std::to_string(2) +
                ", Const time = " + std::to_string(int(time)) +
                ", Stop time = " + std::to_string(int(stop_time));
     log_pub_.publish(log);
-    geometry_msgs::Vector3 angles;
-    angles.x = -25;
-    angles.y = set_roll;
-    angles_pub_.publish(angles);
-    log.data = "Setting pitch = " + std::to_string(angles.x) +
-               ", roll = " + std::to_string(angles.y);
-    log_pub_.publish(log);
+
+    set_pitch_roll(-25, set_roll);
     ros::Duration(2).sleep();
-    angles.x = -set_pitch;
-    angles.y = set_roll;
-    log.data = "Setting pitch = " + std::to_string(angles.x) +
-               ", roll = " + std::to_string(angles.y);
-    log_pub_.publish(log);
-    angles_pub_.publish(angles);
+
     ros::Time start_time = ros::Time::now();
 
     ros::Duration timeout(time); // Timeout of 2 seconds
     while (ros::Time::now() - start_time < timeout) {
-      angles.x = -set_pitch;
-      angles.y = set_roll;
-      angles_pub_.publish(angles);
-      log.data = "Setting pitch = " + std::to_string(angles.x) +
-                 ", roll = " + std::to_string(angles.y);
-      log_pub_.publish(log);
+      set_pitch_roll(set_pitch, set_roll);
       if (as_.isPreemptRequested()) {
         as_.setPreempted();
-        angles.x = 0;
-        angles.y = 0;
-        angles_pub_.publish(angles);
-        log.data = "Setting pitch = " + std::to_string(angles.x) +
-                   ", roll = " + std::to_string(angles.y);
-        log_pub_.publish(log);
+        set_pitch_roll(0, 0);
         log.data = "Action stopped from client";
         log_pub_.publish(log);
         return;
@@ -178,41 +212,21 @@ public:
     start_time = ros::Time::now();
     timeout = ros::Duration(stop_time);
     while (ros::Time::now() - start_time < timeout) {
-      angles.x = set_pitch;
-      angles.y = set_roll;
-      angles_pub_.publish(angles);
-      log.data = "Setting pitch = " + std::to_string(angles.x) +
-                 ", roll = " + std::to_string(angles.y);
-      log_pub_.publish(log);
+      set_pitch_roll(-set_pitch, set_roll);
       if (as_.isPreemptRequested()) {
         as_.setPreempted();
-        angles.x = 0;
-        angles.y = 0;
-        angles_pub_.publish(angles);
-        log.data = "Setting pitch = " + std::to_string(angles.x) +
-                   ", roll = " + std::to_string(angles.y);
-        log_pub_.publish(log);
+        set_pitch_roll(0, 0);
         log.data = "Action stopped from client";
         log_pub_.publish(log);
         return;
       }
       r.sleep();
     }
-    angles.x = stop_pitch;
-    angles.y = stop_roll;
-    angles_pub_.publish(angles);
-    log.data = "Setting pitch = " + std::to_string(angles.x) +
-               ", roll = " + std::to_string(angles.y);
-    log_pub_.publish(log);
+    set_pitch_roll(stop_pitch, stop_roll);
     ros::Duration(2).sleep();
     if (as_.isPreemptRequested()) {
       as_.setPreempted();
-      angles.x = 0;
-      angles.y = 0;
-      angles_pub_.publish(angles);
-      log.data = "Setting pitch = " + std::to_string(angles.x) +
-                 ", roll = " + std::to_string(angles.y);
-      log_pub_.publish(log);
+      set_pitch_roll(0, 0);
       log.data = "Action stopped from client";
       log_pub_.publish(log);
       return;

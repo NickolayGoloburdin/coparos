@@ -36,6 +36,7 @@ private:
   uint16_t state_ = 0;
   double baro_ = 0;
   bool mission_downloaded_ = false;
+  int safe_misson_ = 0;
   // ros::Subscriber gnss_use_status_sub_;
   ros::Subscriber rc_channel_sub_;
   ros::Subscriber baro_sub_;
@@ -133,7 +134,8 @@ public:
     }
 
     coparos::Service_command cmd;
-    if (target == 4 && target != current_mode()) {
+    if (target == 4 && target != current_mode() && safe_misson_ < 10) {
+      safe_misson_++;
       if (azimuth_fly) {
         ac.cancelGoal();
         log.data = "Cancelling from action";
@@ -146,6 +148,7 @@ public:
       log.data = "Set mission mode";
       log_pub_.publish(log);
     } else if (target == 1 && target != current_mode() && !azimuth_fly) {
+      safe_misson_ = 0;
       cmd.request.param1 = 1;
       flight_mode_service_client.call(cmd);
       log.data = "Set althold mode";
