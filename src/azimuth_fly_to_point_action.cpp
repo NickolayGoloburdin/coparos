@@ -145,9 +145,10 @@ public:
     // helper variables
     ros::Rate r(1);
 
-    double lat1, lon1, lat2, lon2, wind_angle, wind_speed;
+    double lat1, lon1, lat2, lon2, wind_angle, wind_speed, additional_speed;
     nh_.getParam("/wind_speed", wind_speed);
     nh_.getParam("/wind_angle", wind_angle);
+    nh_.getParam("/addition_angle", additional_speed);
 
     ros::ServiceClient client_flight_mode;
 
@@ -199,7 +200,7 @@ public:
 
     ros::Duration timeout(time); // Timeout of 2 seconds
     while (ros::Time::now() - start_time < timeout) {
-      set_pitch_roll(set_pitch, set_roll);
+      set_pitch_roll(set_pitch - additional_speed, set_roll);
       if (as_.isPreemptRequested()) {
         as_.setPreempted();
         set_pitch_roll(0, 0);
@@ -212,7 +213,7 @@ public:
     start_time = ros::Time::now();
     timeout = ros::Duration(stop_time);
     while (ros::Time::now() - start_time < timeout) {
-      set_pitch_roll(-set_pitch, set_roll);
+      set_pitch_roll(-set_pitch + additional_speed, set_roll);
       if (as_.isPreemptRequested()) {
         as_.setPreempted();
         set_pitch_roll(0, 0);
