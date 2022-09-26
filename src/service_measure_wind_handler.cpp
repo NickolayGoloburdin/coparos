@@ -89,7 +89,7 @@ public:
     log_pub_.publish(log);
 
     geometry_msgs::Vector3 angles;
-    cmd.request.param1 = angle;
+    cmd.request.param1 = angle < 0.0 ? angle + 180.0 : angle - 180.0;
     cmd.request.param2 = 45;
     if (client_yaw.call(cmd)) {
       log.data = "Setting course...";
