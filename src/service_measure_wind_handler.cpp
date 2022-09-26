@@ -40,6 +40,10 @@ public:
     ac.waitForServer();
     angles_pub_ = n->advertise<geometry_msgs::Vector3>("/manualAngles", 1000);
   }
+  void logging(std::string log_str) {
+    log.data = log_str;
+    log_pub_.publish(log);
+  }
   bool measure_wind(coparos::Service_command::Request &req,
                     coparos::Service_command::Response &res) {
 
@@ -47,11 +51,10 @@ public:
     cmd.request.param1 = 1;
     if (client_stop.call(cmd)) {
       if (cmd.response.result) {
-        log.data = "Drone is stopped, start measuring wind";
-        log_pub_.publish(log);
+        logging("Drone is stopped, start measuring wind");
+
       } else {
-        log.data = "Cannot stop drone";
-        log_pub_.publish(log);
+        logging("Cannot stop drone");
         res.status = "Drone doesn't responce on command";
         res.result = false;
         return true;
@@ -68,12 +71,10 @@ public:
     if (finished_before_timeout) {
       actionlib::SimpleClientGoalState state = ac.getState();
       ROS_INFO("Action finished,starting drone");
-      log.data = "Action finished,starting drone";
-      log_pub_.publish(log);
+      logging("Action finished,starting drone");
     } else {
       res.status = "Action Server doesnt responce";
-      log.data = "Action Server doesnt responce";
-      log_pub_.publish(log);
+      logging("Action Server doesnt responce");
       res.result = false;
       return true;
     }
@@ -82,26 +83,22 @@ public:
     double angle = action_result->angle;
     n->setParam("/wind_speed", speed);
     n->setParam("/wind_angle", angle);
-    log.data = "wind speed =" + std::to_string(speed) +
-               " wind course = " + std::to_string(angle);
-    log_pub_.publish(log);
-    log.data = "Setting stop mode for 5 sec";
-    log_pub_.publish(log);
+    logging("wind speed =" + std::to_string(speed) +
+            " wind course = " + std::to_string(angle));
+    logging("Setting stop mode for 5 sec");
 
     geometry_msgs::Vector3 angles;
     cmd.request.param1 = angle < 0.0 ? angle + 180.0 : angle - 180.0;
     cmd.request.param2 = 45;
     if (client_yaw.call(cmd)) {
-      log.data = "Setting course...";
-      log_pub_.publish(log);
+      logging("Setting course " + std::to_string(cmd.request.param1));
     }
     ros::Duration(4).sleep();
     angles.x = -speed * koeff_speed_angle;
-    log.data = "Setting pitch = " + std::to_string(angles.x) +
-               ", roll = " + std::to_string(angles.y);
-    log_pub_.publish(log);
-    log.data = "Stopping drone for 5 seconds";
-    log_pub_.publish(log);
+    logging("Setting pitch = " + std::to_string(angles.x) +
+            ", roll = " + std::to_string(angles.y));
+
+    logging("Stopping drone for 5 seconds");
     angles_pub_.publish(angles);
     ros::Duration(5).sleep();
     ros::spinOnce();
@@ -110,8 +107,7 @@ public:
       if (cmd.response.result) {
 
       } else {
-        log.data = "Cannot start drone";
-        log_pub_.publish(log);
+        logging("Cannot start drone");
         res.status = "Drone doesn't responce on command";
         res.result = false;
         return true;

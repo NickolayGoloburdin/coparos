@@ -111,6 +111,10 @@ public:
                ? pitch_sign * max_const_angle
                : -max_const_angle + set_additional_pitch;
   }
+  void logging(std::string log_str) {
+    log.data = log_str;
+    log_pub_.publish(log);
+  }
   // double calculate_stop_pitch(double azimuth, double distance, double
   // start_way,
   //                             double stop_way, double wind_angle,
@@ -155,18 +159,16 @@ public:
     std::tie(lat1, lon1) = get_gps();
     lat2 = goal->target.targetLat;
     lon2 = goal->target.targetLon;
-    log.data = "Current coordinates, lat = " + std::to_string(lat1) +
-               ", lon = " + std::to_string(lon1);
-    log_pub_.publish(log);
-    log.data = "Target coordinates, lat = " + std::to_string(lat2) +
-               ", lon = " + std::to_string(lon2);
-    log_pub_.publish(log);
+    logging("Current coordinates, lat = " + std::to_string(lat1) +
+            ", lon = " + std::to_string(lon1));
+    logging("Target coordinates, lat = " + std::to_string(lat2) +
+            ", lon = " + std::to_string(lon2));
     double azimuth = calculateBearing(lat1, lon1, lat2, lon2);
     azimuth = azimuth > 180.0 ? azimuth - 360.0 : azimuth;
     double distance = distanceEarth(lat1, lon1, lat2, lon2);
-    log.data = "Distance and course are calculated: course = " +
-               std::to_string(azimuth) +
-               ", distance = " + std::to_string(distance);
+    logging("Distance and course are calculated: course = " +
+            std::to_string(azimuth) +
+            ", distance = " + std::to_string(distance));
     log_pub_.publish(log);
     set_course(azimuth, 45);
     ros::Duration(4).sleep();
@@ -182,16 +184,14 @@ public:
     double stop_time = 3;
 
     double time = (distance - start_way - stop_way) / 10.0;
-    log.data = "Stop pitch = " + std::to_string(stop_pitch) +
-               ", Stop roll = " + std::to_string(stop_roll) + "\n" +
-               "Flight pitch = " + std::to_string(set_pitch) +
-               ", Fligh roll = " + std::to_string(set_roll);
+    logging("Stop pitch = " + std::to_string(stop_pitch) +
+            ", Stop roll = " + std::to_string(stop_roll) + "\n" +
+            "Flight pitch = " + std::to_string(set_pitch) +
+            ", Fligh roll = " + std::to_string(set_roll));
 
-    log_pub_.publish(log);
-    log.data = "Start time = " + std::to_string(2) +
-               ", Const time = " + std::to_string(int(time)) +
-               ", Stop time = " + std::to_string(int(stop_time));
-    log_pub_.publish(log);
+    logging("Start time = " + std::to_string(2) +
+            ", Const time = " + std::to_string(int(time)) +
+            ", Stop time = " + std::to_string(int(stop_time)));
 
     set_pitch_roll(-25, set_roll);
     ros::Duration(2).sleep();
@@ -204,8 +204,7 @@ public:
       if (as_.isPreemptRequested()) {
         as_.setPreempted();
         set_pitch_roll(0, 0);
-        log.data = "Action stopped from client";
-        log_pub_.publish(log);
+        logging("Action stopped from client");
         return;
       }
       r.sleep();
@@ -217,8 +216,7 @@ public:
       if (as_.isPreemptRequested()) {
         as_.setPreempted();
         set_pitch_roll(0, 0);
-        log.data = "Action stopped from client";
-        log_pub_.publish(log);
+        logging("Action stopped from client");
         return;
       }
       r.sleep();
@@ -228,12 +226,10 @@ public:
     if (as_.isPreemptRequested()) {
       as_.setPreempted();
       set_pitch_roll(0, 0);
-      log.data = "Action stopped from client";
-      log_pub_.publish(log);
+      logging("Action stopped from client");
       return;
     }
-    log.data = "Drone has reached the point";
-    log_pub_.publish(log);
+    logging("Drone has reached the point");
     result_.target_reached = true;
     ROS_INFO("%s: Succeeded", action_name_.c_str());
     as_.setSucceeded(result_);

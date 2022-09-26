@@ -105,31 +105,23 @@ public:
   }
 
   void callback_baro_(const std_msgs::Float64 &msg) { baro_ = msg.data; }
+  void logging(std::string log_str) {
+    log.data = log_str;
+    log_pub_.publish(log);
+  }
   void set_target_mode(
       actionlib::SimpleActionClient<coparos::AzimuthFlyAction> &ac) {
     if (baro_ < 10 || current_mode() == 3)
       return;
 
-    // log.data = "set_target_mode check acccepted";
-    // log_pub_.publish(log);
     unsigned int target = create_target_flight_mode();
-    // log.data = "Target mode" + std::to_string(target);
-    // log_pub_.publish(log);
-    // log.data = "target_mode = " + std::to_string(target) +
-    //            "current mode = " + std::to_string(current_mode());
-    // log_pub_.publish(log);
     if (ac.getState() == actionlib::SimpleClientGoalState::PENDING) {
       azimuth_fly = true;
-      // log.data = "Action server is pending";
-      // log_pub_.publish(log);
+
     } else if (ac.getState() == actionlib::SimpleClientGoalState::ACTIVE) {
       azimuth_fly = true;
-      // log.data = "Action server is active";
-      // log_pub_.publish(log);
 
     } else {
-      // log.data = "Action server is inactive";
-      //  log_pub_.publish(log);
       azimuth_fly = false;
     }
 
@@ -138,52 +130,44 @@ public:
       safe_misson_++;
       if (azimuth_fly) {
         ac.cancelGoal();
-        log.data = "Cancelling from action";
-        log_pub_.publish(log);
+        logging("Cancelling from action");
         azimuth_fly = false;
       }
 
       cmd.request.param1 = 4;
       flight_mode_service_client.call(cmd);
-      log.data = "Set mission mode";
-      log_pub_.publish(log);
+      logging("Set mission mode");
     } else if (target == 1 && target != current_mode() && !azimuth_fly) {
       safe_misson_ = 0;
       cmd.request.param1 = 1;
       flight_mode_service_client.call(cmd);
-      log.data = "Set althold mode";
-      log_pub_.publish(log);
+      logging("Set althold mode");
 
-      log.data = "Starting action azimuth client ";
-      log_pub_.publish(log);
+      logging("Starting action azimuth client ");
 
-      log.data = "start azimuth fly";
-      log_pub_.publish(log);
+      logging("start azimuth fly");
       coparos::AzimuthFlyGoal goal;
       if (mission_.size() == 0) {
-        log.data = "Mission is empty";
-        log_pub_.publish(log);
+        logging("Mission is empty");
+
         return;
       }
       if (current_wp_ + 1 <= mission_.size()) {
-        log.data = "c_wp size accepted, mission size" +
-                   std::to_string(mission_.size());
-        log_pub_.publish(log);
+        logging("c_wp size accepted, mission size" +
+                std::to_string(mission_.size()));
         goal.target.targetLat = mission_[current_wp_ + 1].targetLat;
         goal.target.targetLon = mission_[current_wp_ + 1].targetLon;
       } else {
-        log.data = "c_wp size declined, mission size" +
-                   std::to_string(mission_.size());
-        log_pub_.publish(log);
+        logging("c_wp size declined, mission size" +
+                std::to_string(mission_.size()));
         goal.target.targetLat = mission_[current_wp_ + 1].targetLat;
         goal.target.targetLon = mission_[current_wp_ + 1].targetLon;
       }
-      log.data = "sending goal";
-      log_pub_.publish(log);
+      logging("sending goal");
+
       ac.sendGoal(goal);
       current_wp_++;
-      log.data = "waiting result";
-      log_pub_.publish(log);
+      logging("waiting result");
       // ros::Timer timer = nh_->createTimer(
       //     ros::Duration(40),
       //     [&](const ros::TimerEvent &event) { ac.cancelGoal(); });
@@ -207,25 +191,22 @@ public:
     if (mission_downloaded_)
       return;
     if (current_mode() == 4) {
-      log.data = "Download mission from drone";
-      log_pub_.publish(log);
+      logging("Download mission from drone");
       coparos::Service_command srv;
       req_dwnld_mission_client.call(srv);
       coparos::Download_mission srvmission;
       missions_service_client.call(srvmission);
 
-      log.data = "Downloaded " +
-                 std::to_string(srvmission.response.points.size()) + " points";
-      log_pub_.publish(log);
+      logging("Downloaded " +
+              std::to_string(srvmission.response.points.size()) + " points");
       if (srvmission.response.points.size() > 1)
         mission_downloaded_ = true;
       for (auto i : srvmission.response.points)
         mission_.push_back(i);
       for (size_t i = 0; i < mission_.size(); i++) {
-        log.data = "Point " + std::to_string(i) +
-                   "lat = " + std::to_string(mission_[i].targetLat) +
-                   " lon = " + std::to_string(mission_[i].targetLon) + "\n";
-        log_pub_.publish(log);
+        logging("Point " + std::to_string(i) +
+                "lat = " + std::to_string(mission_[i].targetLat) +
+                " lon = " + std::to_string(mission_[i].targetLon) + "\n");
       }
     }
   }
