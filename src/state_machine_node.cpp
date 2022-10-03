@@ -136,6 +136,7 @@ public:
 
       cmd.request.param1 = 4;
       flight_mode_service_client.call(cmd);
+      logging("Current mode " + std::to_string(current_mode()));
       logging("Set mission mode");
     } else if (target == 1 && target != current_mode() && !azimuth_fly) {
       safe_misson_ = 0;
