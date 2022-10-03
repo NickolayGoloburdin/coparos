@@ -89,11 +89,11 @@ public:
 
     geometry_msgs::Vector3 angles;
     cmd.request.param1 = angle < 0.0 ? angle + 180.0 : angle - 180.0;
-    cmd.request.param2 = 45;
+    cmd.request.param2 = 60;
     if (client_yaw.call(cmd)) {
       logging("Setting course " + std::to_string(cmd.request.param1));
     }
-    ros::Duration(4).sleep();
+    // ros::Duration(4).sleep();
     angles.x = -speed * koeff_speed_angle;
     logging("Setting pitch = " + std::to_string(angles.x) +
             ", roll = " + std::to_string(angles.y));
