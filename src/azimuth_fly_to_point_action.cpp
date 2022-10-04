@@ -17,12 +17,12 @@
 #define radToDeg(angleInRadians) ((angleInRadians)*180.0 / PI)
 const float a = 6378137.0;
 const float b = 6371000.0;
-const double koeff_speed_angle = 1.4;
+double koeff_speed_angle = 1.4;
 const double start_way = 16;
 const double stop_way = 20;
 std::string rounded(double a) {
   std::string num_text = std::to_string(a);
-  return num_text.substr(0, num_text.find(".") + 3);
+  return num_text.substr(0, num_text.find(".") + 2);
 }
 double calculateBearing(double lat1, double lon1, double lat2, double lon2) {
   double longitude1 = lon1;
@@ -82,8 +82,7 @@ public:
     angles.x = pitch;
     angles.y = roll;
     angles_pub_.publish(angles);
-    log.data = "pitch = " + rounded(angles.x) + ", roll = " + rounded(angles.y);
-    log_pub_.publish(log);
+    logging("pitch = " + rounded(angles.x) + ", roll = " + rounded(angles.y));
   }
   void set_course(double course, double speed) {
     ros::ServiceClient client_yaw =
@@ -151,24 +150,25 @@ public:
     ros::Rate r(1);
 
     double lat1, lon1, lat2, lon2, wind_angle, wind_speed, additional_speed;
+
     nh_.getParam("/wind_speed", wind_speed);
     nh_.getParam("/wind_angle", wind_angle);
     nh_.getParam("/addition_angle", additional_speed);
-
+    nh_.getParam("/koeff_speed_angle", koeff_speed_angle);
     ros::ServiceClient client_flight_mode;
 
     std::tie(lat1, lon1) = get_gps();
     lat2 = goal->target.targetLat;
     lon2 = goal->target.targetLon;
-    logging("Current coordinates, lat = " + std::to_string(lat1) +
+    logging("Current lat = " + std::to_string(lat1) +
             ", lon = " + std::to_string(lon1));
-    logging("Target coordinates, lat = " + std::to_string(lat2) +
+    logging("Target lat = " + std::to_string(lat2) +
             ", lon = " + std::to_string(lon2));
     double azimuth = calculateBearing(lat1, lon1, lat2, lon2);
     azimuth = azimuth > 180.0 ? azimuth - 360.0 : azimuth;
     double distance = distanceEarth(lat1, lon1, lat2, lon2);
     logging("course = " + rounded(azimuth) +
-            ", distance = " + rounded(distance));
+            ", distance = " + std::to_string(int(distance)));
     set_course(azimuth, 60);
     // ros::Duration(4).sleep();
     double set_pitch = calculate_target_pitch(azimuth, wind_angle, wind_speed,
@@ -179,16 +179,20 @@ public:
                                              koeff_speed_angle, 15);
     double stop_roll = calculate_stop_roll(azimuth, wind_angle, wind_speed,
                                            koeff_speed_angle, 15);
-
+    double horizontal_speed = 10.0;
+    if (stop_pitch < 0) {
+      horizontal_speed = (set_pitch - stop_pitch) / 1.4;
+    }
     double stop_time = 3;
 
-    double time = (distance - start_way - stop_way) / 10.0;
+    double time = (distance - start_way - stop_way) / horizontal_speed;
     logging("Stop pitch = " + rounded(stop_pitch) + ", Stop roll = " +
             rounded(stop_roll) + "\n" + "Flight pitch = " + rounded(set_pitch) +
             ", Fligh roll = " + rounded(set_roll));
 
-    logging("Start time = " + rounded(2) + ", Const time = " +
-            rounded(int(time)) + ", Stop time = " + rounded(int(stop_time)));
+    logging("Start time = " + std::to_string(2) +
+            ", Const time = " + std::to_string(int(time)) +
+            ", Stop time = " + std::to_string(int(stop_time)));
 
     set_pitch_roll(-25, set_roll);
     ros::Duration(2).sleep();
@@ -226,7 +230,7 @@ public:
       logging("Action stopped from client");
       return;
     }
-    logging("Drone has reached the point");
+    logging("Drone reach the point");
     result_.target_reached = true;
     ROS_INFO("%s: Succeeded", action_name_.c_str());
     as_.setSucceeded(result_);

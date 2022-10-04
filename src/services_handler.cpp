@@ -148,7 +148,7 @@ public:
   bool set_yaw(coparos::Service_command::Request &req,
                coparos::Service_command::Response &res) {
     log.data = "Setting yaw";
-    log_pub_.publish(log);
+    // log_pub_.publish(log);
     coparos::Command msg;
     msg.command = CMD_NAV_SET_ABS_HEADING;
     msg.data1 = req.param1;

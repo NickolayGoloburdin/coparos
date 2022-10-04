@@ -121,6 +121,9 @@ public:
     } else if (ac.getState() == actionlib::SimpleClientGoalState::ACTIVE) {
       azimuth_fly = true;
 
+    } else if (ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
+      azimuth_fly = false;
+
     } else {
       azimuth_fly = false;
     }
@@ -136,9 +139,10 @@ public:
 
       cmd.request.param1 = 4;
       flight_mode_service_client.call(cmd);
-      logging("Current mode " + std::to_string(current_mode()));
+      // logging("Current mode " + std::to_string(current_mode()));
       logging("Set mission mode");
-    } else if (target == 1 && target != current_mode() && !azimuth_fly) {
+    } else if (target == 1 && !azimuth_fly) {
+      logging("Into Azimuth Fly");
       safe_misson_ = 0;
       cmd.request.param1 = 1;
       flight_mode_service_client.call(cmd);
@@ -153,16 +157,16 @@ public:
 
         return;
       }
-      if (current_wp_ + 1 <= mission_.size()) {
+      if (current_wp_ <= mission_.size()) {
         logging("c_wp size accepted, mission size" +
                 std::to_string(mission_.size()));
-        goal.target.targetLat = mission_[current_wp_ + 1].targetLat;
-        goal.target.targetLon = mission_[current_wp_ + 1].targetLon;
+        goal.target.targetLat = mission_[current_wp_].targetLat;
+        goal.target.targetLon = mission_[current_wp_].targetLon;
       } else {
         logging("c_wp size declined, mission size" +
                 std::to_string(mission_.size()));
-        goal.target.targetLat = mission_[current_wp_ + 1].targetLat;
-        goal.target.targetLon = mission_[current_wp_ + 1].targetLon;
+        goal.target.targetLat = mission_[current_wp_].targetLat;
+        goal.target.targetLon = mission_[current_wp_].targetLon;
       }
       logging("sending goal");
 

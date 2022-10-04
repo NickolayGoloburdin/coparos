@@ -11,6 +11,10 @@
 #include <std_msgs/String.h>
 #include <string>
 #define PI 3.14159265358979323846
+std::string rounded(double a) {
+  std::string num_text = std::to_string(a);
+  return num_text.substr(0, num_text.find(".") + 2);
+}
 #define radToDeg(angleInRadians) ((angleInRadians)*180.0 / PI)
 #define degToRad(angleInDegrees) ((angleInDegrees)*PI / 180.0)
 const double koeff_speed_angle = 1.4;
@@ -83,20 +87,20 @@ public:
     double angle = action_result->angle;
     n->setParam("/wind_speed", speed);
     n->setParam("/wind_angle", angle);
-    logging("wind speed =" + std::to_string(speed) +
-            " wind course = " + std::to_string(angle));
+    logging("wind speed =" + rounded(speed) +
+            " wind course = " + rounded(angle));
     logging("Setting stop mode for 5 sec");
 
     geometry_msgs::Vector3 angles;
     cmd.request.param1 = angle < 0.0 ? angle + 180.0 : angle - 180.0;
     cmd.request.param2 = 60;
     if (client_yaw.call(cmd)) {
-      logging("Setting course " + std::to_string(cmd.request.param1));
+      logging("Setting course " + rounded(cmd.request.param1));
     }
     // ros::Duration(4).sleep();
     angles.x = -speed * koeff_speed_angle;
-    logging("Setting pitch = " + std::to_string(angles.x) +
-            ", roll = " + std::to_string(angles.y));
+    logging("Setting pitch = " + rounded(angles.x) +
+            ", roll = " + rounded(angles.y));
 
     logging("Stopping drone for 5 seconds");
     angles_pub_.publish(angles);
