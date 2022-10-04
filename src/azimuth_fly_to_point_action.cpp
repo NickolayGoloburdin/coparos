@@ -17,7 +17,7 @@
 #define radToDeg(angleInRadians) ((angleInRadians)*180.0 / PI)
 const float a = 6378137.0;
 const float b = 6371000.0;
-double koeff_speed_angle = 1.4;
+
 const double start_way = 16;
 const double stop_way = 20;
 std::string rounded(double a) {
@@ -126,8 +126,7 @@ public:
     double diff_angle = degToRad(azimuth - wind_angle);
     double wind_roll = std::sin(diff_angle);
     int sign = (wind_roll > 0) - (wind_roll < 0);
-    double stop_roll =
-        wind_roll * koeff_speed_angle * wind_speed; // for stopping drone
+    double stop_roll = wind_roll * k_speed * wind_speed; // for stopping drone
     return std::abs(stop_roll) > 15 ? sign * 15 : stop_roll;
   }
   double calculate_stop_pitch(double azimuth, double wind_angle,
@@ -143,18 +142,19 @@ public:
     double diff_angle = degToRad(azimuth - wind_angle);
     double wind_roll = std::sin(diff_angle);
     int sign = (wind_roll > 0) - (wind_roll < 0);
-    return wind_roll * koeff_speed_angle * wind_speed; // for stopping drone
+    return wind_roll * k_speed * wind_speed; // for stopping drone
   }
   void executeCB(const coparos::AzimuthFlyGoalConstPtr &goal) {
     // helper variables
     ros::Rate r(1);
 
-    double lat1, lon1, lat2, lon2, wind_angle, wind_speed, additional_speed;
+    double lat1, lon1, lat2, lon2, wind_angle, wind_speed, additional_speed,
+        k_speed_angle;
 
     nh_.getParam("/wind_speed", wind_speed);
     nh_.getParam("/wind_angle", wind_angle);
     nh_.getParam("/addition_angle", additional_speed);
-    nh_.getParam("/koeff_speed_angle", koeff_speed_angle);
+    nh_.getParam("/koeff_speed_angle", k_speed_angle);
     ros::ServiceClient client_flight_mode;
 
     std::tie(lat1, lon1) = get_gps();
@@ -172,13 +172,13 @@ public:
     set_course(azimuth, 60);
     // ros::Duration(4).sleep();
     double set_pitch = calculate_target_pitch(azimuth, wind_angle, wind_speed,
-                                              koeff_speed_angle, 15);
+                                              k_speed_angle, 15);
     double set_roll = calculate_target_roll(azimuth, wind_angle, wind_speed,
-                                            koeff_speed_angle, 15);
+                                            k_speed_angle, 15);
     double stop_pitch = calculate_stop_pitch(azimuth, wind_angle, wind_speed,
-                                             koeff_speed_angle, 15);
-    double stop_roll = calculate_stop_roll(azimuth, wind_angle, wind_speed,
-                                           koeff_speed_angle, 15);
+                                             k_speed_angle, 15);
+    double stop_roll =
+        calculate_stop_roll(azimuth, wind_angle, wind_speed, k_speed_angle, 15);
     double horizontal_speed = 10.0;
     if (stop_pitch < 0) {
       horizontal_speed = (set_pitch - stop_pitch) / 1.4;
