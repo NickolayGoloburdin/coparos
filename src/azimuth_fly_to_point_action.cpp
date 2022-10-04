@@ -107,8 +107,8 @@ public:
     double wind_pitch = std::cos(diff_angle);
     double set_additional_pitch = wind_speed * wind_pitch * k_speed;
     int pitch_sign = (wind_pitch > 0) - (wind_pitch < 0);
-    return std::abs(max_const_angle - set_additional_pitch) > 15
-               ? pitch_sign * max_const_angle
+    return std::abs(max_const_angle - set_additional_pitch) > 25
+               ? pitch_sign * 25
                : -max_const_angle + set_additional_pitch;
   }
   void logging(std::string log_str) {
