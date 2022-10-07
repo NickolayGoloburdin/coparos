@@ -107,9 +107,7 @@ public:
     double wind_pitch = std::cos(diff_angle);
     double set_additional_pitch = wind_speed * wind_pitch * k_speed;
     int pitch_sign = (wind_pitch > 0) - (wind_pitch < 0);
-    return std::abs(max_const_angle - set_additional_pitch) > 25
-               ? pitch_sign * 25
-               : -max_const_angle + set_additional_pitch;
+    return -max_const_angle + set_additional_pitch;
   }
   void logging(std::string log_str) {
     log.data = log_str;
@@ -127,7 +125,7 @@ public:
     double wind_roll = std::sin(diff_angle);
     int sign = (wind_roll > 0) - (wind_roll < 0);
     double stop_roll = wind_roll * k_speed * wind_speed; // for stopping drone
-    return std::abs(stop_roll) > 15 ? sign * 15 : stop_roll;
+    return std::abs(stop_roll) > 25 ? sign * 25 : stop_roll;
   }
   double calculate_stop_pitch(double azimuth, double wind_angle,
                               double wind_speed, double k_speed,
@@ -160,6 +158,8 @@ public:
     std::tie(lat1, lon1) = get_gps();
     lat2 = goal->target.targetLat;
     lon2 = goal->target.targetLon;
+    double horizontal_speed = 10.0;
+    // double horizontal_speed = goal->target.maxHorizSpeed;
     logging("Current lat = " + std::to_string(lat1) +
             ", lon = " + std::to_string(lon1));
     logging("Target lat = " + std::to_string(lat2) +
@@ -179,12 +179,15 @@ public:
                                              k_speed_angle, 15);
     double stop_roll =
         calculate_stop_roll(azimuth, wind_angle, wind_speed, k_speed_angle, 15);
-    double horizontal_speed = 10.0;
-    if (stop_pitch < 0) {
-      horizontal_speed = (set_pitch - stop_pitch) / 1.4;
+
+    if (std::abs(set_pitch) >= 25) {
+      horizontal_speed = std::abs(25 - std::abs(stop_pitch)) / k_speed_angle;
+      if (horizontal_speed < 0)
+        logging("wind speed is too much");
+      set_pitch = -25.0;
     }
     double stop_time = 3;
-
+    logging("Target speed " + rounded(horizontal_speed));
     double time = (distance - start_way - stop_way) / horizontal_speed;
     logging("Stop pitch = " + rounded(stop_pitch) + ", Stop roll = " +
             rounded(stop_roll) + "\n" + "Flight pitch = " + rounded(set_pitch) +

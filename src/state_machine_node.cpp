@@ -162,11 +162,11 @@ public:
                 std::to_string(mission_.size()));
         goal.target.targetLat = mission_[current_wp_].targetLat;
         goal.target.targetLon = mission_[current_wp_].targetLon;
+        goal.target.maxHorizSpeed = mission_[current_wp_].maxHorizSpeed;
       } else {
         logging("c_wp size declined, mission size" +
                 std::to_string(mission_.size()));
-        goal.target.targetLat = mission_[current_wp_].targetLat;
-        goal.target.targetLon = mission_[current_wp_].targetLon;
+        return;
       }
       logging("sending goal");
 
