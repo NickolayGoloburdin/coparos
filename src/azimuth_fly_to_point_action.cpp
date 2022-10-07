@@ -24,6 +24,7 @@ std::string rounded(double a) {
   std::string num_text = std::to_string(a);
   return num_text.substr(0, num_text.find(".") + 2);
 }
+int sign(double a) { return (a > 0) - (a < 0); }
 double calculateBearing(double lat1, double lon1, double lat2, double lon2) {
   double longitude1 = lon1;
   double longitude2 = lon2;
@@ -106,7 +107,6 @@ public:
     double diff_angle = degToRad(azimuth - wind_angle);
     double wind_pitch = std::cos(diff_angle);
     double set_additional_pitch = wind_speed * wind_pitch * k_speed;
-    int pitch_sign = (wind_pitch > 0) - (wind_pitch < 0);
     return -max_const_angle + set_additional_pitch;
   }
   void logging(std::string log_str) {
@@ -147,12 +147,18 @@ public:
     ros::Rate r(1);
 
     double lat1, lon1, lat2, lon2, wind_angle, wind_speed, additional_speed,
-        k_speed_angle;
+        k_speed_angle, accel_time, deccel_time, k_stop_speed_acc,
+        max_drone_angle;
 
     nh_.getParam("/wind_speed", wind_speed);
     nh_.getParam("/wind_angle", wind_angle);
     nh_.getParam("/addition_angle", additional_speed);
     nh_.getParam("/koeff_speed_angle", k_speed_angle);
+    nh_.getParam("/accel_time", accel_time);
+    nh_.getParam("/deccel_time", deccel_time);
+    nh_.getParam("/k_stop_speed_acc", k_stop_speed_acc);
+    nh_.getParam("/max_drone_angle", max_drone_angle);
+
     ros::ServiceClient client_flight_mode;
 
     std::tie(lat1, lon1) = get_gps();
@@ -180,28 +186,28 @@ public:
     double stop_roll =
         calculate_stop_roll(azimuth, wind_angle, wind_speed, k_speed_angle, 15);
 
-    if (std::abs(set_pitch) >= 25) {
-      horizontal_speed = std::abs(25 - std::abs(stop_pitch)) / k_speed_angle;
+    if (std::abs(set_pitch) >= max_drone_angle) {
+      horizontal_speed =
+          std::abs(max_drone_angle - std::abs(stop_pitch)) / k_speed_angle;
       if (horizontal_speed < 0)
         logging("wind speed is too much");
-      set_pitch = -25.0;
+      set_pitch = -max_drone_angle;
     }
-    double stop_time = 3;
     logging("Target speed " + rounded(horizontal_speed));
     double time = (distance - start_way - stop_way) / horizontal_speed;
     logging("Stop pitch = " + rounded(stop_pitch) + ", Stop roll = " +
             rounded(stop_roll) + "\n" + "Flight pitch = " + rounded(set_pitch) +
             ", Fligh roll = " + rounded(set_roll));
 
-    logging("Start time = " + std::to_string(2) +
+    logging("Start time = " + std::to_string(int(accel_time)) +
             ", Const time = " + std::to_string(int(time)) +
-            ", Stop time = " + std::to_string(int(stop_time)));
+            ", Stop time = " + std::to_string(int(deccel_time)));
 
-    set_pitch_roll(-25, set_roll);
-    ros::Duration(2).sleep();
+    set_pitch_roll(-max_drone_angle, set_roll);
+    ros::Duration(accel_time).sleep();
 
     ros::Time start_time = ros::Time::now();
-
+    logging("Popravka po skorosti: " + std::to_string(int(additional_speed)));
     ros::Duration timeout(time); // Timeout of 2 seconds
     while (ros::Time::now() - start_time < timeout) {
       set_pitch_roll(set_pitch - additional_speed, set_roll);
@@ -214,9 +220,9 @@ public:
       r.sleep();
     }
     start_time = ros::Time::now();
-    timeout = ros::Duration(stop_time);
+    timeout = ros::Duration(deccel_time);
     while (ros::Time::now() - start_time < timeout) {
-      set_pitch_roll(-set_pitch + additional_speed, set_roll);
+      set_pitch_roll(-set_pitch + stop_pitch + additional_speed, set_roll);
       if (as_.isPreemptRequested()) {
         as_.setPreempted();
         set_pitch_roll(0, 0);

@@ -54,8 +54,11 @@ private:
   void callback_drone_info(const coparos::DroneInfo &msg) {
     channel11_ = msg.rc11_channel;
     drone_mode_ = msg.DRONE_MODE;
-    if (gnss_status == true)
+    ROS_INFO("Drone mode %d", drone_mode_);
+    if (gnss_status == true) {
       current_wp_ = msg.current_wp;
+    }
+    ROS_INFO("current wp: %d", current_wp_);
     gnss_status = msg.rc6_channel > 200 ? true : false;
     state_ = msg.STATE;
   }
@@ -158,21 +161,30 @@ public:
         return;
       }
       if (current_wp_ <= mission_.size()) {
-        logging("c_wp size accepted, mission size" +
+        logging("c_wp size accepted, mission size " +
                 std::to_string(mission_.size()));
+        logging("fly to point num " + std::to_string(current_wp_));
         goal.target.targetLat = mission_[current_wp_].targetLat;
         goal.target.targetLon = mission_[current_wp_].targetLon;
+        ROS_INFO("Target lat %f", goal.target.targetLat);
+        ROS_INFO("Target lon %f", goal.target.targetLon);
         goal.target.maxHorizSpeed = mission_[current_wp_].maxHorizSpeed;
+        if (goal.target.targetLat == 0 || goal.target.targetLon == 0) {
+          logging("target coordinates empty");
+          return;
+        }
+        logging("sending goal");
+
+        ac.sendGoal(goal);
+        current_wp_++;
+        logging("waiting result");
+
       } else {
         logging("c_wp size declined, mission size" +
                 std::to_string(mission_.size()));
         return;
       }
-      logging("sending goal");
 
-      ac.sendGoal(goal);
-      current_wp_++;
-      logging("waiting result");
       // ros::Timer timer = nh_->createTimer(
       //     ros::Duration(40),
       //     [&](const ros::TimerEvent &event) { ac.cancelGoal(); });
