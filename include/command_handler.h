@@ -253,7 +253,8 @@ private:
   void Copa_StopMotion(); //Остановиться и Зафиксировать текущую позицию.
   void Copa_ContinueMotion(); //Продолжить выполнение активной задачи.
   void Copa_GoTo_Home(); //Лететь в точку "Дом"
-  void CoveringOpen();   //открыть сервомашинки крышки.
+  void Copa_Exec_Point(uint16_t point);
+  void CoveringOpen(); //открыть сервомашинки крышки.
   void SetGnss(uint8_t i);
 
   void CoveringClose(); //закрыть сервомашинки крышки.

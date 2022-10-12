@@ -39,6 +39,7 @@ public:
   ros::ServiceServer service_set_mode;
   ros::ServiceServer service_set_yaw;
   ros::ServiceServer service_get_gps;
+  ros::ServiceServer service_exec_point;
   std_msgs::String log;
   coparos::Ack ack_;
   sensor_msgs::NavSatFix saved_gps_;
@@ -59,6 +60,8 @@ public:
     fly_to_ = n->advertiseService("FlyTo", &ServiceHandler::fly_to, this);
     service_land = n->advertiseService("Land", &ServiceHandler::land, this);
     service_rtl = n->advertiseService("RTL", &ServiceHandler::rtl, this);
+    service_exec_point =
+        n->advertiseService("Exec_Point", &ServiceHandler::exec_point, this);
     service_stop = n->advertiseService("STOP", &ServiceHandler::stop, this);
     service_continue_flight =
         n->advertiseService("Continue", &ServiceHandler::continue_flight, this);
@@ -242,6 +245,33 @@ public:
     ros::spinOnce();
 
     if (ack_.command == uint16_t(CMD_NAV_GOTO_HOME)) {
+      if (ack_.result) {
+        res.status = "Success";
+        res.result = true;
+        return true;
+      } else {
+        res.status = ack_.status;
+        res.result = false;
+        return true;
+      }
+    } else {
+      res.status = "Controller does not response";
+      res.result = false;
+      return true;
+    }
+  }
+  bool exec_point(coparos::Service_command::Request &req,
+                  coparos::Service_command::Response &res) {
+    log.data = "Exec_point" + std::to_string(req.param1);
+    log_pub_.publish(log);
+    coparos::Command msg;
+    msg.command = CMD_NAV_EXEC_POINT;
+    msg.data1 = req.param1;
+    cmd_pub_.publish(msg);
+    ros::Duration(0.1).sleep();
+    ros::spinOnce();
+
+    if (ack_.command == uint16_t(CMD_NAV_EXEC_POINT)) {
       if (ack_.result) {
         res.status = "Success";
         res.result = true;

@@ -103,7 +103,9 @@ void COPA::callback_command(const coparos::Command &msg) {
   case CMD_NAV_GET_WP_COUNT:
     CopaPacketMake(CMD_NAV_GET_WP_COUNT, 0, 0);
     CopaPacketSend();
-
+    break;
+  case CMD_NAV_EXEC_POINT:
+    Copa_Exec_Point(msg.data1);
     break;
   }
 }
@@ -1401,6 +1403,11 @@ void COPA::Mission_Dn(uint16_t last) {
 void COPA::MissGetPointCount() {
   CopaPacketMake(CMD_NAV_GET_WP_COUNT, 0,
                  0); //запросить количество точек в загруженной миссии в коптере
+  CopaPacketSend();
+}
+void COPA::Copa_Exec_Point(uint16_t point) {
+  CopaPacketMake(CMD_NAV_EXEC_POINT, &point,
+                 2); //запросить количество точек в загруженной миссии в коптере
   CopaPacketSend();
 }
 /**************  сравнивает загруженную точку  ******************/

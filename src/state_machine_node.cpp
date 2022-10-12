@@ -44,6 +44,7 @@ private:
   ros::ServiceClient get_gps_service_client;
   ros::ServiceClient req_dwnld_mission_client;
   ros::ServiceClient missions_service_client;
+  ros::ServiceClient exec_point_service_client;
   ros::ServiceClient measure_wind_service_client;
   std::vector<coparos::MissionPoint> mission_;
   ros::Publisher log_pub_;
@@ -100,6 +101,8 @@ public:
     get_gps_service_client = nh_->serviceClient<coparos::GPS>("/Get_gps");
     req_dwnld_mission_client =
         nh_->serviceClient<coparos::Service_command>("/Download_mission");
+    exec_point_service_client =
+        nh_->serviceClient<coparos::Service_command>("/Exec_Point");
     missions_service_client =
         nh_->serviceClient<coparos::Download_mission>("/GetMissionPointsList");
     measure_wind_service_client =
@@ -139,6 +142,8 @@ public:
         logging("Cancelling from action");
         azimuth_fly = false;
       }
+      // cmd.request.param1 = current_wp_;
+      // exec_point_service_client.call(cmd);
 
       cmd.request.param1 = 4;
       flight_mode_service_client.call(cmd);
@@ -169,7 +174,7 @@ public:
         ROS_INFO("Target lat %f", goal.target.targetLat);
         ROS_INFO("Target lon %f", goal.target.targetLon);
         goal.target.maxHorizSpeed = mission_[current_wp_].maxHorizSpeed;
-        if (goal.target.targetLat == 0 || goal.target.targetLon == 0) {
+        if (goal.target.targetLat == 0.0 || goal.target.targetLon == 0.0) {
           logging("target coordinates empty");
           return;
         }
