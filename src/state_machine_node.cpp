@@ -142,11 +142,11 @@ public:
         logging("Cancelling from action");
         azimuth_fly = false;
       }
-      // cmd.request.param1 = current_wp_;
-      // exec_point_service_client.call(cmd);
+      cmd.request.param1 = current_wp_;
+      exec_point_service_client.call(cmd);
 
-      cmd.request.param1 = 4;
-      flight_mode_service_client.call(cmd);
+      // cmd.request.param1 = 4;
+      // flight_mode_service_client.call(cmd);
       // logging("Current mode " + std::to_string(current_mode()));
       logging("Set mission mode");
     } else if (target == 1 && !azimuth_fly) {
@@ -162,7 +162,6 @@ public:
       coparos::AzimuthFlyGoal goal;
       if (mission_.size() == 0) {
         logging("Mission is empty");
-
         return;
       }
       if (current_wp_ <= mission_.size()) {
@@ -174,7 +173,7 @@ public:
         ROS_INFO("Target lat %f", goal.target.targetLat);
         ROS_INFO("Target lon %f", goal.target.targetLon);
         goal.target.maxHorizSpeed = mission_[current_wp_].maxHorizSpeed;
-        if (goal.target.targetLat == 0.0 || goal.target.targetLon == 0.0) {
+        if (goal.target.targetLat < 5.0 || goal.target.targetLon < 5.0) {
           logging("target coordinates empty");
           return;
         }
