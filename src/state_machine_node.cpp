@@ -146,12 +146,10 @@ public:
         logging("Cancelling from action");
         azimuth_fly = false;
       }
-      cmd.request.param1 = current_wp_;
-      exec_point_service_client.call(cmd);
 
-      // cmd.request.param1 = 4;
-      // flight_mode_service_client.call(cmd);
-      // logging("Current mode " + std::to_string(current_mode()));
+      cmd.request.param1 = 4;
+      flight_mode_service_client.call(cmd);
+      logging("Current mode " + std::to_string(current_mode()));
       logging("Set mission mode");
     } else if (target == 1 && !azimuth_fly && !posadka) {
       safe_misson_ = 0;
@@ -176,17 +174,23 @@ public:
           logging("Finishing mission");
           cmd.request.param1 = current_wp_;
           exec_point_service_client.call(cmd);
+          cmd.request.param1 = 4;
+          flight_mode_service_client.call(cmd);
           posadka = true;
           return;
         }
+
+        cmd.request.param1 = current_wp_;
+        exec_point_service_client.call(cmd);
         cmd.request.param1 = 1;
         flight_mode_service_client.call(cmd);
+        current_wp_++;
         logging("Set althold mode");
         logging("start azimuth fly");
         logging("sending goal");
 
         ac.sendGoal(goal);
-        current_wp_++;
+
         logging("waiting result");
 
       } else {
