@@ -89,41 +89,41 @@ public:
     n->setParam("/wind_angle", angle);
     logging("wind speed =" + rounded(speed) +
             " wind course = " + rounded(angle));
-    logging("Setting stop mode for 5 sec");
+    // logging("Setting stop mode for 5 sec");
 
-    geometry_msgs::Vector3 angles;
-    cmd.request.param1 = angle < 0.0 ? angle + 180.0 : angle - 180.0;
-    cmd.request.param2 = 60;
-    if (client_yaw.call(cmd)) {
-      logging("Setting course " + rounded(cmd.request.param1));
-    }
-    // ros::Duration(4).sleep();
-    angles.x = -speed * koeff_speed_angle;
-    logging("Setting pitch = " + rounded(angles.x) +
-            ", roll = " + rounded(angles.y));
+    // geometry_msgs::Vector3 angles;
+    // cmd.request.param1 = angle < 0.0 ? angle + 180.0 : angle - 180.0;
+    // cmd.request.param2 = 60;
+    // if (client_yaw.call(cmd)) {
+    //   logging("Setting course " + rounded(cmd.request.param1));
+    // }
+    // // ros::Duration(4).sleep();
+    // angles.x = -speed * koeff_speed_angle;
+    // logging("Setting pitch = " + rounded(angles.x) +
+    //         ", roll = " + rounded(angles.y));
 
-    logging("Stopping drone for 5 seconds");
-    angles_pub_.publish(angles);
-    ros::Duration(5).sleep();
-    ros::spinOnce();
-    cmd.request.param1 = 4;
-    if (client_start.call(cmd)) {
-      if (cmd.response.result) {
+    // logging("Stopping drone for 5 seconds");
+    // angles_pub_.publish(angles);
+    // ros::Duration(5).sleep();
+    // ros::spinOnce();
+    // cmd.request.param1 = 4;
+    // if (client_start.call(cmd)) {
+    //   if (cmd.response.result) {
 
-      } else {
-        logging("Cannot start drone");
-        res.status = "Drone doesn't responce on command";
-        res.result = false;
-        return true;
-      }
-    } else {
-      res.status = "Failed to call service continue";
-      res.result = false;
-      return true;
-    }
-    res.status = "wind has been measured";
-    res.result = true;
-    return true;
+    //   } else {
+    //     logging("Cannot start drone");
+    //     res.status = "Drone doesn't responce on command";
+    //     res.result = false;
+    //     return true;
+    //   }
+    // } else {
+    //   res.status = "Failed to call service continue";
+    //   res.result = false;
+    //   return true;
+    // }
+    // res.status = "wind has been measured";
+    // res.result = true;
+    // return true;
   }
   void callback_heading(const coparos::DroneInfo &msg) {
     heading_ = double(msg.ABSOLUTE_HEADING);

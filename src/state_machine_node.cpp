@@ -42,6 +42,7 @@ private:
   ros::Subscriber baro_sub_;
   ros::ServiceClient flight_mode_service_client;
   ros::ServiceClient get_gps_service_client;
+  ros::ServiceClient gnss_on;
   ros::ServiceClient req_dwnld_mission_client;
   ros::ServiceClient missions_service_client;
   ros::ServiceClient exec_point_service_client;
@@ -50,6 +51,7 @@ private:
   ros::Publisher log_pub_;
   std_msgs::String log;
   bool azimuth_fly = false;
+  bool posadka = false;
   // actionlib::SimpleActionClient<coparos::AzimuthFlyAction> ac;
 
   void callback_drone_info(const coparos::DroneInfo &msg) {
@@ -107,6 +109,7 @@ public:
         nh_->serviceClient<coparos::Download_mission>("/GetMissionPointsList");
     measure_wind_service_client =
         nh_->serviceClient<coparos::Service_command>("/MeasureWind");
+    gnss_on = nh_->serviceClient<coparos::Service_command>("/Enable_gps");
     log_pub_ = nh_->advertise<std_msgs::String>("/logging_topic", 1000);
   }
 
@@ -136,6 +139,7 @@ public:
 
     coparos::Service_command cmd;
     if (target == 4 && target != current_mode() && safe_misson_ < 10) {
+      posadka = false;
       safe_misson_++;
       if (azimuth_fly) {
         ac.cancelGoal();
@@ -149,16 +153,9 @@ public:
       // flight_mode_service_client.call(cmd);
       // logging("Current mode " + std::to_string(current_mode()));
       logging("Set mission mode");
-    } else if (target == 1 && !azimuth_fly) {
-      logging("Into Azimuth Fly");
+    } else if (target == 1 && !azimuth_fly && !posadka) {
       safe_misson_ = 0;
-      cmd.request.param1 = 1;
-      flight_mode_service_client.call(cmd);
-      logging("Set althold mode");
-
       logging("Starting action azimuth client ");
-
-      logging("start azimuth fly");
       coparos::AzimuthFlyGoal goal;
       if (mission_.size() == 0) {
         logging("Mission is empty");
@@ -175,8 +172,17 @@ public:
         goal.target.maxHorizSpeed = mission_[current_wp_].maxHorizSpeed;
         if (goal.target.targetLat < 5.0 || goal.target.targetLon < 5.0) {
           logging("target coordinates empty");
+          gnss_on.call(cmd);
+          logging("Finishing mission");
+          cmd.request.param1 = current_wp_;
+          exec_point_service_client.call(cmd);
+          posadka = true;
           return;
         }
+        cmd.request.param1 = 1;
+        flight_mode_service_client.call(cmd);
+        logging("Set althold mode");
+        logging("start azimuth fly");
         logging("sending goal");
 
         ac.sendGoal(goal);
