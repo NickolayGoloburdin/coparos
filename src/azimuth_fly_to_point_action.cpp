@@ -93,7 +93,7 @@ public:
     angles.x = pitch;
     angles.y = roll;
     angles_pub_.publish(angles);
-    logging("pitch = " + rounded(angles.x) + ", roll = " + rounded(angles.y));
+    ROS_INFO("pitch = %d", angles.x, ", roll = %d", angles.y);
   }
   void set_course(double course, double speed) {
     ros::ServiceClient client_yaw =
@@ -216,8 +216,9 @@ public:
     }
     logging("Target speed " + rounded(horizontal_speed));
     double time = (distance - start_way - stop_way) / horizontal_speed;
-    logging("Stop pitch = " + rounded(stop_pitch) + ", Stop roll = " +
-            rounded(stop_roll) + "\n" + "Flight pitch = " + rounded(set_pitch) +
+    logging("Stop pitch = " + rounded(stop_pitch) +
+            ", Stop roll = " + rounded(stop_roll));
+    logging("Flight pitch = " + rounded(set_pitch) +
             ", Fligh roll = " + rounded(set_roll));
 
     logging("Start time = " + std::to_string(int(accel_time)) +
@@ -251,9 +252,9 @@ public:
     }
     start_time = ros::Time::now();
     timeout = ros::Duration(deccel_time);
+    set_pitch -= stop_pitch;
+    set_pitch = -set_pitch;
     while (ros::Time::now() - start_time < timeout) {
-      set_pitch -= stop_pitch;
-      set_pitch = -set_pitch;
       double u_p = regulator_calculate(set_pitch, current_pitch, k_gain);
       double u_r = regulator_calculate(set_roll, current_roll, k_gain);
       double control_pitch = std::abs(set_pitch + u_p) > 25
