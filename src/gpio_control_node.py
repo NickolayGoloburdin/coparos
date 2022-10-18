@@ -37,7 +37,7 @@ class GPIO_controller:
             GPIO.setup(i, GPIO.OUT)
         self.prev_value = None
     def enable_pin(self,pin):
-        GPIO.output(pin, GPIO.HIled_pinGH)
+        GPIO.output(pin, GPIO.HIGH)
     def disable_pin(self,pin):
         GPIO.output(pin, GPIO.LOW)
     def inverse_pin(self,pin):
