@@ -62,23 +62,33 @@ protected:
   // create messages that are used to published feedback/result
   coparos::AzimuthFlyFeedback feedback_;
   coparos::AzimuthFlyResult result_;
+  double current_pitch, current_roll;
 
 public:
   ros::Publisher log_pub_;
   ros::Publisher angles_pub_;
+  ros::Subscriber pry_sub;
   geometry_msgs::Vector3 angles;
   std_msgs::String log;
+  double k_gain;
 
   AzimuthFlyActionServer(std::string name)
       : as_(nh_, name,
             boost::bind(&AzimuthFlyActionServer::executeCB, this, _1), false),
         action_name_(name) {
     as_.start();
+    nh_.getParam("/k_gain", k_gain);
+    pry_sub = nh_.subscribe("/pry_for_control", 5,
+                            &AzimuthFlyActionServer::callback_pry, this);
     log_pub_ = nh_.advertise<std_msgs::String>("/logging_topic", 1000);
     angles_pub_ = nh_.advertise<geometry_msgs::Vector3>("/manualAngles", 1000);
   }
 
   ~AzimuthFlyActionServer(void) {}
+  void callback_pry(const geometry_msgs::Vector3 &msg) {
+    current_pitch = msg.x;
+    current_roll = msg.y;
+  }
   void set_pitch_roll(double pitch, double roll) {
     angles.x = pitch;
     angles.y = roll;
@@ -142,17 +152,25 @@ public:
     int sign = (wind_roll > 0) - (wind_roll < 0);
     return wind_roll * k_speed * wind_speed; // for stopping drone
   }
+  double regulator_calculate(double target, double current, double k) {
+    if (std::abs(target - current) < 0.3)
+      return 0;
+    else if ((target - current) > 7.0) {
+      logging("too much error in regulator");
+      return sign(target - current) * 2;
+    } else
+      return (target - current) * k;
+  }
   void executeCB(const coparos::AzimuthFlyGoalConstPtr &goal) {
     // helper variables
-    ros::Rate r(1);
+    ros::Rate r(2);
 
-    double lat1, lon1, lat2, lon2, wind_angle, wind_speed, additional_speed,
-        k_speed_angle, accel_time, deccel_time, k_stop_speed_acc,
-        max_drone_angle;
+    double lat1, lon1, lat2, lon2, wind_angle, wind_speed, k_speed_angle,
+        accel_time, deccel_time, k_stop_speed_acc, max_drone_angle;
 
     nh_.getParam("/wind_speed", wind_speed);
     nh_.getParam("/wind_angle", wind_angle);
-    nh_.getParam("/addition_angle", additional_speed);
+    // nh_.getParam("/addition_angle", additional_speed);
     nh_.getParam("/koeff_speed_angle", k_speed_angle);
     nh_.getParam("/accel_time", accel_time);
     nh_.getParam("/deccel_time", deccel_time);
@@ -188,9 +206,12 @@ public:
 
     if (std::abs(set_pitch) >= max_drone_angle) {
       horizontal_speed =
-          std::abs(max_drone_angle - std::abs(stop_pitch)) / k_speed_angle;
-      if (horizontal_speed < 0)
+          (max_drone_angle - std::abs(stop_pitch)) / k_speed_angle;
+      if (horizontal_speed < 0) {
         logging("wind speed is too much");
+        logging("FINISHING TOO MUCH WIND");
+        return;
+      }
       set_pitch = -max_drone_angle;
     }
     logging("Target speed " + rounded(horizontal_speed));
@@ -207,10 +228,19 @@ public:
     ros::Duration(accel_time).sleep();
 
     ros::Time start_time = ros::Time::now();
-    logging("Popravka po skorosti: " + std::to_string(int(additional_speed)));
+    // logging("Popravka po skorosti: " +
+    // std::to_string(int(additional_speed)));
     ros::Duration timeout(time); // Timeout of 2 seconds
     while (ros::Time::now() - start_time < timeout) {
-      set_pitch_roll(set_pitch - additional_speed, set_roll);
+      double u_p = regulator_calculate(set_pitch, current_pitch, k_gain);
+      double u_r = regulator_calculate(set_roll, current_roll, k_gain);
+      double control_pitch = std::abs(set_pitch + u_p) > 25
+                                 ? sign(set_pitch + u_p) * 25
+                                 : set_pitch + u_p;
+      double control_roll = std::abs(set_roll + u_r) > 25
+                                ? sign(set_roll + u_r) * 25
+                                : set_roll + u_r;
+      set_pitch_roll(control_pitch, control_roll);
       if (as_.isPreemptRequested()) {
         as_.setPreempted();
         set_pitch_roll(0, 0);
@@ -222,7 +252,18 @@ public:
     start_time = ros::Time::now();
     timeout = ros::Duration(deccel_time);
     while (ros::Time::now() - start_time < timeout) {
-      set_pitch_roll(-set_pitch + stop_pitch + additional_speed, set_roll);
+      set_pitch -= stop_pitch;
+      set_pitch = -set_pitch;
+      double u_p = regulator_calculate(set_pitch, current_pitch, k_gain);
+      double u_r = regulator_calculate(set_roll, current_roll, k_gain);
+      double control_pitch = std::abs(set_pitch + u_p) > 25
+                                 ? sign(set_pitch + u_p) * 25
+                                 : set_pitch + u_p;
+      double control_roll = std::abs(set_roll + u_r) > 25
+                                ? sign(set_roll + u_r) * 25
+                                : set_roll + u_r;
+      set_pitch_roll(control_pitch, control_roll);
+      // set_pitch_roll(-set_pitch + stop_pitch, set_roll);
       if (as_.isPreemptRequested()) {
         as_.setPreempted();
         set_pitch_roll(0, 0);
