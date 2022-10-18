@@ -23,7 +23,7 @@ class InfoGetter:
         else:
             return 2
 class GPIO_controller:
-    def __init__(self, in_pins = None, out_pins):
+    def __init__(self, in_pins = None, out_pins = None):
         GPIO.setmode(GPIO.BOARD)
         for i in in_pins:
             GPIO.setup(i, GPIO.IN)
