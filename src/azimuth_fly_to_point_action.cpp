@@ -78,7 +78,7 @@ public:
         action_name_(name) {
     as_.start();
     nh_.getParam("/k_gain", k_gain);
-    pry_sub = nh_.subscribe("/pry_for_control", 5,
+    pry_sub = nh_.subscribe("/pry_for_control", 2,
                             &AzimuthFlyActionServer::callback_pry, this);
     log_pub_ = nh_.advertise<std_msgs::String>("/logging_topic", 1000);
     angles_pub_ = nh_.advertise<geometry_msgs::Vector3>("/manualAngles", 1000);
@@ -93,7 +93,7 @@ public:
     angles.x = pitch;
     angles.y = roll;
     angles_pub_.publish(angles);
-    ROS_INFO("pitch = %d", angles.x, ", roll = %d", angles.y);
+    logging("pitch = %d", angles.x, ", roll = %d", angles.y);
   }
   void set_course(double course, double speed) {
     ros::ServiceClient client_yaw =
