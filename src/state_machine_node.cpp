@@ -156,7 +156,9 @@ public:
       logging("Starting action azimuth client ");
       coparos::AzimuthFlyGoal goal;
       if (mission_.size() == 0) {
-        logging("Mission is empty");
+        logging("Mission is empty Set althold mode");
+        cmd.request.param1 = 1;
+        flight_mode_service_client.call(cmd);
         return;
       }
       if (current_wp_ <= mission_.size()) {

@@ -92,12 +92,12 @@ public:
     // logging("Setting stop mode for 5 sec");
 
     // geometry_msgs::Vector3 angles;
-    // cmd.request.param1 = angle < 0.0 ? angle + 180.0 : angle - 180.0;
-    // cmd.request.param2 = 60;
-    // if (client_yaw.call(cmd)) {
-    //   logging("Setting course " + rounded(cmd.request.param1));
-    // }
-    // // ros::Duration(4).sleep();
+    cmd.request.param1 = angle < 0.0 ? angle + 180.0 : angle - 180.0;
+    cmd.request.param2 = 60;
+    if (client_yaw.call(cmd)) {
+      logging("Setting course " + rounded(cmd.request.param1));
+    }
+    ros::Duration(2).sleep();
     // angles.x = -speed * koeff_speed_angle;
     // logging("Setting pitch = " + rounded(angles.x) +
     //         ", roll = " + rounded(angles.y));
@@ -121,9 +121,9 @@ public:
     //   res.result = false;
     //   return true;
     // }
-    // res.status = "wind has been measured";
-    // res.result = true;
-    // return true;
+    res.status = "wind has been measured";
+    res.result = true;
+    return true;
   }
   void callback_heading(const coparos::DroneInfo &msg) {
     heading_ = double(msg.ABSOLUTE_HEADING);
