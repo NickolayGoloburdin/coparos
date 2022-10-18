@@ -2,6 +2,7 @@
 import rospy
 from coparos.msg import DroneInfo
 from sensor_msgs.msg import NavSatFix 
+from std_msgs.msg import Bool
 import RPi.GPIO as GPIO
 import time
 led_pin = 7
@@ -9,16 +10,20 @@ class InfoGetter:
     def __init__(self):
         self.status_sub = rospy.Subscriber("/droneInfo", DroneInfo, self.status_callback)
         self.telem_sub = rospy.Subscriber("/gps", NavSatFix, self.telem_callback)
+        self.camera_sub = rospy.Subscriber("/camera_alive", Bool, self.camera_callback)
         self.status = False
         self.telem = False
+        self.camera = False
     def telem_callback(self,data):
         self.telem = True
     def status_callback(self,data):
         self.status = True
+    def camera_callback(self,data):
+        self.camera = True
     def check_state(self):
-        if self.telem == True and self.status == True:
+        if self.telem == True and self.status == True and self.camera == True:
             return 0
-        elif self.telem == True or self.status == True:
+        elif self.telem == True or self.status == True or self.camera == True:
             return 1
         else:
             return 2
