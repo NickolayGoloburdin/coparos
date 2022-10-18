@@ -25,8 +25,8 @@ class InfoGetter:
 class GPIO_controller:
     def __init__(self, in_pins = None, out_pins = None):
         GPIO.setmode(GPIO.BOARD)
-        for i in in_pins:
-            GPIO.setup(i, GPIO.IN)
+        # for i in in_pins:
+        #     GPIO.setup(i, GPIO.IN)
         for i in out_pins:
             GPIO.setup(i, GPIO.OUT)
         self.prev_value = None
