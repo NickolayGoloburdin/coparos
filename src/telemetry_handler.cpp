@@ -10,6 +10,7 @@
 #include "abstract_link.h"
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <geometry_msgs/Vector3.h>
 
 /*********************************** Подсчёт CRC
  * *************************************/
@@ -23,6 +24,7 @@ TelemetryHandler_ACO::TelemetryHandler_ACO(AbstractLink *link,
                                            HandlerType type)
     : link_(link), nh_(nh), type_(type) {
   if (type_ == RECIEVER || type_ == DUPLEX) {
+    pitch_roll_yaw_pub_= nh_->advertise<geometry_msgs::Vector3>("/pry_for_control", 10);
     imu_pub_ = nh_->advertise<sensor_msgs::Imu>("/imu", 1000);
     gps_pub_ = nh_->advertise<sensor_msgs::NavSatFix>("/gps", 1000);
     baro_pub_ = nh_->advertise<std_msgs::Float64>("/baro", 1000);
@@ -157,6 +159,11 @@ void TelemetryHandler_ACO::PackRec(Header_t *header, void *body) {
     // msg.hAcc = Telemetry_data.hAcc;
     imu_msg.header.frame_id = "local_frame";
     imu_msg.header.stamp = ros::Time::now();
+    geometry_msgs::Vector3 pry_msg;
+    pry_msg.x = Telemetry_data.IMU_PITCH;
+    pry_msg.y = Telemetry_data.IMU_ROLL;
+    pry_msg.z = Telemetry_data.IMU_YAW;
+    
     tf2::Quaternion myQuaternion;
     //Перевод данных инерциальной системы из углов эйлера в кватернион
     myQuaternion.setRPY(degree_to_radian(Telemetry_data.IMU_PITCH),
@@ -182,6 +189,7 @@ void TelemetryHandler_ACO::PackRec(Header_t *header, void *body) {
     // msg.ALTITUDE = Telemetry_data.ALTITUDE;
     baro_msg.data = Telemetry_data.ALTITUDE;
     //Отправка сообщений в топики РОС
+    pitch_roll_yaw_pub_.publish(pry_msg);
     baro_pub_.publish(baro_msg);
     gps_pub_.publish(gps_msg);
     imu_pub_.publish(imu_msg);

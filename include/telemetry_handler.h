@@ -86,6 +86,8 @@ private:
   ros::Publisher
       gps_pub_; //Издатель в РОС, который посылает в топик gps координаты
   ros::Publisher
+    pitch_roll_yaw_pub_; //Издатель в РОС, который посылает в топик gps координаты
+  ros::Publisher
       baro_pub_; //Издатель в РОС, который посылает в топик значения барометра
   ros::Subscriber fake_gps_sub_;
   HandlerType type_;
