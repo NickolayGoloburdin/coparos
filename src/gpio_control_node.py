@@ -23,7 +23,7 @@ class InfoGetter:
         else:
             return 2
 class GPIO_controller:
-    def __init__(self, in_pins = [], out_pins = None):
+    def __init__(self, in_pins = [], out_pins = []):
         GPIO.setmode(GPIO.BOARD)
         for i in in_pins:
             GPIO.setup(i, GPIO.IN)
@@ -44,7 +44,7 @@ class GPIO_controller:
 if __name__ == '__main__':
     rospy.init_node('GPIO_controller')
     infoget = InfoGetter()
-    controller = GPIO_controller(None,out_pins=[led_pin])
+    controller = GPIO_controller(out_pins=[led_pin])
     GPIO.setup(led_pin, GPIO.OUT)  # LED pin set as output
     GPIO.output(led_pin, GPIO.LOW)
     rate = rospy.Rate(2) # 10hz
