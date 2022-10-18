@@ -30,6 +30,7 @@ class InfoGetter:
 class GPIO_controller:
     def __init__(self, in_pins = [], out_pins = []):
         GPIO.setmode(GPIO.BOARD)
+        GPIO.setwarnings(False)
         for i in in_pins:
             GPIO.setup(i, GPIO.IN)
         for i in out_pins:

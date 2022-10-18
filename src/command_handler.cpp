@@ -1174,7 +1174,7 @@ void COPA::Copa_Motors_Off() {
 void COPA::Copa_Take_Off(float doAltitude) {
   //Высота относительно точки взлёта, на которую должен подняться коптер.
   doAltitude = e_float(doAltitude);
-  CopaPacketMake(CMD_NAV_TAKE_OFF, &doAltitude, 0);
+  CopaPacketMake(CMD_NAV_TAKE_OFF, &doAltitude, 4);
   CopaPacketSend();
 }
 /**********************************	Посадка.
