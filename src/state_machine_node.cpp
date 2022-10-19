@@ -161,7 +161,7 @@ public:
         flight_mode_service_client.call(cmd);
         return;
       }
-      if (current_wp_ <= mission_.size()) {
+      if (current_wp_ < mission_.size()) {
         logging("c_wp size accepted, mission size " +
                 std::to_string(mission_.size()));
         logging("fly to point num " + std::to_string(current_wp_));
@@ -239,7 +239,7 @@ public:
       for (size_t i = 0; i < mission_.size(); i++) {
         logging("Point " + std::to_string(i) +
                 "lat = " + std::to_string(mission_[i].targetLat) +
-                " lon = " + std::to_string(mission_[i].targetLon) + "\n");
+                " lon = " + std::to_string(mission_[i].targetLon));
       }
     }
   }
