@@ -93,7 +93,7 @@ public:
     angles.x = pitch;
     angles.y = roll;
     angles_pub_.publish(angles);
-    logging("pitch = %d", angles.x, ", roll = %d", angles.y);
+    logging("pitch = %d" + rounded(angles.x) +  ", roll = %d"+ rounded(angles.y));
   }
   void set_course(double course, double speed) {
     ros::ServiceClient client_yaw =
