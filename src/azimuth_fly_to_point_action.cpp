@@ -78,7 +78,7 @@ public:
         action_name_(name) {
     as_.start();
     nh_.getParam("/k_gain", k_gain);
-    pry_sub = nh_.subscribe("/pry_for_control", 2,
+    pry_sub = nh_.subscribe("/pry_for_control", 1,
                             &AzimuthFlyActionServer::callback_pry, this);
     log_pub_ = nh_.advertise<std_msgs::String>("/logging_topic", 1000);
     angles_pub_ = nh_.advertise<geometry_msgs::Vector3>("/manualAngles", 1000);
@@ -93,7 +93,7 @@ public:
     angles.x = pitch;
     angles.y = roll;
     angles_pub_.publish(angles);
-    logging("pitch = %d" + rounded(angles.x) +  ", roll = %d"+ rounded(angles.y));
+    logging("pitch = " + rounded(angles.x) +  ", roll = "+ rounded(angles.y));
   }
   void set_course(double course, double speed) {
     ros::ServiceClient client_yaw =
@@ -212,6 +212,7 @@ public:
         logging("FINISHING TOO MUCH WIND");
         return;
       }
+      horizontal_speed = std::abs(horizontal_speed);
       set_pitch = -max_drone_angle;
     }
     logging("Target speed " + rounded(horizontal_speed));
@@ -241,13 +242,14 @@ public:
       double control_roll = std::abs(set_roll + u_r) > 25
                                 ? sign(set_roll + u_r) * 25
                                 : set_roll + u_r;
-      set_pitch_roll(control_pitch, control_roll);
+      set_pitch_roll(set_pitch, control_roll);
       if (as_.isPreemptRequested()) {
         as_.setPreempted();
         set_pitch_roll(0, 0);
         logging("Action stopped from client");
         return;
       }
+      ros::spinOnce();
       r.sleep();
     }
     start_time = ros::Time::now();
@@ -263,7 +265,7 @@ public:
       double control_roll = std::abs(set_roll + u_r) > 25
                                 ? sign(set_roll + u_r) * 25
                                 : set_roll + u_r;
-      set_pitch_roll(control_pitch, control_roll);
+      set_pitch_roll(set_pitch, control_roll);
       // set_pitch_roll(-set_pitch + stop_pitch, set_roll);
       if (as_.isPreemptRequested()) {
         as_.setPreempted();
@@ -271,6 +273,7 @@ public:
         logging("Action stopped from client");
         return;
       }
+      ros::spinOnce();
       r.sleep();
     }
     set_pitch_roll(stop_pitch, stop_roll);
