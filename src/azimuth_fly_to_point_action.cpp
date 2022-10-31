@@ -1,3 +1,12 @@
+/*
+ * azimuth_fly_to_point_action.cpp
+ *
+ *  Created on: 10 сентябрря. 2022 г.
+ *      Author: Nickolay
+ */
+/*
+Модуль азимутального полета
+*/
 #include <actionlib/server/simple_action_server.h>
 #include <cmath>
 #include <coparos/AzimuthFlyAction.h>
@@ -20,11 +29,16 @@ const float b = 6371000.0;
 
 const double start_way = 16;
 const double stop_way = 20;
+//Функция округления числа и возвращения строки для отправки логов с одним
+//знаком после запятой
 std::string rounded(double a) {
   std::string num_text = std::to_string(a);
   return num_text.substr(0, num_text.find(".") + 2);
 }
+//Функция определения знака числа
 int sign(double a) { return (a > 0) - (a < 0); }
+//Функция высчета азимута между двумя точками в формате WGS84, выдает азимут в
+//градусах
 double calculateBearing(double lat1, double lon1, double lat2, double lon2) {
   double longitude1 = lon1;
   double longitude2 = lon2;
@@ -39,6 +53,7 @@ double calculateBearing(double lat1, double lon1, double lat2, double lon2) {
 
   return fmod(((RADIANES_GRADOS * (atan2(y, x))) + 360), 360);
 }
+//Функция расчета расстояния в метрах между двумя точками в формате WGS84
 double distanceEarth(double lat1, double lon1, double lat2, double lon2) {
   double lat1r, lon1r, lat2r, lon2r, u, v;
   lat1r = degToRad(lat1);
@@ -51,7 +66,7 @@ double distanceEarth(double lat1, double lon1, double lat2, double lon2) {
          std::asin(
              std::sqrt(u * u + std::cos(lat1r) * std::cos(lat2r) * v * v));
 }
-
+// Класс полета по азимуту
 class AzimuthFlyActionServer {
 protected:
   ros::NodeHandle nh_;
@@ -65,9 +80,11 @@ protected:
   double current_pitch, current_roll;
 
 public:
-  ros::Publisher log_pub_;
-  ros::Publisher angles_pub_;
-  ros::Subscriber pry_sub;
+  ros::Publisher log_pub_; //Модуль отправки логов
+  ros::Publisher angles_pub_; //Модуль отправки в полетный контроллер
+                              //необходимого тангажа и крена
+  ros::Subscriber pry_sub; //Модуль обратной свзяи по тангажу и крену от
+                           //полетного контроллера
   geometry_msgs::Vector3 angles;
   std_msgs::String log;
 
@@ -83,17 +100,22 @@ public:
   }
 
   ~AzimuthFlyActionServer(void) {}
-  void callback_pry(const geometry_msgs::Vector3 &msg) {
+  void callback_pry(
+      const geometry_msgs::Vector3 &msg) { // Получение текущих углов тангажа и
+                                           // крена из полетного контроллера
     current_pitch = msg.x;
     current_roll = msg.y;
   }
-  void set_pitch_roll(double pitch, double roll) {
+  void set_pitch_roll(double pitch, double roll) { //Выставление тангажа и крена
     angles.x = pitch;
     angles.y = roll;
     angles_pub_.publish(angles);
-    logging("pitch = " + rounded(angles.x) + ", roll = " + rounded(angles.y));
+    logging("pitch = " + rounded(angles.x) +
+            ", roll = " + rounded(angles.y)); // Логирование
   }
-  void set_course(double course, double speed) {
+  void set_course(double course,
+                  double speed) { // Выставление угла рысканья дрона в
+                                  // глобальной системе координат
     ros::ServiceClient client_yaw =
         nh_.serviceClient<coparos::Service_command>("Set_yaw");
     coparos::Service_command cmd;
@@ -102,22 +124,22 @@ public:
     client_yaw.call(cmd);
     logging("Setting course " + rounded(course));
   }
-  std::tuple<double, double> get_gps() {
+  std::tuple<double, double> get_gps() { // Получение текущих координат GPS
     ros::ServiceClient client_gps = nh_.serviceClient<coparos::GPS>("Get_gps");
     coparos::GPS gps;
 
     client_gps.call(gps);
     return std::make_tuple(gps.response.lat, gps.response.lon);
   }
-  double calculate_target_pitch(double azimuth, double wind_angle,
-                                double wind_speed, double k_speed,
-                                double max_const_angle) {
+  double calculate_target_pitch(
+      double azimuth, double wind_angle, double wind_speed, double k_speed,
+      double max_const_angle) { // вычисление необходимого для полета тангажа
     double diff_angle = degToRad(azimuth - wind_angle);
     double wind_pitch = std::cos(diff_angle);
     double set_additional_pitch = wind_speed * wind_pitch * k_speed;
     return -max_const_angle + set_additional_pitch;
   }
-  void logging(std::string log_str) {
+  void logging(std::string log_str) { // Логирование команды
     log.data = log_str;
     log_pub_.publish(log);
   }
@@ -126,31 +148,33 @@ public:
   //                             double stop_way, double wind_angle,
   //                             double wind_speed double k_speed,
   //                             double max_const_angle) {}
-  double calculate_target_roll(double azimuth, double wind_angle,
-                               double wind_speed, double k_speed,
-                               double max_const_angle) {
+  double calculate_target_roll(
+      double azimuth, double wind_angle, double wind_speed, double k_speed,
+      double max_const_angle) { // вычисление необходимого для полета крена
     double diff_angle = degToRad(azimuth - wind_angle);
     double wind_roll = std::sin(diff_angle);
     int sign = (wind_roll > 0) - (wind_roll < 0);
     double stop_roll = wind_roll * k_speed * wind_speed; // for stopping drone
     return std::abs(stop_roll) > 25 ? sign * 25 : stop_roll;
   }
-  double calculate_stop_pitch(double azimuth, double wind_angle,
-                              double wind_speed, double k_speed,
-                              double max_const_angle) {
+  double calculate_stop_pitch(
+      double azimuth, double wind_angle, double wind_speed, double k_speed,
+      double max_const_angle) { // вычисление необходимого для остановки тангажа
     double diff_angle = degToRad(azimuth - wind_angle);
     double wind_pitch = std::cos(diff_angle);
     return wind_speed * wind_pitch * k_speed;
   }
-  double calculate_stop_roll(double azimuth, double wind_angle,
-                             double wind_speed, double k_speed,
-                             double max_const_angle) {
+  double calculate_stop_roll(
+      double azimuth, double wind_angle, double wind_speed, double k_speed,
+      double max_const_angle) { // вычисление необходимого для остановки крена
     double diff_angle = degToRad(azimuth - wind_angle);
     double wind_roll = std::sin(diff_angle);
     int sign = (wind_roll > 0) - (wind_roll < 0);
     return wind_roll * k_speed * wind_speed; // for stopping drone
   }
-  double regulator_calculate(double target, double current, double k) {
+  double regulator_calculate(double target, double current,
+                             double k) { // Регулятор для того чтобы полетный
+                                         // контроллер держал необходимые углы
     logging("target: " + rounded(target) + " current: " + rounded(current));
     if (std::abs(target - current) < 0.3) {
       logging("zero err");
@@ -172,8 +196,9 @@ public:
     ros::Rate r(2);
 
     double lat1, lon1, lat2, lon2, wind_angle, wind_speed, k_speed_angle,
-        accel_time, deccel_time, k_stop_speed_acc, max_drone_angle, k_gain;
-
+        accel_time, deccel_time, k_stop_speed_acc, max_drone_angle, k_gain,
+        dead_zone;
+    // Получение параметров из конфиг файла и направления и скорости ветра
     nh_.getParam("/wind_speed", wind_speed);
     nh_.getParam("/wind_angle", wind_angle);
     // nh_.getParam("/addition_angle", additional_speed);
@@ -186,12 +211,14 @@ public:
     logging("k_gain = " + rounded(k_gain));
 
     ros::ServiceClient client_flight_mode;
-
+    //Получение текущих координат GPS
     std::tie(lat1, lon1) = get_gps();
     lat2 = goal->target.targetLat;
     lon2 = goal->target.targetLon;
+    // Необходимая горизонтальная скорость полета
     double horizontal_speed = 10.0;
     // double horizontal_speed = goal->target.maxHorizSpeed;
+    //Логирование текущих и целевых координат
     logging("Current lat = " + std::to_string(lat1) +
             ", lon = " + std::to_string(lon1));
     logging("Target lat = " + std::to_string(lat2) +
@@ -199,10 +226,12 @@ public:
     double azimuth = calculateBearing(lat1, lon1, lat2, lon2);
     azimuth = azimuth > 180.0 ? azimuth - 360.0 : azimuth;
     double distance = distanceEarth(lat1, lon1, lat2, lon2);
+    // Логирование рассчитанного азимута и расстояния
     logging("course = " + rounded(azimuth) +
             ", distance = " + std::to_string(int(distance)));
     set_course(azimuth, 60);
     // ros::Duration(4).sleep();
+    //Расчет необходимых для полета углов
     double set_pitch = calculate_target_pitch(azimuth, wind_angle, wind_speed,
                                               k_speed_angle, 15);
     double set_roll = calculate_target_roll(azimuth, wind_angle, wind_speed,
@@ -211,7 +240,7 @@ public:
                                              k_speed_angle, 15);
     double stop_roll =
         calculate_stop_roll(azimuth, wind_angle, wind_speed, k_speed_angle, 15);
-
+    //Ограничение выставляемых углов для предотвращения сваливания дрона
     if (std::abs(set_pitch) >= max_drone_angle) {
       horizontal_speed =
           (max_drone_angle - std::abs(stop_pitch)) / k_speed_angle;
@@ -223,6 +252,7 @@ public:
       horizontal_speed = std::abs(horizontal_speed);
       set_pitch = -max_drone_angle;
     }
+    //Логирование всех расчетных углов
     logging("Target speed " + rounded(horizontal_speed));
     double time = (distance - start_way - stop_way) / horizontal_speed;
     logging("Stop pitch = " + rounded(stop_pitch) +
@@ -240,6 +270,8 @@ public:
     ros::Time start_time = ros::Time::now();
     // logging("Popravka po skorosti: " +
     // std::to_string(int(additional_speed)));
+    //Разгон дрона 2 секунды
+    //После разгона выставление рассчитанных углов на рассчитанное время
     ros::Duration timeout(time); // Timeout of 2 seconds
     while (ros::Time::now() - start_time < timeout) {
       ros::spinOnce();
@@ -261,10 +293,12 @@ public:
       }
       r.sleep();
     }
+
     start_time = ros::Time::now();
     timeout = ros::Duration(deccel_time);
     set_pitch -= stop_pitch;
     set_pitch = -set_pitch;
+    //После полета торможение
     while (ros::Time::now() - start_time < timeout) {
       ros::spinOnce();
       // double u_p = regulator_calculate(set_pitch, current_pitch, k_gain);

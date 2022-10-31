@@ -4,7 +4,7 @@
  *  Created on: 5 августа 2022 г.
  *      Author: Nickolay
  */
-
+// Конечный автомат системы для включения азимутального полета и измерения ветра
 #include "copa_types.h"
 #include <actionlib/client/simple_action_client.h> // action Library Header File
 #include <actionlib/client/terminal_state.h> // Action Goal Status Header File
@@ -53,7 +53,8 @@ private:
   bool azimuth_fly = false;
   bool posadka = false;
   // actionlib::SimpleActionClient<coparos::AzimuthFlyAction> ac;
-
+  //Считывание данных с радиоканала для обработки команды измерения ветра и
+  // gnss_use с пульта
   void callback_drone_info(const coparos::DroneInfo &msg) {
     channel11_ = msg.rc11_channel;
     drone_mode_ = msg.DRONE_MODE;
@@ -68,6 +69,8 @@ private:
   // void callback_gnss(const std_msgs::Bool &msg) { gnss_status = msg.data; }
 
 public:
+  //вызывается модуль измерения ветра когда тумблер на 11 канале джойстика
+  //выдает пвм больше 900
   void mes_wind() {
     if (channel11_ > 900) {
       log.data = "Channel 11 = 1000; Starting measuring wind";
@@ -80,6 +83,7 @@ public:
       log_pub_.publish(log);
     }
   }
+  //Выбор режима полета: 1 азимутальный; 0 никакой; 4 автоматический
   unsigned int create_target_flight_mode() {
     if (gnss_status == true)
       return 4;
@@ -88,6 +92,7 @@ public:
     else
       return 1;
   }
+  //Запрос текущего режима в дроне
   unsigned int current_mode() { return drone_mode_; }
 
   StateMachine(ros::NodeHandle *nh) : nh_(nh) {
@@ -118,12 +123,13 @@ public:
     log.data = log_str;
     log_pub_.publish(log);
   }
-  void set_target_mode(
+  void set_target_mode( //Выставление необходимого режима полета
       actionlib::SimpleActionClient<coparos::AzimuthFlyAction> &ac) {
     if (baro_ < 10 || current_mode() == 3)
       return;
 
     unsigned int target = create_target_flight_mode();
+    // Проверка происходт ли в данный момент азимутальный полет
     if (ac.getState() == actionlib::SimpleClientGoalState::PENDING) {
       azimuth_fly = true;
 
@@ -138,6 +144,8 @@ public:
     }
 
     coparos::Service_command cmd;
+    //Если целевой режим автоматический, выставляется автоматический и если дрон
+    //в азимутальном режиме, поисходит выход из азимутального режима
     if (target == 4 && target != current_mode() && safe_misson_ < 10) {
       posadka = false;
       safe_misson_++;
@@ -152,6 +160,8 @@ public:
       logging("Current mode " + std::to_string(current_mode()));
       logging("Set mission mode");
     } else if (target == 1 && !azimuth_fly && !posadka) {
+      //Если целевой полет азимутальный, то из полетного задания получаются
+      //целевые точки  и отправляются в модуль азимутального полета
       safe_misson_ = 0;
       logging("Starting action azimuth client ");
       coparos::AzimuthFlyGoal goal;
@@ -184,6 +194,8 @@ public:
 
         cmd.request.param1 = current_wp_;
         exec_point_service_client.call(cmd);
+        //Перед вызовом азимутального полета включается режим удержания высоты
+        //для фиксации дрона
         cmd.request.param1 = 1;
         flight_mode_service_client.call(cmd);
         current_wp_++;
@@ -220,6 +232,9 @@ public:
       // }
     }
   }
+  //При включениии автоматического режима в первый раз с дрона скачивается
+  //текущее полетное задания для азимутального полета
+
   void check_mission() {
     if (mission_downloaded_)
       return;

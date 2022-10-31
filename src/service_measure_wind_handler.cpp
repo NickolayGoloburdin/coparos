@@ -1,3 +1,12 @@
+/*
+ * service_measure_wind_handler.cpp
+ *
+ *  Created on: 1 сентябрря. 2022 г.
+ *      Author: Nickolay
+ */
+/*
+Модуль Измерения ветра
+*/
 #include "coparos/Service_command.h"
 #include "ros/ros.h"
 #include <actionlib/client/simple_action_client.h>
@@ -50,7 +59,7 @@ public:
   }
   bool measure_wind(coparos::Service_command::Request &req,
                     coparos::Service_command::Response &res) {
-
+    //Сначала происходит остановка дрона и переход в режим удержания высоты
     coparos::Service_command cmd;
     cmd.request.param1 = 1;
     if (client_stop.call(cmd)) {
@@ -71,6 +80,7 @@ public:
     copa_msgs::WindSpeedGoal goal;
     goal.start = true;
     ac.sendGoal(goal);
+    //Вызывается модуль измерения ветра по камере или GPS
     bool finished_before_timeout = ac.waitForResult(ros::Duration(30.0));
     if (finished_before_timeout) {
       actionlib::SimpleClientGoalState state = ac.getState();
@@ -92,8 +102,10 @@ public:
     // logging("Setting stop mode for 5 sec");
 
     // geometry_msgs::Vector3 angles;
+    //Перевод в систему координат Виктора
     cmd.request.param1 = angle < 0.0 ? angle + 180.0 : angle - 180.0;
     cmd.request.param2 = 60;
+    //Выставляется курс против ветра
     if (client_yaw.call(cmd)) {
       logging("Setting course " + rounded(cmd.request.param1));
     }
